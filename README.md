@@ -1,45 +1,101 @@
-# Simulasi Voice/Video Call WebRTC dengan Coturn (STUN/TURN)
+# Simulasi Voice/Video Call WebRTC dengan Coturn (STUN/TURN) & PostgreSQL (Neon)
 
-Proyek ini adalah simulasi komunikasi real-time (Voice Call, Video Call, dan Chat DataChannel) berbasis **WebRTC**, dilengkapi **Signaling Server** buatan sendiri (Node.js WebSocket) dan **Coturn** sebagai server STUN dan TURN.
+Aplikasi simulasi komunikasi real-time lengkap berbasis **WebRTC** yang mencakup fitur **Video Call**, **Voice Call**, dan **Chat RTCDataChannel**. Dilengkapi **Signaling Server** mandiri (Node.js WebSocket), server **Coturn** (STUN & TURN) di dalam Docker, serta integrasi **Database Cloud Neon PostgreSQL** untuk pencatatan persisten riwayat panggilan dan observabilitas jaringan.
 
-Tujuan utama proyek ini adalah **memahami, mendemonstrasikan, dan membuktikan cara kerja Coturn (STUN/TURN)** dalam menembus NAT/Firewall.
+Antarmuka pengguna (*Frontend*) mengadopsi tema gelap modern bergaya **WhatsApp Web Dark Mode**.
+
+---
+
+## 📑 Daftar Isi
+- [Fitur Utama](#-fitur-utama)
+- [Struktur Proyek](#-struktur-proyek)
+- [Teknologi yang Digunakan](#-teknologi-yang-digunakan)
+- [Prasyarat Sistem](#-prasyarat-sistem)
+- [Panduan Menjalankan Simulasi](#-panduan-menjalankan-simulasi)
+- [Panduan Lintas Perangkat (Laptop ke Smartphone)](#-panduan-lintas-perangkat-laptop-ke-smartphone)
+- [Metode Pembuktian Cara Kerja Coturn](#-metode-pembuktian-cara-kerja-coturn)
+- [Integrasi Database Neon PostgreSQL](#-integrasi-database-neon-postgresql)
+- [Observabilitas Real-Time (getStats)](#-observabilitas-real-time-getstats)
+- [Konfigurasi Coturn](#-konfigurasi-coturn)
+
+---
+
+## 🌟 Fitur Utama
+
+1. **Komunikasi Real-time WebRTC**:
+   - Panggilan Video 720p HD dengan preview lokal *Picture-in-Picture*.
+   - Panggilan Suara dengan visualisasi avatar berdenyut.
+   - Kontrol Media: Mute/Unmute Mikrofon dan On/Off Kamera secara instan.
+   - Chat langsung *Peer-to-Peer* berbasis `RTCDataChannel`.
+2. **Observabilitas Coturn Terpadu**:
+   - Otomatis mendeteksi kandidat aktif: `HOST` (Lokal), `SRFLX` (STUN), atau `RELAY` (TURN).
+   - Saklar **"Paksa Jalur TURN Relay"** untuk mendemonstrasikan bahwa server Coturn benar-benar menyalurkan paket media.
+   - Panel Debug statistik: RTT (latensi), Bitrate (kbps), Packet Loss, dan konsol rekaman sinyal ICE.
+3. **Penyimpanan Cloud Neon PostgreSQL**:
+   - Status user online/offline tersimpan otomatis.
+   - Riwayat panggilan (Caller, Callee, durasi, status, serta **Jalur ICE Coturn**) tersimpan permanen.
+   - Modal interaktif **"📜 Riwayat DB"** di antarmuka web untuk melihat log panggilan langsung dari database.
+4. **Dukungan Multi-Device**:
+   - Deteksi IP otomatis (*auto-detect host*) saat diakses dari HP atau laptop lain dalam satu jaringan Wi-Fi.
 
 ---
 
 ## 📁 Struktur Proyek
 
-```
+```text
 VCall_WebRTC_Coturn/
-├── docker-compose.yml          # Menjalankan Coturn container (Docker)
+├── docker-compose.yml          # Konfigurasi container Coturn (STUN/TURN)
+├── .gitignore                  # Mengabaikan file sensitif (.env & node_modules)
+├── README.md                   # Dokumentasi teknis proyek
 ├── coturn/
-│   ├── turnserver.conf         # Konfigurasi port 3478, realm, akun simulasi
-│   ├── test-trickle-ice.html   # Tool mandiri uji WebRTC Trickle ICE di browser
-│   └── start-coturn.bat        # Skrip sekali klik untuk menjalankan Coturn
+│   ├── turnserver.conf         # Konfigurasi port 3478, realm, kredensial Coturn
+│   ├── test-trickle-ice.html   # Tool mandiri browser untuk uji Trickle ICE Coturn
+│   └── start-coturn.bat        # Skrip sekali klik untuk menyalakan Coturn
 ├── server/
-│   ├── package.json            # Dependensi server (ws)
-│   ├── index.js                # Signaling Server (WebSocket) + Static Web Server
-│   ├── test-signaling.js       # Skrip pengujian otomatis protokol signaling
-│   └── start-server.bat        # Skrip sekali klik untuk menjalankan server
+│   ├── .env                    # Kredensial rahasia DATABASE_URL Neon PostgreSQL
+│   ├── package.json            # Dependensi server (ws, pg, dotenv)
+│   ├── db.js                   # Modul koneksi pool & skema tabel Neon PostgreSQL
+│   ├── index.js                # Signaling Server (WebSocket) + Static Web Server + REST API
+│   ├── test-signaling.js       # Skrip pengujian otomatis alur protokol signaling
+│   └── start-server.bat        # Skrip sekali klik untuk menyalakan server
 ├── client/
-│   ├── index.html              # Antarmuka web Aplikasi A & B (WhatsApp-like UI)
-│   ├── app.js                  # Logika WebRTC, State Machine, Chat DataChannel, & getStats()
-│   └── style.css               # Styling bertema WhatsApp Web Dark Mode
+│   ├── index.html              # Antarmuka WhatsApp-like UI & Modal Riwayat DB
+│   ├── app.js                  # Logika WebRTC, State Machine, DataChannel, & DB sync
+│   └── style.css               # Styling WhatsApp Dark Mode responsif
 └── prd/
-    └── PRD Simulasi...pdf      # Dokumen PRD spesifikasi lengkap
+    └── PRD Simulasi...pdf      # Dokumen Product Requirement Document (PRD)
 ```
+
+---
+
+## 🛠️ Teknologi yang Digunakan
+
+- **WebRTC API**: `RTCPeerConnection`, `RTCDataChannel`, `getUserMedia`, `getStats()`.
+- **Backend / Signaling**: Node.js, `ws` (WebSocket), `http`, `pg` (PostgreSQL Client), `dotenv`.
+- **Coturn Server**: Container Docker `coturn/coturn:latest` (STUN/TURN RFC 5389 / 5766).
+- **Database**: **Neon Cloud Serverless PostgreSQL**.
+- **Frontend**: HTML5, CSS3 Modern Flexbox/Grid, Vanilla JavaScript (ES6+), Web Audio API Ringtone Synthesizer.
+
+---
+
+## ⚙️ Prasyarat Sistem
+
+1. **Node.js** (versi 18.x atau yang lebih baru).
+2. **Docker Desktop** (sudah terinstal dan aktif di komputer host).
+3. **Browser Modern**: Google Chrome, Microsoft Edge, Mozilla Firefox, atau Safari.
 
 ---
 
 ## 🚀 Panduan Menjalankan Simulasi
 
-### Langkah 1: Jalankan Coturn Server (STUN/TURN)
-1. Pastikan **Docker Desktop** sudah berjalan.
-2. Buka terminal atau klik dua kali:
+### Langkah 1: Jalankan Server Coturn (STUN/TURN)
+1. Pastikan Docker Desktop sudah aktif.
+2. Buka terminal di folder utama proyek, lalu jalankan:
    ```powershell
    docker compose up -d
    ```
-   *(Atau jalankan `coturn\start-coturn.bat`)*
-3. Pantau log Coturn secara live:
+   *(Atau klik dua kali file `coturn\start-coturn.bat`)*.
+3. Untuk melihat aktivitas Coturn secara live:
    ```powershell
    docker logs -f coturn-simulasi
    ```
@@ -50,68 +106,113 @@ VCall_WebRTC_Coturn/
    cd server
    npm start
    ```
-   *(Atau jalankan `server\start-server.bat`)*
-2. Server akan aktif di `http://localhost:3000`.
+   *(Atau klik dua kali file `server\start-server.bat`)*.
+2. Server akan aktif di port 3000:
+   - Antarmuka Utama: `http://localhost:3000`
+   - Tool Uji Coturn: `http://localhost:3000/trickle`
 
 ### Langkah 3: Buka Klien A dan Klien B di Browser
-1. Buka tab browser 1: `http://localhost:3000`
-   - Klik chip **Aplikasi A** lalu klik **Masuk & Sambungkan**.
-2. Buka tab browser 2 (atau jendela Incognito): `http://localhost:3000`
-   - Klik chip **Aplikasi B** lalu klik **Masuk & Sambungkan**.
-3. Di tab Aplikasi A, Anda akan melihat Aplikasi B dalam daftar online dengan status siap:
-   - Klik tombol **📹 Video** atau **📞 Suara**.
-   - Tab Aplikasi B akan berdering dengan dialog panggilan masuk.
-   - Klik **Terima** pada Aplikasi B.
-4. Panggilan terhubung! Anda dapat saling melihat video, mendengar suara, mengirim pesan chat lewat RTCDataChannel, serta mematikan kamera/mic.
+1. **Tab 1 (Klien A)**: Buka `http://localhost:3000`, pilih chip **Aplikasi A**, lalu klik **Masuk & Sambungkan**. Berikan izin kamera & mic.
+2. **Tab 2 (Klien B)**: Buka jendela baru / Incognito ke `http://localhost:3000`, pilih chip **Aplikasi B**, lalu klik **Masuk & Sambungkan**. Berikan izin kamera & mic.
+3. Di tab Aplikasi A, klik tombol **📹 Video Call** pada kontak Aplikasi B.
+4. Di tab Aplikasi B, dialog panggilan masuk akan berdering. Klik **Terima**.
+5. Panggilan terhubung! Aliran video, suara, dan chat DataChannel aktif secara bilateral.
 
 ---
 
-## 🧪 Cara Membuktikan Bahwa Coturn Benar-Benar Bekerja
+## 📱 Panduan Lintas Perangkat (Laptop ke Smartphone)
 
-### Tantangan Lingkungan Lokal:
-Pada pengujian di satu komputer (`localhost`), WebRTC secara default akan memilih kandidat **`host`** (koneksi langsung internal) karena latensinya paling rendah, sehingga Coturn tidak tersentuh.
+Untuk menguji panggilan antara **Laptop (Server)** dan **HP (Smartphone)** pada satu jaringan Wi-Fi:
 
-### Solusi Pembuktian (FR-43 & FR-40):
-1. **Buka Panel Debug**:
-   - Klik tombol **⚙️ Panel Debug Coturn** di pojok kanan atas.
-2. **Uji Jalur Normal (P2P Langsung)**:
+### 1. Dapatkan Alamat IP Komputer Anda
+Buka PowerShell di laptop dan jalankan:
+```powershell
+ipconfig
+```
+Cari **IPv4 Address** pada Wi-Fi adapter Anda (contoh: `192.168.1.15`).
+
+### 2. Atasi Batasan Keamanan Browser (Izin Kamera/Mic HTTP)
+> [!IMPORTANT]
+> Browser modern memblokir akses Kamera dan Mikrofon pada URL `http://` selain `localhost`. Gunakan salah satu opsi berikut:
+
+- **Opsi A (Paling Mudah - Rekomendasi Semua HP/iOS/Android)**:
+  Buka terminal baru di laptop dan jalankan tunneling HTTPS gratis:
+  ```powershell
+  npx localtunnel --port 3000
+  ```
+  Buka link `https://...loca.lt` yang dihasilkan di HP Anda. Kamera dan mic langsung diizinkan tanpa konfigurasi browser tambahan!
+
+- **Opsi B (Khusus Chrome di Android via IP Lokal)**:
+  1. Di Chrome HP, buka URL: `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
+  2. Masukkan alamat server Anda: `http://192.168.1.15:3000`
+  3. Ubah menjadi **Enabled**, lalu klik **Relaunch**.
+  4. Buka `http://192.168.1.15:3000` di HP.
+
+*Catatan: Host Coturn sudah otomatis mengenali alamat IP server saat dibuka dari HP.*
+
+---
+
+## 🧪 Metode Pembuktian Cara Kerja Coturn
+
+Pada lingkungan satu komputer (`localhost`), WebRTC secara otomatis memilih kandidat **`HOST`** karena latensinya paling rendah. Untuk membuktikan server Coturn bekerja:
+
+1. **Uji Kasus 1: Panggilan Langsung P2P (Normal)**
    - Lakukan panggilan tanpa mencentang saklar relay.
-   - Pada panel debug, Tipe Jalur Aktif akan bernilai: **`HOST`**.
-3. **Uji Pembuktian Coturn (Paksa Jalur TURN Relay)**:
-   - Akhiri panggilan.
-   - Aktifkan saklar: **"Paksa Jalur TURN Relay (Demo Coturn)"** di lobi.
-   - Lakukan panggilan kembali antara A dan B.
-   - Perhatikan perubahan berikut:
-     1. Tipe Jalur Aktif pada Panel Debug berubah menjadi **`RELAY (TURN COTURN)`** berwarna hijau emerald.
-     2. Di terminal log Docker Coturn (`docker logs -f coturn-simulasi`), muncul log alokasi:
+   - Buka **⚙️ Panel Debug Coturn**: Tipe Jalur bernilai **`HOST`**.
+   - Buka **📜 Riwayat DB**: Tercatat jalur `HOST`.
+
+2. **Uji Kasus 2: Pembuktian Coturn TURN Relay (Paksa Relay)**
+   - Aktifkan saklar **"Paksa Jalur TURN Relay (Demo Coturn)"** di lobi.
+   - Lakukan panggilan kembali.
+   - Perhatikan pembuktian serentak berikut:
+     1. **Badge UI**: Berubah menjadi hijau terang **`RELAY (TURN COTURN)`**.
+     2. **Log Docker Coturn** (`docker logs -f coturn-simulasi`): Muncul alokasi relay aktif:
         ```text
         IPv4. UDP relay user <simulasi> allocate request...
         allocation created: id=...
         ```
-     3. Ini adalah **bukti mutlak** bahwa aliran paket media 100% melewati Coturn!
-4. **Uji Negatif (Pembuktian Tambahan)**:
-   - Matikan container Coturn (`docker compose stop`).
-   - Coba lakukan panggilan dengan opsi "Paksa Jalur TURN Relay".
-   - Panggilan akan langsung gagal (**ICE Failed**), membuktikan panggilan sebelumnya benar-benar bergantung pada Coturn.
+     3. **Modal Riwayat DB**: Tersimpan permanen di database PostgreSQL dengan status jalur **`RELAY (TURN COTURN)`**.
+
+3. **Uji Kasus 3: Uji Negatif (Ketergantungan Coturn)**
+   - Matikan container Coturn: `docker compose stop`.
+   - Coba lakukan panggilan dengan opsi paksa relay aktif.
+   - Panggilan akan langsung gagal (**ICE Failed**), membuktikan panggilan sebelumnya 100% bergantung pada Coturn!
 
 ---
 
-## 📊 Observabilitas & Statistik Real-Time (`getStats()`)
+## 🗄️ Integrasi Database Neon PostgreSQL
 
-Panel debug membaca API `RTCPeerConnection.getStats()` setiap detik untuk menyajikan:
-- **Tipe Kandidat Aktif**: `HOST` (Lokal), `SRFLX` (STUN), atau `RELAY` (TURN).
-- **Status ICE & Koneksi**: `checking`, `connected`, `completed`.
+Proyek ini terhubung langsung ke **Neon Cloud Serverless PostgreSQL**.
+
+### Skema Tabel
+1. **`users`**: `id`, `username`, `status` (*online/offline*), `last_seen`, `created_at`.
+2. **`call_logs`**: `id`, `caller`, `callee`, `call_type`, `status`, `started_at`, `ended_at`, `duration_seconds`, `ice_path`, `bitrate_kbps`, `packets_lost`, `rtt_ms`.
+3. **`chat_messages`**: `id`, `call_id`, `sender`, `receiver`, `message`, `sent_at`.
+4. **`coturn_metrics`**: `id`, `call_id`, `username`, `candidate_type`, `local_ip`, `remote_ip`, `protocol`, `rtt_ms`, `bitrate_kbps`, `packets_lost`, `logged_at`.
+
+### REST API Endpoint Internal
+- `GET /api/call-logs`: Mengembalikan 30 data riwayat panggilan terakhir.
+- `GET /api/metrics`: Mengembalikan data metrik observabilitas Coturn.
+- `GET /api/db-status`: Cek status koneksi PostgreSQL.
+
+---
+
+## 📊 Observabilitas Real-Time (`getStats()`)
+
+Panel debug membaca API `RTCPeerConnection.getStats()` setiap 1 detik:
+- **Active Candidate Pair**: Menampilkan IP dan port lokal vs remote beserta tipenya.
 - **RTT (Round Trip Time)**: Latensi bolak-balik dalam milidetik (ms).
-- **Bitrate Media**: Kecepatan aliran data dalam kbps.
-- **Packet Loss**: Jumlah paket yang hilang selama transmisi.
-- **Konsol Log**: Rekaman setiap pesan signaling JSON dan ICE candidate yang dikumpulkan.
+- **Bitrate Media**: Kecepatan aliran data dalam satuan kbps.
+- **Packet Loss**: Jumlah paket RTP yang hilang selama transmisi.
+- **Konsol Log**: Rekaman setiap pertukaran sinyal SDP dan kandidat ICE secara kronologis.
 
 ---
 
-## 🛡️ Otentikasi & Konfigurasi Coturn
-- **Port STUN/TURN**: `3478` (UDP & TCP)
-- **Rentang Port Relay**: `49160 - 49200` (UDP)
+## 🛡️ Konfigurasi Coturn
+
+Konfigurasi server terletak pada file [`coturn/turnserver.conf`](file:///d:/SEMESTER%207/VCall_WebRTC_Coturn/coturn/turnserver.conf):
+- **Port Utama STUN/TURN**: `3478` (UDP & TCP)
+- **Rentang Port Relay UDP**: `49160 - 49200`
 - **Realm**: `localhost`
 - **Username**: `simulasi`
 - **Password**: `password123`
-

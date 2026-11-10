@@ -2,6 +2,10 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { WebSocketServer, WebSocket } = require('ws');
+const db = require('./db');
+
+// Inisialisasi koneksi PostgreSQL Neon
+db.initDb().catch(err => console.error('[DB] Gagal start db:', err));
 
 const PORT = process.env.PORT || 3000;
 const CLIENT_DIR = path.join(__dirname, '..', 'client');
@@ -21,9 +25,49 @@ const MIME_TYPES = {
   '.wav': 'audio/wav'
 };
 
-// 1. HTTP Server untuk menyajikan UI Web Client (Aplikasi A & B)
-const server = http.createServer((req, res) => {
+// 1. HTTP Server untuk menyajikan UI Web Client & REST API Riwayat
+const server = http.createServer(async (req, res) => {
   let reqUrl = req.url.split('?')[0];
+
+  // CORS Headers untuk API
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    return res.end();
+  }
+
+  // API: Cek status koneksi DB Neon
+  if (reqUrl === '/api/db-status') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ status: 'connected', provider: 'Neon PostgreSQL' }));
+  }
+
+  // API: Ambil riwayat panggilan terbaru
+  if (reqUrl === '/api/call-logs') {
+    try {
+      const logs = await db.getRecentCallLogs(30);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true, data: logs }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+  }
+
+  // API: Ambil metrik Coturn terbaru
+  if (reqUrl === '/api/metrics') {
+    try {
+      const metrics = await db.getRecentMetrics(50);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true, data: metrics }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+  }
 
   // Route bantuan untuk Trickle ICE test
   if (reqUrl === '/trickle' || reqUrl === '/test-trickle-ice.html') {
@@ -99,7 +143,7 @@ wss.on('connection', (ws) => {
 
   console.log('[Signaling] Klien baru terhubung via WebSocket');
 
-  ws.on('message', (data) => {
+  ws.on('message', async (data) => {
     let msg;
     try {
       msg = JSON.parse(data.toString());
@@ -129,8 +173,11 @@ wss.on('connection', (ws) => {
         }
 
         currentUserId = requestedId;
-        clients.set(currentUserId, { ws, busyWith: null });
+        clients.set(currentUserId, { ws, busyWith: null, callId: null });
         console.log(`[Signaling] User terdaftar: ${currentUserId}`);
+
+        // Catat user online ke PostgreSQL Neon
+        db.upsertUser(currentUserId, 'online').catch(() => {});
 
         // Konfirmasi registrasi berhasil
         ws.send(JSON.stringify({ type: 'registered', userId: currentUserId }));
@@ -162,28 +209,49 @@ wss.on('connection', (ws) => {
           return;
         }
 
+        // Catat panggilan baru ke PostgreSQL Neon
+        let callId = null;
+        try {
+          callId = await db.logCallStart({ caller: currentUserId, callee: to, callType: mode || 'video' });
+        } catch (e) {
+          console.error('[DB] Gagal mencatat logCallStart:', e.message);
+        }
+
         // Tandai status sementara calling
         const myData = clients.get(currentUserId);
-        if (myData) myData.busyWith = to;
+        if (myData) {
+          myData.busyWith = to;
+          myData.callId = callId;
+        }
         target.busyWith = currentUserId;
+        target.callId = callId;
 
-        console.log(`[Signaling] Panggilan: ${currentUserId} -> ${to} (mode: ${mode})`);
+        console.log(`[Signaling] Panggilan: ${currentUserId} -> ${to} (mode: ${mode}, callId: ${callId})`);
         broadcastUserList();
 
         sendToUser(to, {
           type: 'incoming',
           from: currentUserId,
-          mode: mode || 'video'
+          mode: mode || 'video',
+          callId
         });
+
+        ws.send(JSON.stringify({
+          type: 'calling',
+          to,
+          callId
+        }));
         break;
       }
 
       case 'accept': {
         if (!currentUserId) return;
         console.log(`[Signaling] Panggilan diterima oleh ${currentUserId} untuk ${to}`);
+        const myData = clients.get(currentUserId);
         sendToUser(to, {
           type: 'accept',
-          from: currentUserId
+          from: currentUserId,
+          callId: myData ? myData.callId : null
         });
         broadcastUserList();
         break;
@@ -193,13 +261,26 @@ wss.on('connection', (ws) => {
         if (!currentUserId) return;
         console.log(`[Signaling] Panggilan ditolak oleh ${currentUserId} untuk ${to}`);
 
-        // Bersihkan status sibuk
         const myData = clients.get(currentUserId);
-        if (myData) myData.busyWith = null;
-
         const targetData = clients.get(to);
+        const activeCallId = (myData && myData.callId) || (targetData && targetData.callId);
+
+        // Catat penolakan panggilan ke PostgreSQL Neon
+        db.logCallEnd({
+          callId: activeCallId,
+          caller: to,
+          callee: currentUserId,
+          status: 'rejected'
+        }).catch(() => {});
+
+        // Bersihkan status sibuk
+        if (myData) {
+          myData.busyWith = null;
+          myData.callId = null;
+        }
         if (targetData && targetData.busyWith === currentUserId) {
           targetData.busyWith = null;
+          targetData.callId = null;
         }
 
         sendToUser(to, {
@@ -248,18 +329,68 @@ wss.on('connection', (ws) => {
         console.log(`[Signaling] Panggilan diakhiri oleh ${currentUserId} untuk ${to}`);
 
         const myData = clients.get(currentUserId);
-        if (myData) myData.busyWith = null;
-
         const targetData = clients.get(to);
+        const activeCallId = msg.callId || (myData && myData.callId) || (targetData && targetData.callId);
+
+        // Simpan riwayat panggilan dan metrik akhir ke PostgreSQL Neon
+        db.logCallEnd({
+          callId: activeCallId,
+          caller: currentUserId,
+          callee: to,
+          status: 'completed',
+          durationSeconds: msg.duration || 0,
+          icePath: msg.icePath || null,
+          bitrateKbps: msg.bitrate || null,
+          packetsLost: msg.packetsLost || 0,
+          rttMs: msg.rtt || null
+        }).catch(err => console.error('[DB] Gagal logCallEnd di hangup:', err.message));
+
+        if (myData) {
+          myData.busyWith = null;
+          myData.callId = null;
+        }
         if (targetData && targetData.busyWith === currentUserId) {
           targetData.busyWith = null;
+          targetData.callId = null;
         }
 
         sendToUser(to, {
           type: 'hangup',
-          from: currentUserId
+          from: currentUserId,
+          callId: activeCallId
         });
         broadcastUserList();
+        break;
+      }
+
+      case 'stats': {
+        // Menerima metrik periodik dari browser klien
+        const myData = clients.get(currentUserId);
+        const activeCallId = msg.callId || (myData && myData.callId);
+        db.logCoturnMetric({
+          callId: activeCallId,
+          username: currentUserId,
+          candidateType: msg.candidateType,
+          localIp: msg.localIp,
+          remoteIp: msg.remoteIp,
+          protocol: msg.protocol,
+          rttMs: msg.rtt,
+          bitrateKbps: msg.bitrate,
+          packetsLost: msg.packetsLost
+        }).catch(() => {});
+        break;
+      }
+
+      case 'chat_log': {
+        // Catat pesan chat ke database
+        const myData = clients.get(currentUserId);
+        const activeCallId = msg.callId || (myData && myData.callId);
+        db.logChatMessage({
+          callId: activeCallId,
+          sender: currentUserId,
+          receiver: to,
+          message: msg.message
+        }).catch(() => {});
         break;
       }
 
@@ -269,9 +400,21 @@ wss.on('connection', (ws) => {
   });
 
   ws.on('close', () => {
+    if (currentUserId) {
+      db.upsertUser(currentUserId, 'offline').catch(() => {});
+    }
+
     if (currentUserId && clients.has(currentUserId)) {
       const myData = clients.get(currentUserId);
       if (myData && myData.busyWith) {
+        // Catat berakhirnya panggilan ke database
+        db.logCallEnd({
+          callId: myData.callId,
+          caller: currentUserId,
+          callee: myData.busyWith,
+          status: 'completed'
+        }).catch(() => {});
+
         // Lawan bicara diberi tahu bahwa koneksi terputus (FR-05)
         sendToUser(myData.busyWith, {
           type: 'hangup',
@@ -281,6 +424,7 @@ wss.on('connection', (ws) => {
         const peer = clients.get(myData.busyWith);
         if (peer && peer.busyWith === currentUserId) {
           peer.busyWith = null;
+          peer.callId = null;
         }
       }
 

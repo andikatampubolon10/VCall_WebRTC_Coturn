@@ -27,6 +27,7 @@
         <span id="currentUserName">User</span>
         <button id="logoutBtn" class="btn-text">Keluar</button>
       </div>
+      <button id="toggleHistoryBtn" class="btn-secondary">📜 Riwayat DB</button>
       <button id="toggleDebugBtn" class="btn-secondary">⚙️ Panel Debug Coturn</button>
     </div>
   </header>
@@ -182,6 +183,31 @@
     </section>
 
   </main>
+
+  <!-- MODAL: Riwayat Panggilan PostgreSQL Neon -->
+  <div id="historyModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card" style="max-width: 820px; width: 92%; padding: 24px; text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a3942; padding-bottom: 12px; margin-bottom: 14px;">
+        <div>
+          <h3 style="margin: 0; color: #00a884; font-size: 18px;">📜 Riwayat Panggilan & Observabilitas Coturn</h3>
+          <small style="color: #8696a0;">Tersimpan secara persisten di database cloud Neon PostgreSQL</small>
+        </div>
+        <button id="closeHistoryBtn" class="btn-icon" style="font-size: 20px; color: #8696a0; cursor: pointer; background: transparent; border: none;">✕</button>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 13px;">
+        <span style="color: #25d366; font-weight: 600;">● PostgreSQL Neon: Connected</span>
+        <div style="display: flex; gap: 8px;">
+          <button id="downloadCsvBtn" class="btn-secondary" style="padding: 4px 12px; font-size: 12px; cursor: pointer;">📥 Unduh CSV</button>
+          <button id="refreshHistoryBtn" class="btn-secondary" style="padding: 4px 12px; font-size: 12px; cursor: pointer;">🔄 Muat Ulang</button>
+        </div>
+      </div>
+
+      <div id="historyTableContainer" style="max-height: 400px; overflow-y: auto;">
+        <!-- Tabel riwayat akan dirender di sini -->
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: Panggilan Masuk (Incoming Call) -->
   <div id="incomingModal" class="modal-backdrop" style="display:none;">

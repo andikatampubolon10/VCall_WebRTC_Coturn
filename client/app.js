@@ -33,6 +33,12 @@ const CALL_TIMEOUT_MS = 30000; // 30 detik
 let statsInterval = null;
 let prevBytesReceived = 0;
 let prevStatsTimestamp = 0;
+let currentCallId = null;
+let currentIcePath = 'HOST';
+let lastRtt = 0;
+let lastBitrate = 0;
+let lastPacketsLost = 0;
+let statsTickCounter = 0;
 
 // Web Audio API untuk efek suara ringtone telepon mandiri (tanpa file eksternal)
 let audioCtx = null;
@@ -296,6 +302,10 @@ async function handleSignalingMessage(msg) {
       renderOnlineUsers(users || []);
       break;
 
+    case 'calling':
+      if (msg.callId) currentCallId = msg.callId;
+      break;
+
     case 'incoming':
       // FR-11: Notifikasi panggilan masuk
       if (appState !== 'idle') {
@@ -304,6 +314,7 @@ async function handleSignalingMessage(msg) {
         return;
       }
 
+      currentCallId = msg.callId || null;
       appState = 'ringing';
       currentCallPeer = from;
       currentCallMode = mode || 'video';
@@ -318,6 +329,7 @@ async function handleSignalingMessage(msg) {
 
     case 'accept':
       // Penerima menerima panggilan yang kita lakukan
+      if (msg.callId) currentCallId = msg.callId;
       if (appState === 'calling' && isCallInitiator) {
         logEvent('SIG', 'SIG', `Panggilan diterima oleh <strong>${from}</strong>! Memulai inisialisasi media...`);
         stopRingtone();
@@ -524,7 +536,11 @@ async function setupLocalMedia() {
 // 10. PEMBUATAN RTCPeerConnection (COTURN INTEGRATION)
 // ==========================================
 function createPeerConnection() {
-  const coturnHost = document.getElementById('cfgCoturnHost').value.trim() || 'localhost';
+  let coturnHost = document.getElementById('cfgCoturnHost').value.trim();
+  if ((!coturnHost || coturnHost === 'localhost') && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    coturnHost = window.location.hostname;
+  }
+  coturnHost = coturnHost || 'localhost';
   const coturnPort = document.getElementById('cfgCoturnPort').value.trim() || '3478';
   const turnUser = document.getElementById('cfgTurnUser').value.trim() || 'simulasi';
   const turnPass = document.getElementById('cfgTurnPass').value.trim() || 'password123';
@@ -774,6 +790,14 @@ chatForm.addEventListener('submit', (e) => {
   dataChannel.send(JSON.stringify(payload));
   appendChatMessage(currentUserId, text, true, timeStr);
   chatInput.value = '';
+
+  // Simpan pesan chat ke database PostgreSQL Neon
+  sendSignalingMessage({
+    type: 'chat_log',
+    to: currentCallPeer,
+    callId: currentCallId,
+    message: text
+  });
 });
 
 function appendChatMessage(sender, text, isMine, time) {
@@ -842,10 +866,12 @@ function startStatsMonitor() {
 
           // Update Tipe Jalur Coturn
           updateActiveCandidateBadge(type);
+          currentIcePath = type.toUpperCase();
 
           // RTT (Round Trip Time)
           if (selectedPair.currentRoundTripTime !== undefined) {
-            statRtt.innerText = `${Math.round(selectedPair.currentRoundTripTime * 1000)} ms`;
+            lastRtt = Math.round(selectedPair.currentRoundTripTime * 1000);
+            statRtt.innerText = `${lastRtt} ms`;
           }
         }
       }
@@ -854,6 +880,7 @@ function startStatsMonitor() {
       stats.forEach(report => {
         if (report.type === 'inbound-rtp' && (report.kind === 'video' || report.kind === 'audio')) {
           if (report.packetsLost !== undefined) {
+            lastPacketsLost = report.packetsLost;
             statPacketsLost.innerText = report.packetsLost;
           }
 
@@ -861,13 +888,30 @@ function startStatsMonitor() {
             const timeDiff = (report.timestamp - prevStatsTimestamp) / 1000;
             if (timeDiff > 0) {
               const bitrate = ((report.bytesReceived - prevBytesReceived) * 8) / timeDiff / 1000;
-              statBitrate.innerText = `${Math.round(bitrate)} kbps`;
+              lastBitrate = Math.round(bitrate);
+              statBitrate.innerText = `${lastBitrate} kbps`;
             }
           }
           prevBytesReceived = report.bytesReceived;
           prevStatsTimestamp = report.timestamp;
         }
       });
+
+      // Simpan metrik secara periodik (setiap 5 detik) ke PostgreSQL Neon
+      statsTickCounter++;
+      if (statsTickCounter % 5 === 0 && currentCallPeer && appState === 'in-call') {
+        sendSignalingMessage({
+          type: 'stats',
+          callId: currentCallId,
+          candidateType: currentIcePath,
+          localIp: statLocalIp.innerText,
+          remoteIp: statRemoteIp.innerText,
+          protocol: statProtocol.innerText,
+          rtt: lastRtt,
+          bitrate: lastBitrate,
+          packetsLost: lastPacketsLost
+        });
+      }
 
     } catch (err) {
       console.warn("Gagal mengambil getStats():", err);
@@ -928,7 +972,13 @@ function hangupCall() {
     logEvent('SIG', 'SIG', `Mengirim sinyal hangup ke ${currentCallPeer}`);
     sendSignalingMessage({
       type: 'hangup',
-      to: currentCallPeer
+      to: currentCallPeer,
+      callId: currentCallId,
+      duration: callDurationSeconds,
+      icePath: currentIcePath,
+      rtt: lastRtt,
+      bitrate: lastBitrate,
+      packetsLost: lastPacketsLost
     });
   }
   handleCallEnded('Anda telah mengakhiri panggilan.');
@@ -1024,6 +1074,12 @@ function startCallTimer() {
   }, 1000);
 }
 
+// Auto-sesuaikan host Coturn dengan hostname browser jika diakses lintas device via IP
+const cfgCoturnHostEl = document.getElementById('cfgCoturnHost');
+if (cfgCoturnHostEl && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+  cfgCoturnHostEl.value = window.location.hostname;
+}
+
 // ==========================================
 // 17. EVENT LISTENER FORM LOGIN
 // ==========================================
@@ -1053,4 +1109,120 @@ logoutBtn.addEventListener('click', () => {
   usernameInput.value = '';
   logEvent('SIG', 'SIG', 'User telah keluar (logout).');
 });
+
+// ==========================================
+// 18. RIWAYAT PANGGILAN DATABASE (NEON POSTGRESQL)
+// ==========================================
+let cachedCallLogs = [];
+const historyModal = document.getElementById('historyModal');
+const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
+const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+const historyTableContainer = document.getElementById('historyTableContainer');
+
+if (toggleHistoryBtn) {
+  toggleHistoryBtn.addEventListener('click', () => {
+    historyModal.style.display = 'flex';
+    fetchCallHistory();
+  });
+}
+
+if (closeHistoryBtn) {
+  closeHistoryBtn.addEventListener('click', () => {
+    historyModal.style.display = 'none';
+  });
+}
+
+if (refreshHistoryBtn) {
+  refreshHistoryBtn.addEventListener('click', () => {
+    fetchCallHistory();
+  });
+}
+
+if (downloadCsvBtn) {
+  downloadCsvBtn.addEventListener('click', () => {
+    if (!cachedCallLogs || cachedCallLogs.length === 0) {
+      alert('Tidak ada data riwayat untuk diunduh.');
+      return;
+    }
+
+    const headers = ['ID', 'Waktu_Mulai', 'Caller', 'Callee', 'Mode', 'Status', 'Durasi_Detik', 'Jalur_ICE', 'RTT_ms', 'Packet_Loss', 'Bitrate_kbps'];
+    const rows = cachedCallLogs.map(item => [
+      item.id,
+      `"${item.started_at || ''}"`,
+      `"${item.caller || ''}"`,
+      `"${item.callee || ''}"`,
+      `"${item.call_type || ''}"`,
+      `"${item.status || ''}"`,
+      item.duration_seconds || 0,
+      `"${item.ice_path || 'HOST'}"`,
+      item.rtt_ms || 0,
+      item.packets_lost || 0,
+      item.bitrate_kbps || 0
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `riwayat_webrtc_coturn_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+async function fetchCallHistory() {
+  historyTableContainer.innerHTML = '<p style="color: #8696a0; text-align: center; padding: 20px;">Memuat data dari Neon PostgreSQL...</p>';
+  try {
+    const res = await fetch('/api/call-logs');
+    const json = await res.json();
+    cachedCallLogs = json.data || [];
+    if (!json.success || !json.data || json.data.length === 0) {
+      historyTableContainer.innerHTML = '<p style="color: #8696a0; text-align: center; padding: 24px;">Belum ada riwayat panggilan tersimpan di database.</p>';
+      return;
+    }
+
+    let html = `
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #e9edef;">
+        <thead>
+          <tr style="border-bottom: 2px solid #2a3942; color: #8696a0; text-align: left;">
+            <th style="padding: 8px;">Waktu</th>
+            <th style="padding: 8px;">Panggilan</th>
+            <th style="padding: 8px;">Mode</th>
+            <th style="padding: 8px;">Status</th>
+            <th style="padding: 8px;">Durasi</th>
+            <th style="padding: 8px;">Jalur ICE Coturn</th>
+            <th style="padding: 8px;">Metrik (RTT/Loss)</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    json.data.forEach(item => {
+      const time = new Date(item.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const date = new Date(item.started_at).toLocaleDateString([], { month: 'short', day: 'numeric' });
+      const iceColor = (item.ice_path && item.ice_path.includes('RELAY')) ? '#25d366' : ((item.ice_path && item.ice_path.includes('SRFLX')) ? '#34b7f1' : '#8696a0');
+      const statusColor = item.status === 'completed' ? '#25d366' : (item.status === 'rejected' ? '#f15c6d' : '#e9edef');
+
+      html += `
+        <tr style="border-bottom: 1px solid #202c33;">
+          <td style="padding: 8px;"><span style="color: #8696a0;">${date}</span> ${time}</td>
+          <td style="padding: 8px;"><strong>${item.caller}</strong> → ${item.callee}</td>
+          <td style="padding: 8px;">${item.call_type === 'video' ? '📹 Video' : '📞 Voice'}</td>
+          <td style="padding: 8px; color: ${statusColor}; font-weight: 600;">${item.status}</td>
+          <td style="padding: 8px;">${item.duration_seconds || 0}s</td>
+          <td style="padding: 8px;"><span style="color: ${iceColor}; font-weight: 600;">${item.ice_path || 'HOST'}</span></td>
+          <td style="padding: 8px; color: #8696a0;">${item.rtt_ms ? item.rtt_ms + ' ms' : '-'} / ${item.packets_lost || 0} loss</td>
+        </tr>
+      `;
+    });
+
+    html += '</tbody></table>';
+    historyTableContainer.innerHTML = html;
+  } catch (err) {
+    historyTableContainer.innerHTML = `<p style="color: #f15c6d; text-align: center; padding: 20px;">Gagal memuat riwayat: ${err.message}</p>`;
+  }
+}
 
