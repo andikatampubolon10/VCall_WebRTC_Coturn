@@ -38,16 +38,16 @@
     <!-- 1. LAYAR LOGIN -->
     <section id="loginScreen" class="screen card login-card">
       <h2>Masuk ke Simulasi</h2>
-      <p class="card-desc">Buka tab kedua di browser Anda untuk bertindak sebagai Aplikasi B.</p>
+      <p class="card-desc">Buka tab kedua di browser Anda untuk bertindak sebagai User B.</p>
       
       <div class="form-group">
         <label for="usernameInput">Pilih atau Masukkan Nama Pengguna:</label>
         <div class="preset-users">
-          <button type="button" class="btn-chip" onclick="selectPresetUser('Aplikasi A')">Aplikasi A</button>
-          <button type="button" class="btn-chip" onclick="selectPresetUser('Aplikasi B')">Aplikasi B</button>
+          <button type="button" class="btn-chip" onclick="selectPresetUser('User A')">User A</button>
+          <button type="button" class="btn-chip" onclick="selectPresetUser('User B')">User B</button>
           <button type="button" class="btn-chip" onclick="selectPresetUser('User C')">User C</button>
         </div>
-        <input type="text" id="usernameInput" placeholder="Contoh: Aplikasi A" maxlength="20" autofocus>
+        <input type="text" id="usernameInput" placeholder="Contoh: User A" maxlength="20" autofocus>
       </div>
 
       <div class="form-group config-toggle-group">
@@ -152,6 +152,10 @@
               <span class="icon">📹</span>
               <span class="label">Kamera</span>
             </button>
+            <button id="toggleScreenBtn" class="control-btn" title="Bagikan Layar (Screen Share)">
+              <span class="icon">🖥️</span>
+              <span class="label">Layar</span>
+            </button>
             <button id="toggleChatBtn" class="control-btn" title="Buka/Tutup Chat">
               <span class="icon">💬</span>
               <span class="label">Chat</span>
@@ -213,7 +217,7 @@
   <div id="incomingModal" class="modal-backdrop" style="display:none;">
     <div class="modal-card incoming-card">
       <div class="pulsing-call-icon">📞</div>
-      <h3 id="incomingCallerName">Aplikasi A</h3>
+      <h3 id="incomingCallerName">User A</h3>
       <p id="incomingCallMode">Panggilan Video Masuk...</p>
       
       <div class="modal-actions">
@@ -231,7 +235,7 @@
   <div id="callingModal" class="modal-backdrop" style="display:none;">
     <div class="modal-card calling-card">
       <div class="pulsing-call-icon ringing">🔔</div>
-      <h3 id="outgoingTargetName">Memanggil Aplikasi B...</h3>
+      <h3 id="outgoingTargetName">Memanggil User B...</h3>
       <p id="outgoingCallMode">Menunggu jawaban penerima...</p>
       <button id="cancelCallBtn" class="btn-danger-action">
         <span class="icon">✕</span> Batalkan Panggilan
@@ -306,7 +310,7 @@
     </div>
   </aside>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
 

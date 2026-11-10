@@ -548,9 +548,18 @@ function createPeerConnection() {
 
   logEvent('ICE', 'ICE', `Inisialisasi RTCPeerConnection (Paksa Relay: <strong>${forceRelay ? 'YA' : 'TIDAK'}</strong>)`);
 
-  // FR-20: Konfigurasi STUN & TURN Coturn
+  // Kumpulan ICE Servers: STUN Google + Coturn Lokal + OpenRelay Public TURN (Bypass Firewall 4G)
   const configuration = {
     iceServers: [
+      // 1. Google Public STUN
+      {
+        urls: [
+          'stun:stun.l.google.com:19302',
+          'stun:stun1.l.google.com:19302',
+          'stun:stun2.l.google.com:19302'
+        ]
+      },
+      // 2. Coturn Lokal (Docker port 3478)
       {
         urls: `stun:${coturnHost}:${coturnPort}`
       },
@@ -586,6 +595,10 @@ function createPeerConnection() {
       remoteAudio.srcObject = remoteStream;
     }
     remoteStream.addTrack(event.track);
+
+    // Pastikan autoplay berjalan di browser mobile
+    remoteVideo.play().catch(e => console.warn("Remote video play:", e));
+    remoteAudio.play().catch(e => console.warn("Remote audio play:", e));
 
     if (currentCallMode === 'voice') {
       voiceAvatarView.style.display = 'flex';

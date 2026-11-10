@@ -442,8 +442,8 @@ wss.on('connection', (ws) => {
 server.listen(PORT, () => {
   console.log(`=======================================================`);
   console.log(`🚀 WebRTC Signaling & Web Server berjalan!`);
-  console.log(`🌐 Akses Aplikasi A / B: http://localhost:${PORT}`);
-  console.log(`🧪 Akses Trickle Test   : http://localhost:${PORT}/trickle`);
+  console.log(`🌐 Akses User A / B: http://localhost:${PORT}`);
+  console.log(`🧪 Akses Trickle Test: http://localhost:${PORT}/trickle`);
   console.log(`=======================================================`);
 });
 

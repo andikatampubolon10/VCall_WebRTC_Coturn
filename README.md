@@ -112,10 +112,10 @@ VCall_WebRTC_Coturn/
    - Tool Uji Coturn: `http://localhost:3000/trickle`
 
 ### Langkah 3: Buka Klien A dan Klien B di Browser
-1. **Tab 1 (Klien A)**: Buka `http://localhost:3000`, pilih chip **Aplikasi A**, lalu klik **Masuk & Sambungkan**. Berikan izin kamera & mic.
-2. **Tab 2 (Klien B)**: Buka jendela baru / Incognito ke `http://localhost:3000`, pilih chip **Aplikasi B**, lalu klik **Masuk & Sambungkan**. Berikan izin kamera & mic.
-3. Di tab Aplikasi A, klik tombol **📹 Video Call** pada kontak Aplikasi B.
-4. Di tab Aplikasi B, dialog panggilan masuk akan berdering. Klik **Terima**.
+1. **Tab 1 (Klien A)**: Buka `http://localhost:3000`, pilih chip **User A**, lalu klik **Masuk & Sambungkan**. Berikan izin kamera & mic.
+2. **Tab 2 (Klien B)**: Buka jendela baru / Incognito ke `http://localhost:3000`, pilih chip **User B**, lalu klik **Masuk & Sambungkan**. Berikan izin kamera & mic.
+3. Di tab User A, klik tombol **📹 Video Call** pada kontak User B.
+4. Di tab User B, dialog panggilan masuk akan berdering. Klik **Terima**.
 5. Panggilan terhubung! Aliran video, suara, dan chat DataChannel aktif secara bilateral.
 
 ---
