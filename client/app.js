@@ -1,0 +1,1056 @@
+/**
+ * WebRTC + Coturn Call Simulator Application
+ * Mengimplementasikan alur lengkap WhatsApp-like Voice & Video Call,
+ * RTCDataChannel chat, dan Observabilitas STUN/TURN Coturn.
+ */
+
+// ==========================================
+// 1. STATE & VARIABEL GLOBAL
+// ==========================================
+let currentUserId = null;
+let ws = null;
+let peerConnection = null;
+let dataChannel = null;
+let localStream = null;
+let remoteStream = null;
+
+// State Panggilan: 'idle' | 'calling' | 'ringing' | 'connecting' | 'in-call' | 'ending'
+let appState = 'idle';
+let currentCallPeer = null;
+let currentCallMode = 'video'; // 'voice' | 'video'
+let isCallInitiator = false;
+
+// Queue untuk ICE Candidates sebelum remote description terpasang (FR-23)
+let iceCandidateQueue = [];
+
+// Timer durasi panggilan & timeout panggilan tak terjawab (FR-14)
+let callTimerInterval = null;
+let callDurationSeconds = 0;
+let unansweredTimeout = null;
+const CALL_TIMEOUT_MS = 30000; // 30 detik
+
+// Polling interval untuk getStats() Coturn
+let statsInterval = null;
+let prevBytesReceived = 0;
+let prevStatsTimestamp = 0;
+
+// Web Audio API untuk efek suara ringtone telepon mandiri (tanpa file eksternal)
+let audioCtx = null;
+let ringtoneOscillators = [];
+
+// ==========================================
+// 2. ELEMEN DOM
+// ==========================================
+const loginScreen = document.getElementById('loginScreen');
+const lobbyScreen = document.getElementById('lobbyScreen');
+const callScreen = document.getElementById('callScreen');
+
+const usernameInput = document.getElementById('usernameInput');
+const loginBtn = document.getElementById('loginBtn');
+const loginError = document.getElementById('loginError');
+
+const userBadge = document.getElementById('userBadge');
+const currentUserNameEl = document.getElementById('currentUserName');
+const logoutBtn = document.getElementById('logoutBtn');
+
+const usersListContainer = document.getElementById('usersListContainer');
+const emptyUsersNote = document.getElementById('emptyUsersNote');
+const forceRelayCheckbox = document.getElementById('forceRelayCheckbox');
+
+// Video & Audio
+const localVideo = document.getElementById('localVideo');
+const remoteVideo = document.getElementById('remoteVideo');
+const remoteAudio = document.getElementById('remoteAudio');
+const voiceAvatarView = document.getElementById('voiceAvatarView');
+const localPreviewWrapper = document.getElementById('localPreviewWrapper');
+const remoteAvatarInitial = document.getElementById('remoteAvatarInitial');
+const remoteVoiceUserName = document.getElementById('remoteVoiceUserName');
+const callPartnerName = document.getElementById('callPartnerName');
+const callStatusBadge = document.getElementById('callStatusBadge');
+const callTimer = document.getElementById('callTimer');
+
+// Tombol Kontrol Panggilan
+const toggleMicBtn = document.getElementById('toggleMicBtn');
+const toggleCamBtn = document.getElementById('toggleCamBtn');
+const toggleChatBtn = document.getElementById('toggleChatBtn');
+const hangupBtn = document.getElementById('hangupBtn');
+const chatUnreadDot = document.getElementById('chatUnreadDot');
+
+// Chat Drawer
+const chatDrawer = document.getElementById('chatDrawer');
+const closeChatBtn = document.getElementById('closeChatBtn');
+const chatMessages = document.getElementById('chatMessages');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+
+// Modals
+const incomingModal = document.getElementById('incomingModal');
+const incomingCallerName = document.getElementById('incomingCallerName');
+const incomingCallMode = document.getElementById('incomingCallMode');
+const acceptCallBtn = document.getElementById('acceptCallBtn');
+const rejectCallBtn = document.getElementById('rejectCallBtn');
+
+const callingModal = document.getElementById('callingModal');
+const outgoingTargetName = document.getElementById('outgoingTargetName');
+const outgoingCallMode = document.getElementById('outgoingCallMode');
+const cancelCallBtn = document.getElementById('cancelCallBtn');
+
+// Debug Panel Elements
+const debugPanel = document.getElementById('debugPanel');
+const toggleDebugBtn = document.getElementById('toggleDebugBtn');
+const hideDebugBtn = document.getElementById('hideDebugBtn');
+const clearLogBtn = document.getElementById('clearLogBtn');
+const debugLogConsole = document.getElementById('debugLogConsole');
+
+const activeTypeBadge = document.getElementById('activeTypeBadge');
+const activeTypeDesc = document.getElementById('activeTypeDesc');
+const statIceState = document.getElementById('statIceState');
+const statConnState = document.getElementById('statConnState');
+const statRtt = document.getElementById('statRtt');
+const statBitrate = document.getElementById('statBitrate');
+const statPacketsLost = document.getElementById('statPacketsLost');
+const statProtocol = document.getElementById('statProtocol');
+const statLocalIp = document.getElementById('statLocalIp');
+const statRemoteIp = document.getElementById('statRemoteIp');
+
+// ==========================================
+// 3. LOGGER & OBSERVABILITAS HELPER
+// ==========================================
+function logEvent(type, tag, message) {
+  const time = new Date().toLocaleTimeString();
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+
+  let tagClass = 'tag-sig';
+  if (tag === 'ICE') tagClass = 'tag-ice';
+  if (tag === 'HOST') tagClass = 'tag-host';
+  if (tag === 'SRFLX') tagClass = 'tag-srflx';
+  if (tag === 'RELAY') tagClass = 'tag-relay';
+  if (tag === 'ERR') tagClass = 'tag-err';
+
+  entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-tag ${tagClass}">${tag}</span> ${message}`;
+  debugLogConsole.appendChild(entry);
+  debugLogConsole.scrollTop = debugLogConsole.scrollHeight;
+}
+
+clearLogBtn.addEventListener('click', () => {
+  debugLogConsole.innerHTML = '';
+});
+
+toggleDebugBtn.addEventListener('click', () => {
+  debugPanel.classList.toggle('open');
+});
+
+hideDebugBtn.addEventListener('click', () => {
+  debugPanel.classList.remove('open');
+});
+
+// Helper preset login cepat
+window.selectPresetUser = function(name) {
+  usernameInput.value = name;
+  usernameInput.focus();
+};
+
+// ==========================================
+// 4. WEBAUDIO RINGTONE SYNTHESIZER
+// ==========================================
+function playRingtone(type = 'incoming') {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    stopRingtone();
+
+    if (type === 'incoming') {
+      // Nada dering telepon masuk (dua frekuensi harmonik bersahut-sahutan)
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+      osc1.frequency.value = 440;
+      osc2.frequency.value = 480;
+
+      // Pulsing gain (berdering 1.5 detik, jeda 1.5 detik)
+      const now = audioCtx.currentTime;
+      gainNode.gain.setValueAtTime(0, now);
+      for (let i = 0; i < 10; i++) {
+        const start = now + i * 3.0;
+        gainNode.gain.setValueAtTime(0.2, start);
+        gainNode.gain.setValueAtTime(0.2, start + 1.2);
+        gainNode.gain.setValueAtTime(0, start + 1.25);
+      }
+
+      osc1.connect(gainNode);
+      osc2.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      osc1.start();
+      osc2.start();
+      ringtoneOscillators.push(osc1, osc2, gainNode);
+
+    } else if (type === 'outgoing') {
+      // Nada tunggu tut... tut...
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 425;
+
+      const now = audioCtx.currentTime;
+      gainNode.gain.setValueAtTime(0, now);
+      for (let i = 0; i < 15; i++) {
+        const start = now + i * 2.5;
+        gainNode.gain.setValueAtTime(0.15, start);
+        gainNode.gain.setValueAtTime(0.15, start + 1.0);
+        gainNode.gain.setValueAtTime(0, start + 1.05);
+      }
+
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      osc.start();
+      ringtoneOscillators.push(osc, gainNode);
+    }
+  } catch (e) {
+    console.warn("Gagal memainkan ringtone audio context:", e);
+  }
+}
+
+function stopRingtone() {
+  ringtoneOscillators.forEach(item => {
+    try {
+      if (item.stop) item.stop();
+      if (item.disconnect) item.disconnect();
+    } catch (e) {}
+  });
+  ringtoneOscillators = [];
+}
+
+// ==========================================
+// 5. KONEKSI SIGNALING SERVER (WEBSOCKET)
+// ==========================================
+function connectSignalingServer(username) {
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${wsProtocol}//${window.location.host}`;
+
+  logEvent('SIG', 'SIG', `Menghubungkan ke Signaling Server: ${wsUrl}`);
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    logEvent('SIG', 'SIG', `Terhubung ke server. Mendaftarkan user: "${username}"`);
+    sendSignalingMessage({
+      type: 'register',
+      userId: username
+    });
+  };
+
+  ws.onmessage = async (event) => {
+    let msg;
+    try {
+      msg = JSON.parse(event.data);
+    } catch (err) {
+      console.error("Format pesan tidak valid:", event.data);
+      return;
+    }
+
+    handleSignalingMessage(msg);
+  };
+
+  ws.onclose = () => {
+    logEvent('ERR', 'SIG', 'Koneksi ke Signaling Server terputus.');
+    if (appState !== 'idle') {
+      handleCallEnded('Koneksi terputus dari server.');
+    }
+  };
+
+  ws.onerror = (err) => {
+    logEvent('ERR', 'SIG', `WebSocket error: ${err.message || 'Gagal tersambung'}`);
+  };
+}
+
+function sendSignalingMessage(msg) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(msg));
+  } else {
+    logEvent('ERR', 'SIG', 'Tidak dapat mengirim pesan: WebSocket belum siap.');
+  }
+}
+
+// ==========================================
+// 6. DISPATCHER PESAN SIGNALING
+// ==========================================
+async function handleSignalingMessage(msg) {
+  const { type, from, to, mode, sdp, candidate, reason, users, code, message } = msg;
+
+  switch (type) {
+    case 'registered':
+      currentUserId = msg.userId;
+      currentUserNameEl.innerText = currentUserId;
+      userBadge.style.display = 'flex';
+      loginScreen.style.display = 'none';
+      lobbyScreen.style.display = 'block';
+      logEvent('SIG', 'SIG', `Registrasi terverifikasi sebagai: <strong>${currentUserId}</strong>`);
+      break;
+
+    case 'users':
+      renderOnlineUsers(users || []);
+      break;
+
+    case 'incoming':
+      // FR-11: Notifikasi panggilan masuk
+      if (appState !== 'idle') {
+        // Otomatis tolak jika sedang dalam panggilan lain (FR-13)
+        sendSignalingMessage({ type: 'reject', to: from, reason: 'Sedang sibuk' });
+        return;
+      }
+
+      appState = 'ringing';
+      currentCallPeer = from;
+      currentCallMode = mode || 'video';
+      isCallInitiator = false;
+
+      incomingCallerName.innerText = from;
+      incomingCallMode.innerText = currentCallMode === 'video' ? '📹 Panggilan Video Masuk...' : '📞 Panggilan Suara Masuk...';
+      incomingModal.style.display = 'flex';
+      playRingtone('incoming');
+      logEvent('SIG', 'SIG', `Menerima panggilan masuk dari: <strong>${from}</strong> (${currentCallMode})`);
+      break;
+
+    case 'accept':
+      // Penerima menerima panggilan yang kita lakukan
+      if (appState === 'calling' && isCallInitiator) {
+        logEvent('SIG', 'SIG', `Panggilan diterima oleh <strong>${from}</strong>! Memulai inisialisasi media...`);
+        stopRingtone();
+        clearTimeout(unansweredTimeout);
+        callingModal.style.display = 'none';
+        
+        await initiateWebRTCConnection();
+      }
+      break;
+
+    case 'reject':
+      stopRingtone();
+      clearTimeout(unansweredTimeout);
+      callingModal.style.display = 'none';
+      alert(`Panggilan ditolak: ${reason || 'Lawan bicara menolak panggilan'}`);
+      logEvent('SIG', 'SIG', `Panggilan ditolak oleh <strong>${from}</strong> (${reason})`);
+      resetToIdle();
+      break;
+
+    case 'offer':
+      logEvent('SIG', 'SIG', `Menerima SDP Offer dari <strong>${from}</strong>`);
+      await handleRemoteOffer(from, sdp);
+      break;
+
+    case 'answer':
+      logEvent('SIG', 'SIG', `Menerima SDP Answer dari <strong>${from}</strong>`);
+      await handleRemoteAnswer(sdp);
+      break;
+
+    case 'candidate':
+      if (candidate) {
+        handleReceivedCandidate(candidate);
+      }
+      break;
+
+    case 'hangup':
+      logEvent('SIG', 'SIG', `Panggilan diakhiri oleh lawan bicara: <strong>${from}</strong>`);
+      handleCallEnded(reason || 'Panggilan telah diakhiri oleh lawan bicara.');
+      break;
+
+    case 'error':
+      logEvent('ERR', 'ERR', `Error dari server: [${code}] ${message}`);
+      if (appState === 'calling') {
+        stopRingtone();
+        clearTimeout(unansweredTimeout);
+        callingModal.style.display = 'none';
+        resetToIdle();
+      }
+      alert(`Perhatian: ${message}`);
+      break;
+  }
+}
+
+// ==========================================
+// 7. RENDER DAFTAR USER ONLINE
+// ==========================================
+function renderOnlineUsers(users) {
+  usersListContainer.innerHTML = '';
+  const otherUsers = users.filter(u => u.userId !== currentUserId);
+
+  if (otherUsers.length === 0) {
+    emptyUsersNote.style.display = 'block';
+    return;
+  }
+
+  emptyUsersNote.style.display = 'none';
+
+  otherUsers.forEach(u => {
+    const item = document.createElement('div');
+    item.className = 'user-item';
+
+    const initial = u.userId.charAt(0).toUpperCase();
+    const isBusy = u.isBusy;
+
+    item.innerHTML = `
+      <div class="user-item-left">
+        <div class="user-avatar-circle">${initial}</div>
+        <div class="user-meta">
+          <div class="user-title">${u.userId}</div>
+          <div class="user-status-text">${isBusy ? '🔴 Sedang dalam panggilan' : '🟢 Online dan siap'}</div>
+        </div>
+      </div>
+      <div class="user-actions">
+        <button class="btn-call-voice ${isBusy ? 'btn-call-disabled' : ''}" onclick="startCall('${u.userId}', 'voice')">
+          📞 Suara
+        </button>
+        <button class="btn-call-video ${isBusy ? 'btn-call-disabled' : ''}" onclick="startCall('${u.userId}', 'video')">
+          📹 Video
+        </button>
+      </div>
+    `;
+
+    usersListContainer.appendChild(item);
+  });
+}
+
+// ==========================================
+// 8. LOGIKA MEMULAI & MENERIMA PANGGILAN
+// ==========================================
+window.startCall = function(targetUser, mode) {
+  if (appState !== 'idle') return;
+
+  appState = 'calling';
+  currentCallPeer = targetUser;
+  currentCallMode = mode;
+  isCallInitiator = true;
+
+  outgoingTargetName.innerText = `Memanggil ${targetUser}...`;
+  outgoingCallMode.innerText = mode === 'video' ? 'Panggilan Video...' : 'Panggilan Suara...';
+  callingModal.style.display = 'flex';
+
+  playRingtone('outgoing');
+  logEvent('SIG', 'SIG', `Memanggil <strong>${targetUser}</strong> (${mode})`);
+
+  sendSignalingMessage({
+    type: 'call',
+    to: targetUser,
+    mode: mode
+  });
+
+  // FR-14: Timeout 30 detik bila tidak terjawab
+  unansweredTimeout = setTimeout(() => {
+    if (appState === 'calling') {
+      logEvent('SIG', 'SIG', `Panggilan ke ${targetUser} timeout (tidak dijawab).`);
+      stopRingtone();
+      callingModal.style.display = 'none';
+      sendSignalingMessage({ type: 'hangup', to: targetUser });
+      alert('Panggilan tidak dijawab.');
+      resetToIdle();
+    }
+  }, CALL_TIMEOUT_MS);
+};
+
+cancelCallBtn.addEventListener('click', () => {
+  if (appState === 'calling' && currentCallPeer) {
+    stopRingtone();
+    clearTimeout(unansweredTimeout);
+    callingModal.style.display = 'none';
+    sendSignalingMessage({ type: 'hangup', to: currentCallPeer });
+    logEvent('SIG', 'SIG', `Membatalkan panggilan ke ${currentCallPeer}`);
+    resetToIdle();
+  }
+});
+
+acceptCallBtn.addEventListener('click', async () => {
+  stopRingtone();
+  incomingModal.style.display = 'none';
+
+  logEvent('SIG', 'SIG', `Menerima panggilan dari: <strong>${currentCallPeer}</strong>`);
+  sendSignalingMessage({
+    type: 'accept',
+    to: currentCallPeer
+  });
+
+  appState = 'connecting';
+  showCallScreen();
+  await setupLocalMedia();
+});
+
+rejectCallBtn.addEventListener('click', () => {
+  stopRingtone();
+  incomingModal.style.display = 'none';
+
+  logEvent('SIG', 'SIG', `Menolak panggilan dari: <strong>${currentCallPeer}</strong>`);
+  sendSignalingMessage({
+    type: 'reject',
+    to: currentCallPeer,
+    reason: 'Panggilan ditolak oleh pengguna'
+  });
+  resetToIdle();
+});
+
+// ==========================================
+// 9. SETUP MEDIA LOKAL (KAMERA & MIC)
+// ==========================================
+async function setupLocalMedia() {
+  const needVideo = currentCallMode === 'video';
+  logEvent('SIG', 'MEDIA', `Mengakses perangkat media (Audio: true, Video: ${needVideo})`);
+
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: needVideo ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false
+    });
+
+    localVideo.srcObject = localStream;
+    localPreviewWrapper.style.display = needVideo ? 'block' : 'none';
+
+    // Sesuaikan tombol kontrol
+    toggleCamBtn.style.display = needVideo ? 'flex' : 'none';
+    toggleCamBtn.classList.remove('active-off');
+    toggleMicBtn.classList.remove('active-off');
+
+  } catch (err) {
+    // FR-26: Tangani penolakan izin kamera/mikrofon dengan pesan jelas
+    logEvent('ERR', 'ERR', `Akses media ditolak: ${err.name} - ${err.message}`);
+    alert(`Gagal mengakses Kamera/Mikrofon: ${err.message}\nPastikan izin browser telah diberikan.`);
+    hangupCall();
+    throw err;
+  }
+}
+
+// ==========================================
+// 10. PEMBUATAN RTCPeerConnection (COTURN INTEGRATION)
+// ==========================================
+function createPeerConnection() {
+  const coturnHost = document.getElementById('cfgCoturnHost').value.trim() || 'localhost';
+  const coturnPort = document.getElementById('cfgCoturnPort').value.trim() || '3478';
+  const turnUser = document.getElementById('cfgTurnUser').value.trim() || 'simulasi';
+  const turnPass = document.getElementById('cfgTurnPass').value.trim() || 'password123';
+  const forceRelay = forceRelayCheckbox.checked;
+
+  logEvent('ICE', 'ICE', `Inisialisasi RTCPeerConnection (Paksa Relay: <strong>${forceRelay ? 'YA' : 'TIDAK'}</strong>)`);
+
+  // FR-20: Konfigurasi STUN & TURN Coturn
+  const configuration = {
+    iceServers: [
+      {
+        urls: `stun:${coturnHost}:${coturnPort}`
+      },
+      {
+        urls: [
+          `turn:${coturnHost}:${coturnPort}?transport=udp`,
+          `turn:${coturnHost}:${coturnPort}?transport=tcp`
+        ],
+        username: turnUser,
+        credential: turnPass
+      }
+    ],
+    // FR-43: Mode Paksa Relay
+    iceTransportPolicy: forceRelay ? 'relay' : 'all'
+  };
+
+  peerConnection = new RTCPeerConnection(configuration);
+  iceCandidateQueue = [];
+
+  // Pasang local audio & video track ke peer connection
+  if (localStream) {
+    localStream.getTracks().forEach(track => {
+      peerConnection.addTrack(track, localStream);
+    });
+  }
+
+  // Terima remote track
+  peerConnection.ontrack = (event) => {
+    logEvent('SIG', 'MEDIA', `Menerima remote track: ${event.track.kind}`);
+    if (!remoteStream) {
+      remoteStream = new MediaStream();
+      remoteVideo.srcObject = remoteStream;
+      remoteAudio.srcObject = remoteStream;
+    }
+    remoteStream.addTrack(event.track);
+
+    if (currentCallMode === 'voice') {
+      voiceAvatarView.style.display = 'flex';
+      remoteVideo.style.display = 'none';
+      remoteVoiceUserName.innerText = currentCallPeer;
+      remoteAvatarInitial.innerText = currentCallPeer.charAt(0).toUpperCase();
+    } else {
+      voiceAvatarView.style.display = 'none';
+      remoteVideo.style.display = 'block';
+    }
+  };
+
+  // Pengumpulan ICE Candidate (Trickle ICE)
+  peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+      const c = event.candidate;
+      const type = c.type.toUpperCase(); // 'HOST', 'SRFLX', 'RELAY'
+      
+      logEvent('ICE', type, `Ditemukan candidate: ${type} ${c.protocol.toUpperCase()} ${c.address || c.ip}:${c.port}`);
+
+      // Kirim candidate ke peer via signaling
+      sendSignalingMessage({
+        type: 'candidate',
+        to: currentCallPeer,
+        candidate: c
+      });
+    } else {
+      logEvent('ICE', 'ICE', 'Pengumpulan ICE Candidate selesai (End of Candidates).');
+    }
+  };
+
+  // Status Perubahan Koneksi ICE (FR-41)
+  peerConnection.oniceconnectionstatechange = () => {
+    const state = peerConnection.iceConnectionState;
+    statIceState.innerText = state;
+    logEvent('ICE', 'ICE', `Status ICE berubah menjadi: <strong>${state}</strong>`);
+
+    if (state === 'connected' || state === 'completed') {
+      appState = 'in-call';
+      callStatusBadge.className = 'badge badge-connected';
+      callStatusBadge.innerText = 'Terhubung';
+      startCallTimer();
+      startStatsMonitor();
+    } else if (state === 'failed') {
+      callStatusBadge.className = 'badge badge-failed';
+      callStatusBadge.innerText = 'Koneksi Gagal';
+      alert('Koneksi WebRTC Gagal. Jika menggunakan Paksa Relay, pastikan Docker Coturn sudah aktif.');
+    } else if (state === 'disconnected') {
+      callStatusBadge.className = 'badge badge-connecting';
+      callStatusBadge.innerText = 'Terputus...';
+    }
+  };
+
+  peerConnection.onconnectionstatechange = () => {
+    statConnState.innerText = peerConnection.connectionState;
+  };
+
+  // Callee mendengarkan pembuatan RTCDataChannel dari Caller
+  peerConnection.ondatachannel = (event) => {
+    logEvent('SIG', 'CHAT', 'DataChannel diterima dari penelepon.');
+    dataChannel = event.channel;
+    setupDataChannelEvents();
+  };
+
+  return peerConnection;
+}
+
+// ==========================================
+// 11. ALUR PENELPON: OFFER & DATACHANNEL
+// ==========================================
+async function initiateWebRTCConnection() {
+  appState = 'connecting';
+  showCallScreen();
+
+  await setupLocalMedia();
+  createPeerConnection();
+
+  // FR-30: Caller membuat RTCDataChannel untuk chat
+  logEvent('SIG', 'CHAT', 'Membuat RTCDataChannel "chat"');
+  dataChannel = peerConnection.createDataChannel('chat');
+  setupDataChannelEvents();
+
+  // Buat SDP Offer (FR-22)
+  logEvent('SIG', 'SDP', 'Membuat SDP Offer...');
+  const offer = await peerConnection.createOffer();
+  await peerConnection.setLocalDescription(offer);
+
+  sendSignalingMessage({
+    type: 'offer',
+    to: currentCallPeer,
+    sdp: offer
+  });
+}
+
+// ==========================================
+// 12. ALUR PENERIMA: SET REMOTE OFFER & CREATE ANSWER
+// ==========================================
+async function handleRemoteOffer(fromPeer, sdpOffer) {
+  currentCallPeer = fromPeer;
+  createPeerConnection();
+
+  logEvent('SIG', 'SDP', 'Memasang Remote Description (SDP Offer)');
+  await peerConnection.setRemoteDescription(new RTCSessionDescription(sdpOffer));
+
+  // FR-23: Kuras antrian ICE candidate yang sempat tiba lebih awal
+  await flushIceCandidateQueue();
+
+  logEvent('SIG', 'SDP', 'Membuat SDP Answer...');
+  const answer = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(answer);
+
+  sendSignalingMessage({
+    type: 'answer',
+    to: currentCallPeer,
+    sdp: answer
+  });
+}
+
+async function handleRemoteAnswer(sdpAnswer) {
+  logEvent('SIG', 'SDP', 'Memasang Remote Description (SDP Answer)');
+  await peerConnection.setRemoteDescription(new RTCSessionDescription(sdpAnswer));
+
+  // FR-23: Kuras antrian ICE candidate
+  await flushIceCandidateQueue();
+}
+
+// ==========================================
+// 13. PENANGANAN ICE CANDIDATE QUEUE (FR-23)
+// ==========================================
+async function handleReceivedCandidate(candidate) {
+  if (peerConnection && peerConnection.remoteDescription) {
+    try {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+      logEvent('ICE', 'ICE', `Candidate remote berhasil dipasang: ${candidate.candidate.substring(0, 35)}...`);
+    } catch (err) {
+      console.warn("Error memasang candidate:", err);
+    }
+  } else {
+    // Simpan di antrian sampai remote description selesai dipasang
+    iceCandidateQueue.push(candidate);
+    logEvent('ICE', 'ICE', `Candidate remote diantrikan (Remote description belum siap)`);
+  }
+}
+
+async function flushIceCandidateQueue() {
+  if (iceCandidateQueue.length > 0) {
+    logEvent('ICE', 'ICE', `Memproses ${iceCandidateQueue.length} antrian candidate yang tertunda...`);
+    for (const cand of iceCandidateQueue) {
+      try {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(cand));
+      } catch (e) {
+        console.warn("Gagal menambahkan queued candidate:", e);
+      }
+    }
+    iceCandidateQueue = [];
+  }
+}
+
+// ==========================================
+// 14. RTCDATACHANNEL CHAT (FR-30 & FR-31)
+// ==========================================
+function setupDataChannelEvents() {
+  if (!dataChannel) return;
+
+  dataChannel.onopen = () => {
+    logEvent('SIG', 'CHAT', 'RTCDataChannel siap untuk bertukar pesan.');
+    chatInput.disabled = false;
+  };
+
+  dataChannel.onclose = () => {
+    logEvent('SIG', 'CHAT', 'RTCDataChannel ditutup.');
+    chatInput.disabled = true;
+  };
+
+  dataChannel.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      appendChatMessage(data.sender, data.text, false, data.time);
+      
+      // Tampilkan indikator dot merah bila chat drawer sedang tertutup
+      if (!chatDrawer.classList.contains('open')) {
+        chatUnreadDot.style.display = 'block';
+      }
+    } catch (err) {
+      console.error("Gagal parse pesan chat DataChannel:", event.data);
+    }
+  };
+}
+
+chatForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = chatInput.value.trim();
+  if (!text || !dataChannel || dataChannel.readyState !== 'open') return;
+
+  const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const payload = {
+    sender: currentUserId,
+    text: text,
+    time: timeStr
+  };
+
+  dataChannel.send(JSON.stringify(payload));
+  appendChatMessage(currentUserId, text, true, timeStr);
+  chatInput.value = '';
+});
+
+function appendChatMessage(sender, text, isMine, time) {
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble ${isMine ? 'mine' : 'theirs'}`;
+  bubble.innerHTML = `
+    <div class="bubble-sender">${isMine ? 'Anda' : sender}</div>
+    <div class="bubble-text">${escapeHtml(text)}</div>
+    <div class="bubble-time">${time}</div>
+  `;
+  chatMessages.appendChild(bubble);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+toggleChatBtn.addEventListener('click', () => {
+  chatDrawer.classList.toggle('open');
+  chatUnreadDot.style.display = 'none';
+});
+
+closeChatBtn.addEventListener('click', () => {
+  chatDrawer.classList.remove('open');
+});
+
+// ==========================================
+// 15. OBSERVABILITAS REAL-TIME & getStats() (FR-40, FR-44)
+// ==========================================
+function startStatsMonitor() {
+  if (statsInterval) clearInterval(statsInterval);
+
+  statsInterval = setInterval(async () => {
+    if (!peerConnection) return;
+
+    try {
+      const stats = await peerConnection.getStats();
+      let selectedPair = null;
+
+      stats.forEach(report => {
+        if (report.type === 'transport' && report.selectedCandidatePairId) {
+          selectedPair = stats.get(report.selectedCandidatePairId);
+        }
+      });
+
+      if (!selectedPair) {
+        stats.forEach(report => {
+          if (report.type === 'candidate-pair' && (report.selected || report.nominated)) {
+            selectedPair = report;
+          }
+        });
+      }
+
+      if (selectedPair) {
+        const localCand = stats.get(selectedPair.localCandidateId);
+        const remoteCand = stats.get(selectedPair.remoteCandidateId);
+
+        if (localCand && remoteCand) {
+          const type = (localCand.candidateType || '').toLowerCase(); // 'host', 'srflx', 'relay'
+          const protocol = (localCand.protocol || 'udp').toUpperCase();
+
+          statProtocol.innerText = protocol;
+          statLocalIp.innerText = `${localCand.address || localCand.ip}:${localCand.port} (${type})`;
+          statRemoteIp.innerText = `${remoteCand.address || remoteCand.ip}:${remoteCand.port} (${remoteCand.candidateType})`;
+
+          // Update Tipe Jalur Coturn
+          updateActiveCandidateBadge(type);
+
+          // RTT (Round Trip Time)
+          if (selectedPair.currentRoundTripTime !== undefined) {
+            statRtt.innerText = `${Math.round(selectedPair.currentRoundTripTime * 1000)} ms`;
+          }
+        }
+      }
+
+      // Hitung Bitrate dan Packet Loss dari Inbound RTP
+      stats.forEach(report => {
+        if (report.type === 'inbound-rtp' && (report.kind === 'video' || report.kind === 'audio')) {
+          if (report.packetsLost !== undefined) {
+            statPacketsLost.innerText = report.packetsLost;
+          }
+
+          if (report.bytesReceived !== undefined && prevBytesReceived > 0) {
+            const timeDiff = (report.timestamp - prevStatsTimestamp) / 1000;
+            if (timeDiff > 0) {
+              const bitrate = ((report.bytesReceived - prevBytesReceived) * 8) / timeDiff / 1000;
+              statBitrate.innerText = `${Math.round(bitrate)} kbps`;
+            }
+          }
+          prevBytesReceived = report.bytesReceived;
+          prevStatsTimestamp = report.timestamp;
+        }
+      });
+
+    } catch (err) {
+      console.warn("Gagal mengambil getStats():", err);
+    }
+  }, 1000);
+}
+
+function updateActiveCandidateBadge(type) {
+  activeTypeBadge.className = `badge badge-${type}`;
+
+  if (type === 'relay') {
+    activeTypeBadge.innerText = 'RELAY (TURN COTURN)';
+    activeTypeDesc.innerHTML = '🟢 <strong>BERHASIL:</strong> Panggilan dialirkan melewati server Coturn TURN! Bukti bahwa relay bekerja sempurna.';
+  } else if (type === 'srflx') {
+    activeTypeBadge.innerText = 'SRFLX (STUN COTURN)';
+    activeTypeDesc.innerHTML = '🔵 <strong>STUN:</strong> Koneksi P2P langsung menggunakan IP publik hasil refleksi dari STUN Coturn.';
+  } else if (type === 'host') {
+    activeTypeBadge.innerText = 'HOST (LOKAL LAN/P2P)';
+    activeTypeDesc.innerHTML = '⚪ <strong>Lokal:</strong> Menggunakan IP internal perangkat. Untuk memaksa melewati Coturn, aktifkan toggle <strong>Paksa Jalur TURN Relay</strong>.';
+  } else {
+    activeTypeBadge.innerText = type.toUpperCase();
+  }
+}
+
+// ==========================================
+// 16. KONTROL PANGGILAN & CLEANUP (FR-15, FR-25)
+// ==========================================
+toggleMicBtn.addEventListener('click', () => {
+  if (localStream) {
+    const audioTrack = localStream.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !audioTrack.enabled;
+      toggleMicBtn.classList.toggle('active-off', !audioTrack.enabled);
+      toggleMicBtn.querySelector('.label').innerText = audioTrack.enabled ? 'Mute' : 'Unmute';
+      logEvent('SIG', 'MEDIA', `Mikrofon: ${audioTrack.enabled ? 'ON' : 'MUTED'}`);
+    }
+  }
+});
+
+toggleCamBtn.addEventListener('click', () => {
+  if (localStream) {
+    const videoTrack = localStream.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      toggleCamBtn.classList.toggle('active-off', !videoTrack.enabled);
+      toggleCamBtn.querySelector('.label').innerText = videoTrack.enabled ? 'Kamera' : 'Nyalakan';
+      logEvent('SIG', 'MEDIA', `Kamera: ${videoTrack.enabled ? 'ON' : 'OFF'}`);
+    }
+  }
+});
+
+hangupBtn.addEventListener('click', () => {
+  hangupCall();
+});
+
+function hangupCall() {
+  if (currentCallPeer) {
+    logEvent('SIG', 'SIG', `Mengirim sinyal hangup ke ${currentCallPeer}`);
+    sendSignalingMessage({
+      type: 'hangup',
+      to: currentCallPeer
+    });
+  }
+  handleCallEnded('Anda telah mengakhiri panggilan.');
+}
+
+function handleCallEnded(msg) {
+  stopRingtone();
+  clearTimeout(unansweredTimeout);
+
+  if (statsInterval) {
+    clearInterval(statsInterval);
+    statsInterval = null;
+  }
+
+  if (callTimerInterval) {
+    clearInterval(callTimerInterval);
+    callTimerInterval = null;
+  }
+
+  // Bersihkan DataChannel
+  if (dataChannel) {
+    dataChannel.close();
+    dataChannel = null;
+  }
+
+  // Tutup PeerConnection
+  if (peerConnection) {
+    peerConnection.close();
+    peerConnection = null;
+  }
+
+  // Hentikan semua track media lokal (agar lampu webcam mati)
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+    localStream = null;
+  }
+
+  remoteStream = null;
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+  remoteAudio.srcObject = null;
+
+  resetToIdle();
+  if (msg) {
+    logEvent('SIG', 'SIG', msg);
+  }
+}
+
+function resetToIdle() {
+  appState = 'idle';
+  currentCallPeer = null;
+  isCallInitiator = false;
+  iceCandidateQueue = [];
+
+  incomingModal.style.display = 'none';
+  callingModal.style.display = 'none';
+  callScreen.style.display = 'none';
+  lobbyScreen.style.display = 'block';
+
+  callDurationSeconds = 0;
+  callTimer.innerText = '00:00';
+  chatMessages.innerHTML = '<div class="chat-system-msg">Pesan chat dikirim peer-to-peer melalui WebRTC RTCDataChannel</div>';
+
+  activeTypeBadge.className = 'badge badge-none';
+  activeTypeBadge.innerText = '- Belum Terhubung -';
+  activeTypeDesc.innerText = 'Lakukan panggilan untuk memverifikasi jalur yang dipilih oleh ICE.';
+  statIceState.innerText = '-';
+  statConnState.innerText = '-';
+  statRtt.innerText = '- ms';
+  statBitrate.innerText = '- kbps';
+  statPacketsLost.innerText = '0';
+  statProtocol.innerText = '-';
+  statLocalIp.innerText = '-';
+  statRemoteIp.innerText = '-';
+}
+
+function showCallScreen() {
+  lobbyScreen.style.display = 'none';
+  callScreen.style.display = 'flex';
+  callPartnerName.innerText = currentCallPeer;
+  callStatusBadge.className = 'badge badge-connecting';
+  callStatusBadge.innerText = 'Menghubungkan...';
+}
+
+function startCallTimer() {
+  if (callTimerInterval) clearInterval(callTimerInterval);
+  callDurationSeconds = 0;
+  callTimerInterval = setInterval(() => {
+    callDurationSeconds++;
+    const m = String(Math.floor(callDurationSeconds / 60)).padStart(2, '0');
+    const s = String(callDurationSeconds % 60).padStart(2, '0');
+    callTimer.innerText = `${m}:${s}`;
+  }, 1000);
+}
+
+// ==========================================
+// 17. EVENT LISTENER FORM LOGIN
+// ==========================================
+loginBtn.addEventListener('click', () => {
+  const username = usernameInput.value.trim();
+  if (!username) {
+    loginError.style.display = 'block';
+    loginError.innerText = 'Silakan masukkan nama pengguna terlebih dahulu!';
+    return;
+  }
+  loginError.style.display = 'none';
+  connectSignalingServer(username);
+});
+
+usernameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    loginBtn.click();
+  }
+});
+
+logoutBtn.addEventListener('click', () => {
+  if (ws) ws.close();
+  userBadge.style.display = 'none';
+  lobbyScreen.style.display = 'none';
+  callScreen.style.display = 'none';
+  loginScreen.style.display = 'block';
+  usernameInput.value = '';
+  logEvent('SIG', 'SIG', 'User telah keluar (logout).');
+});
+

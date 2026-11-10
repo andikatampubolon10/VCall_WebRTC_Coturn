@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi Video/Voice Call WebRTC + Coturn</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header Aplikasi -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="app-logo">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.34 5L2 22l5.17-1.31c1.43.79 3.07 1.31 4.83 1.31 5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.57 0-3.04-.44-4.3-1.2l-.31-.18-3.18.81.85-3.07-.2-.32C4.3 14.86 3.8 13.48 3.8 12c0-4.52 3.68-8.2 8.2-8.2s8.2 3.68 8.2 8.2c0 4.52-3.68 8.2-8.2 8.2z"/>
+        </svg>
+      </div>
+      <div class="header-title">
+        <h1>WebRTC Call Simulator</h1>
+        <span class="sub-text">Simulasi Voice/Video Call dengan STUN & TURN Coturn</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div id="userBadge" class="user-badge" style="display:none;">
+        <span class="status-dot online"></span>
+        <span id="currentUserName">User</span>
+        <button id="logoutBtn" class="btn-text">Keluar</button>
+      </div>
+      <button id="toggleDebugBtn" class="btn-secondary">⚙️ Panel Debug Coturn</button>
+    </div>
+  </header>
+
+  <!-- Kontainer Utama -->
+  <main class="app-main">
+    
+    <!-- 1. LAYAR LOGIN -->
+    <section id="loginScreen" class="screen card login-card">
+      <h2>Masuk ke Simulasi</h2>
+      <p class="card-desc">Buka tab kedua di browser Anda untuk bertindak sebagai Aplikasi B.</p>
+      
+      <div class="form-group">
+        <label for="usernameInput">Pilih atau Masukkan Nama Pengguna:</label>
+        <div class="preset-users">
+          <button type="button" class="btn-chip" onclick="selectPresetUser('Aplikasi A')">Aplikasi A</button>
+          <button type="button" class="btn-chip" onclick="selectPresetUser('Aplikasi B')">Aplikasi B</button>
+          <button type="button" class="btn-chip" onclick="selectPresetUser('User C')">User C</button>
+        </div>
+        <input type="text" id="usernameInput" placeholder="Contoh: Aplikasi A" maxlength="20" autofocus>
+      </div>
+
+      <div class="form-group config-toggle-group">
+        <details>
+          <summary>⚙️ Pengaturan Server Coturn & Relay</summary>
+          <div class="config-box">
+            <div class="config-row">
+              <label>Host Coturn:</label>
+              <input type="text" id="cfgCoturnHost" value="localhost">
+            </div>
+            <div class="config-row">
+              <label>Port Coturn:</label>
+              <input type="number" id="cfgCoturnPort" value="3478">
+            </div>
+            <div class="config-row">
+              <label>Username TURN:</label>
+              <input type="text" id="cfgTurnUser" value="simulasi">
+            </div>
+            <div class="config-row">
+              <label>Password TURN:</label>
+              <input type="text" id="cfgTurnPass" value="password123">
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <button id="loginBtn" class="btn-primary full-width">Masuk & Sambungkan</button>
+      <div id="loginError" class="alert-box error" style="display:none;"></div>
+    </section>
+
+    <!-- 2. LAYAR DAFTAR PENGGUNA ONLINE (LOBBY) -->
+    <section id="lobbyScreen" class="screen card lobby-card" style="display:none;">
+      <div class="lobby-header">
+        <div>
+          <h2>Kontak Tersedia</h2>
+          <p class="card-desc">Pilih kontak untuk memulai panggilan suara atau video.</p>
+        </div>
+        <div class="relay-switch-container">
+          <label class="switch-label" title="Jika aktif, panggilan dipaksa melewati TURN server Coturn (mengabaikan koneksi langsung P2P)">
+            <input type="checkbox" id="forceRelayCheckbox">
+            <span class="switch-custom"></span>
+            <span class="switch-text"><strong>Paksa Jalur TURN Relay</strong> (Demo Coturn)</span>
+          </label>
+        </div>
+      </div>
+
+      <div id="usersListContainer" class="users-list">
+        <!-- Render dinamis daftar user -->
+      </div>
+
+      <div id="emptyUsersNote" class="empty-state" style="display:none;">
+        <div class="empty-icon">👥</div>
+        <p>Belum ada pengguna lain yang online.</p>
+        <p class="small-text">Buka <a href="/" target="_blank">jendela/tab baru</a> lalu login sebagai pengguna lain untuk memulai panggilan.</p>
+      </div>
+    </section>
+
+    <!-- 3. LAYAR PANGGILAN AKTIF (IN-CALL) -->
+    <section id="callScreen" class="screen call-screen" style="display:none;">
+      <div class="call-container">
+        
+        <!-- Video Grid / Container Media -->
+        <div class="media-container" id="mediaContainer">
+          
+          <!-- Remote Media (Layar Utama) -->
+          <div class="remote-view-wrapper">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <audio id="remoteAudio" autoplay></audio>
+            
+            <!-- Voice Call Avatar (tampil saat mode voice) -->
+            <div id="voiceAvatarView" class="voice-avatar-container" style="display:none;">
+              <div class="pulsing-avatar">
+                <span id="remoteAvatarInitial">B</span>
+              </div>
+              <h3 id="remoteVoiceUserName">Nama Lawan Bicara</h3>
+              <p class="call-type-indicator">Panggilan Suara Real-time</p>
+            </div>
+
+            <!-- Overlay Info Panggilan -->
+            <div class="call-top-overlay">
+              <div class="call-partner-info">
+                <span id="callPartnerName" class="partner-name">User B</span>
+                <span id="callStatusBadge" class="badge badge-connecting">Connecting...</span>
+              </div>
+              <div id="callTimer" class="call-timer">00:00</div>
+            </div>
+          </div>
+
+          <!-- Local Media (Picture-in-Picture Preview) -->
+          <div class="local-preview-wrapper" id="localPreviewWrapper">
+            <video id="localVideo" autoplay playsinline muted></video>
+            <span class="local-label">Anda (Lokal)</span>
+          </div>
+
+          <!-- Bar Kontrol Panggilan -->
+          <div class="call-controls-bar">
+            <button id="toggleMicBtn" class="control-btn" title="Mute/Unmute Mic">
+              <span class="icon">🎤</span>
+              <span class="label">Mute</span>
+            </button>
+            <button id="toggleCamBtn" class="control-btn" title="Nyalakan/Matikan Kamera">
+              <span class="icon">📹</span>
+              <span class="label">Kamera</span>
+            </button>
+            <button id="toggleChatBtn" class="control-btn" title="Buka/Tutup Chat">
+              <span class="icon">💬</span>
+              <span class="label">Chat</span>
+              <span id="chatUnreadDot" class="unread-dot" style="display:none;"></span>
+            </button>
+            <button id="hangupBtn" class="control-btn end-call" title="Akhiri Panggilan">
+              <span class="icon">📞</span>
+              <span class="label">Akhiri</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel Chat (RTCDataChannel) -->
+        <div class="chat-drawer" id="chatDrawer">
+          <div class="chat-header">
+            <h3>Chat Langsung (DataChannel)</h3>
+            <button id="closeChatBtn" class="btn-icon">✕</button>
+          </div>
+          <div id="chatMessages" class="chat-messages">
+            <div class="chat-system-msg">Pesan chat dikirim peer-to-peer melalui WebRTC RTCDataChannel</div>
+          </div>
+          <form id="chatForm" class="chat-form">
+            <input type="text" id="chatInput" placeholder="Ketik pesan chat..." autocomplete="off">
+            <button type="submit" class="btn-primary">Kirim</button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Panggilan Masuk (Incoming Call) -->
+  <div id="incomingModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card incoming-card">
+      <div class="pulsing-call-icon">📞</div>
+      <h3 id="incomingCallerName">Aplikasi A</h3>
+      <p id="incomingCallMode">Panggilan Video Masuk...</p>
+      
+      <div class="modal-actions">
+        <button id="rejectCallBtn" class="btn-danger-action">
+          <span class="icon">✕</span> Tolak
+        </button>
+        <button id="acceptCallBtn" class="btn-success-action">
+          <span class="icon">✓</span> Terima
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Menunggu Jawaban (Outgoing Calling) -->
+  <div id="callingModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-card calling-card">
+      <div class="pulsing-call-icon ringing">🔔</div>
+      <h3 id="outgoingTargetName">Memanggil Aplikasi B...</h3>
+      <p id="outgoingCallMode">Menunggu jawaban penerima...</p>
+      <button id="cancelCallBtn" class="btn-danger-action">
+        <span class="icon">✕</span> Batalkan Panggilan
+      </button>
+    </div>
+  </div>
+
+  <!-- PANEL DEBUG & OBSERVABILITAS COTURN -->
+  <aside id="debugPanel" class="debug-panel">
+    <div class="debug-header">
+      <h3>🔍 Panel Observabilitas Coturn</h3>
+      <button id="hideDebugBtn" class="btn-icon">✕</button>
+    </div>
+
+    <div class="debug-content">
+      <!-- Status Jalur Koneksi Aktif -->
+      <div class="debug-section">
+        <h4>Tipe Jalur Aktif (Active Candidate Pair)</h4>
+        <div class="candidate-type-card" id="candidateTypeCard">
+          <div class="type-badge-container">
+            <span id="activeTypeBadge" class="badge badge-none">- Belum Terhubung -</span>
+          </div>
+          <p id="activeTypeDesc" class="type-explanation">Lakukan panggilan untuk memverifikasi jalur yang dipilih oleh ICE.</p>
+        </div>
+      </div>
+
+      <!-- Statistik Real-Time getStats() -->
+      <div class="debug-section">
+        <h4>Metrik Koneksi Real-Time (getStats)</h4>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-label">ICE State</span>
+            <span id="statIceState" class="stat-val">-</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Connection</span>
+            <span id="statConnState" class="stat-val">-</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">RTT (Latensi)</span>
+            <span id="statRtt" class="stat-val">- ms</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Bitrate Media</span>
+            <span id="statBitrate" class="stat-val">- kbps</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Packet Loss</span>
+            <span id="statPacketsLost" class="stat-val">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Protokol</span>
+            <span id="statProtocol" class="stat-val">-</span>
+          </div>
+        </div>
+        <div class="stat-detail-box">
+          <small><strong>Local IP:</strong> <code id="statLocalIp">-</code></small><br>
+          <small><strong>Remote IP:</strong> <code id="statRemoteIp">-</code></small>
+        </div>
+      </div>
+
+      <!-- Event Log Console -->
+      <div class="debug-section">
+        <div class="log-header">
+          <h4>Log Sinyal & ICE Candidates</h4>
+          <button id="clearLogBtn" class="btn-tiny">Hapus</button>
+        </div>
+        <div id="debugLogConsole" class="debug-log-console">
+          <!-- Item log dinamis -->
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
