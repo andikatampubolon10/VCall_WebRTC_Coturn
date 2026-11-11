@@ -154,22 +154,33 @@ function AppB() {
 
   // 3. WebRTC PeerConnection
   const createPeerConnection = (targetUser) => {
-    const turnHost = configRef.current?.turnHost || window.location.hostname || 'localhost';
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: `stun:${turnHost}:3478` },
-        {
-          urls: [
-            `turn:${turnHost}:3478?transport=udp`,
-            `turn:${turnHost}:3478?transport=tcp`
-          ],
-          username: 'simulasi',
-          credential: 'password123'
-        }
-      ]
-    });
+    const iceServers = configRef.current?.iceServers || [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun.relay.metered.ca:80' },
+      {
+        urls: 'turn:standard.relay.metered.ca:80',
+        username: '18a1aa3f68d754653458bc9d',
+        credential: '/mGt8FrweJKNDdnP'
+      },
+      {
+        urls: 'turn:standard.relay.metered.ca:80?transport=tcp',
+        username: '18a1aa3f68d754653458bc9d',
+        credential: '/mGt8FrweJKNDdnP'
+      },
+      {
+        urls: 'turn:standard.relay.metered.ca:443',
+        username: '18a1aa3f68d754653458bc9d',
+        credential: '/mGt8FrweJKNDdnP'
+      },
+      {
+        urls: 'turns:standard.relay.metered.ca:443?transport=tcp',
+        username: '18a1aa3f68d754653458bc9d',
+        credential: '/mGt8FrweJKNDdnP'
+      }
+    ];
+
+    const pc = new RTCPeerConnection({ iceServers });
 
     pcRef.current = pc;
     candidateQueueRef.current = [];
@@ -209,7 +220,14 @@ function AppB() {
 
     pc.oniceconnectionstatechange = () => {
       console.log("[App B ICE]:", pc.iceConnectionState);
-      if (pc.iceConnectionState === 'connected') {
+      if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+        startTimer();
+      }
+    };
+
+    pc.onconnectionstatechange = () => {
+      console.log("[App B Connection State]:", pc.connectionState);
+      if (pc.connectionState === 'connected') {
         startTimer();
       }
     };
@@ -283,7 +301,11 @@ function AppB() {
     await pc.setRemoteDescription(new RTCSessionDescription(sdpOffer));
 
     for (const c of candidateQueueRef.current) {
-      await pc.addIceCandidate(new RTCIceCandidate(c));
+      try {
+        await pc.addIceCandidate(c);
+      } catch (e) {
+        console.warn("Candidate queue error:", e);
+      }
     }
     candidateQueueRef.current = [];
 
@@ -301,17 +323,26 @@ function AppB() {
     if (pcRef.current) {
       await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdpAnswer));
       for (const c of candidateQueueRef.current) {
-        await pcRef.current.addIceCandidate(new RTCIceCandidate(c));
+        try {
+          await pcRef.current.addIceCandidate(c);
+        } catch (e) {
+          console.warn("Candidate queue error:", e);
+        }
       }
       candidateQueueRef.current = [];
     }
   };
 
   const handleCandidate = async (candidate) => {
-    if (pcRef.current && pcRef.current.remoteDescription) {
-      await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-    } else {
-      candidateQueueRef.current.push(candidate);
+    if (!candidate) return;
+    try {
+      if (pcRef.current && pcRef.current.remoteDescription && pcRef.current.remoteDescription.type) {
+        await pcRef.current.addIceCandidate(candidate);
+      } else {
+        candidateQueueRef.current.push(candidate);
+      }
+    } catch (err) {
+      console.warn("Gagal addIceCandidate:", err);
     }
   };
 

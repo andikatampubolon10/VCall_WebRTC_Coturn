@@ -580,7 +580,18 @@ function createPeerConnection() {
           'stun:stun2.l.google.com:19302'
         ]
       },
-      // 2. Coturn Lokal (Docker port 3478)
+      // 2. Metered Cloud STUN & TURN (Bypass Firewall 4G & Symmetric NAT)
+      {
+        urls: [
+          'stun:global.relay.metered.ca:80',
+          'turn:global.relay.metered.ca:80',
+          'turn:global.relay.metered.ca:443',
+          'turn:global.relay.metered.ca:443?transport=tcp'
+        ],
+        username: '18a1aa3f68d754653458bc9d',
+        credential: '/mGt8FrweJKNDdnP'
+      },
+      // 3. Coturn Lokal (Docker port 3478)
       {
         urls: `stun:${coturnHost}:${coturnPort}`
       },

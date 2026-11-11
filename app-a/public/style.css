@@ -89,6 +89,7 @@ body { background: var(--bg-main); color: var(--text-main); min-height: 100vh; }
   border: 2px solid var(--primary);
   background: #111;
   box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  z-index: 15;
 }
 #localVideo { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
@@ -100,10 +101,11 @@ body { background: var(--bg-main); color: var(--text-main); min-height: 100vh; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(13, 21, 32, 0.7);
+  background: rgba(13, 21, 32, 0.85);
   padding: 8px 16px;
   border-radius: 8px;
   backdrop-filter: blur(6px);
+  z-index: 15;
 }
 .call-controls { height: 70px; background: var(--bg-card); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 16px; }
 .control-btn { background: var(--bg-sidebar); border: 1px solid var(--border); color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }

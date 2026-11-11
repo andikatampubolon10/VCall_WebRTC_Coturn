@@ -181,19 +181,21 @@ wss.on('connection', (ws) => {
 
       case 'offer': {
         if (!currentUserId) return;
+        console.log(`[Gateway] SDP Offer dari ${currentUserId} ➔ ${to}`);
         sendTo(to, { type: 'offer', from: currentUserId, sdp });
         break;
       }
 
       case 'answer': {
         if (!currentUserId) return;
+        console.log(`[Gateway] SDP Answer dari ${currentUserId} ➔ ${to}`);
         sendTo(to, { type: 'answer', from: currentUserId, sdp });
         break;
       }
 
       case 'candidate': {
         if (!currentUserId) return;
-        console.log(`[Gateway] Candidate ICE dari ${currentUserId} ➔ ${to}`);
+        console.log(`[Gateway Candidate dari ${currentUserId} ➔ ${to}]:`, candidate?.candidate);
         sendTo(to, { type: 'candidate', from: currentUserId, candidate });
         break;
       }

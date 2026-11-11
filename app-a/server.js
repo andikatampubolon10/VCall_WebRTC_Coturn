@@ -28,6 +28,36 @@ app.get('/api/config', (req, res) => {
   if (gwUrl.includes('localhost') && reqHost !== 'localhost' && reqHost !== '127.0.0.1') {
     gwUrl = gwUrl.replace('localhost', reqHost);
   }
+
+  const iceServers = [
+    // 1. STUN Google (Prioritas 1: Gratis & Cepat untuk P2P langsung)
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    // 2. STUN Metered Resmi
+    { urls: 'stun:stun.relay.metered.ca:80' },
+    // 3. TURN Metered Resmi (Standard Free Tier Relay - Port 80 & 443 UDP/TCP/TLS)
+    {
+      urls: 'turn:standard.relay.metered.ca:80',
+      username: '18a1aa3f68d754653458bc9d',
+      credential: '/mGt8FrweJKNDdnP'
+    },
+    {
+      urls: 'turn:standard.relay.metered.ca:80?transport=tcp',
+      username: '18a1aa3f68d754653458bc9d',
+      credential: '/mGt8FrweJKNDdnP'
+    },
+    {
+      urls: 'turn:standard.relay.metered.ca:443',
+      username: '18a1aa3f68d754653458bc9d',
+      credential: '/mGt8FrweJKNDdnP'
+    },
+    {
+      urls: 'turns:standard.relay.metered.ca:443?transport=tcp',
+      username: '18a1aa3f68d754653458bc9d',
+      credential: '/mGt8FrweJKNDdnP'
+    }
+  ];
+
   res.json({
     appName: process.env.APP_NAME || 'Aplikasi A (Portal Dokter / Hospital)',
     system: 'APP_A',
@@ -35,7 +65,8 @@ app.get('/api/config', (req, res) => {
     turnHost: process.env.COTURN_HOST || (reqHost === '127.0.0.1' ? 'localhost' : reqHost),
     defaultUser: 'User A',
     dbRegion: 'Neon PostgreSQL (US East)',
-    connectedToDb: !!pool
+    connectedToDb: !!pool,
+    iceServers
   });
 });
 
