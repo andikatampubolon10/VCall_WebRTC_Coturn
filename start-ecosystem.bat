@@ -7,6 +7,11 @@ echo 🚀 MEMULAI EKOSISTEM WEBRTC DUA APLIKASI MANDIRI (APP A & APP B)
 echo ======================================================================
 echo.
 
+:: 0. Memastikan Docker Coturn Aktif
+echo [0/3] Menjalankan Coturn Server (STUN/TURN di Docker)...
+docker compose up -d
+echo.
+
 :: 1. Memulai Gateway (Port 3000)
 echo [1/3] Menjalankan Shared WebRTC Gateway pada Port 3000...
 start "Gateway-Port-3000" /d "%~dp0gateway" cmd /k npm start

@@ -7,8 +7,8 @@ services:
       # Port STUN/TURN default
       - "3478:3478/tcp"
       - "3478:3478/udp"
-      # Rentang Port Relay (UDP) sengaja dipersempit untuk efisiensi mapping Docker Desktop Windows
-      - "49160-49200:49160-49200/udp"
+      # Rentang Port Relay (UDP) untuk mendukung hingga 100+ concurrent user
+      - "49160-49400:49160-49400/udp"
     volumes:
       - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
     command:

@@ -264,3 +264,29 @@ Untuk menghentikan semua layanan:
 ```cmd
 stop-ecosystem.bat
 ```
+
+---
+
+## 📊 Pengujian Beban: 100 Concurrent Users (Grafana K6)
+
+Proyek ini telah dilengkapi dengan instrumen pengujian beban resmi berbasis **Grafana K6** untuk menguji kapasitas throughput dan reliabilitas server Signaling & CoTURN pada skenario 100 pengguna virtual aktif bersamaan (50 pasang panggilan simultan).
+
+### 1. Struktur Pengujian K6 (`load-test-k6.js`):
+* **Load Profile (Stages):**
+  * `0s - 10s`: Ramp-up ke 20 pengguna
+  * `10s - 30s`: Ramping ke 50 pengguna
+  * `30s - 60s`: **Beban Puncak (100 Concurrent Users)**
+  * `60s - 80s`: Mempertahankan 100 pengguna (Steady State)
+  * `80s - 90s`: Ramp-down kembali ke 0
+* **Metrik & Ambang Kelulusan (Thresholds SLA):**
+  * `call_handshake_success_rate > 95%`: Minimal 95% panggilan harus berhasil tersambung.
+  * `signaling_msg_latency_ms (p95) < 300ms`: 95% pesan sinyal terkirim di bawah 300 milidetik.
+* **Simulasi Alokasi Port CoTURN:** Menguji perputaran kandidat relay pada rentang port `49160-49400`.
+
+### 2. Cara Menjalankan Pengujian:
+Cukup jalankan batch file otomatis:
+```cmd
+run-k6-test.bat
+```
+*Script otomatis mendeteksi k6 lokal, kontainer Docker resmi `grafana/k6`, atau beralih ke node runner mandiri secara cerdas.*
+
