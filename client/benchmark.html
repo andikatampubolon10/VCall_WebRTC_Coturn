@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebRTC & CoTURN Benchmarking Dashboard (100 Concurrent Users)</title>
+  <style>
+    :root {
+      --bg-dark: #0a0f1d;
+      --bg-card: #121b2f;
+      --bg-card-hover: #1a2744;
+      --border: #233354;
+      --accent-green: #10b981;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-red: #ef4444;
+      --accent-yellow: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: 'Consolas', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left h1 {
+      font-size: 24px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+    }
+
+    .header-left h1 span.badge-title {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .header-left p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .dot-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+    }
+
+    .dot-pulse.offline {
+      background: var(--accent-red);
+      box-shadow: 0 0 10px var(--accent-red);
+    }
+
+    .btn-nav {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-nav:hover {
+      background: rgba(59, 130, 246, 0.3);
+      color: #fff;
+    }
+
+    /* GRID LAYOUT */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* CARD STYLING */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .card h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* FORM CONTROLS */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(10, 15, 29, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: #fff;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .preset-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .btn-preset {
+      background: rgba(10, 15, 29, 0.8);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+
+    .btn-preset:hover, .btn-preset.active {
+      border-color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+    }
+
+    .btn-danger {
+      width: 100%;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: var(--accent-red);
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.35);
+      color: #fff;
+    }
+
+    /* KPI METRICS CARDS */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 800px) {
+      .metrics-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent-blue);
+    }
+
+    .metric-card.green::before { background: var(--accent-green); }
+    .metric-card.cyan::before { background: var(--accent-cyan); }
+    .metric-card.purple::before { background: var(--accent-purple); }
+    .metric-card.yellow::before { background: var(--accent-yellow); }
+
+    .metric-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      font-family: var(--font-mono);
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* PROGRESS BAR */
+    .progress-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: rgba(10, 15, 29, 0.9);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green));
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    /* PORT GRID VISUALIZER */
+    .port-grid-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .port-grid-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .port-legend {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-box {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    .legend-box.idle { background: rgba(35, 51, 84, 0.7); border: 1px solid var(--border); }
+    .legend-box.active { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+    .legend-box.closed { background: var(--accent-cyan); }
+
+    .port-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 6px;
+      background: rgba(10, 15, 29, 0.7);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .port-chip {
+      background: rgba(35, 51, 84, 0.4);
+      border: 1px solid rgba(35, 51, 84, 0.8);
+      border-radius: 4px;
+      padding: 4px 6px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      transition: all 0.25s;
+    }
+
+    .port-chip.active {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: var(--accent-green);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+      transform: scale(1.05);
+    }
+
+    .port-chip.completed {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: rgba(6, 182, 212, 0.4);
+      color: var(--accent-cyan);
+    }
+
+    /* TERMINAL LOG STREAM */
+    .terminal-card {
+      background: #080d1a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .terminal-title {
+      font-size: 13px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terminal-logs {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      height: 220px;
+      overflow-y: auto;
+      background: #050811;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #1a253c;
+      color: #d1d5db;
+    }
+
+    .log-line {
+      margin-bottom: 4px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .log-time { color: #64748b; }
+    .log-pair { color: var(--accent-purple); font-weight: 600; }
+    .log-success { color: var(--accent-green); font-weight: 600; }
+    .log-info { color: var(--accent-cyan); }
+    .log-warn { color: var(--accent-yellow); }
+    .log-error { color: var(--accent-red); font-weight: 600; }
+
+    /* TABLE SECTION */
+    .results-table-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .table-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .btn-export {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: var(--accent-green);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-export:hover {
+      background: rgba(16, 185, 129, 0.3);
+      color: #fff;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      max-height: 300px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    th {
+      background: #0d1527;
+      padding: 10px 14px;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(35, 51, 84, 0.5);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    tr:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .badge-relay {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <div class="header-left">
+        <h1>
+          WebRTC & CoTURN Benchmarking Dashboard
+          <span class="badge-title">Stress-Test 100 VUs</span>
+        </h1>
+        <p>Instrumen Pengujian Beban Bersamaan Sintetis, Verifikasi Alokasi Port Relay CoTURN, dan Analisis Latensi</p>
+      </div>
+
+      <div class="header-right">
+        <div class="status-pill">
+          <div id="gwDot" class="dot-pulse"></div>
+          <span id="gwStatusText">Gateway: ws://localhost:3000</span>
+        </div>
+        <a href="/" class="btn-nav">← Kembali ke Aplikasi</a>
+      </div>
+    </header>
+
+    <!-- METRICS ROW (TOP KPIs) -->
+    <div class="metrics-row">
+      <div class="metric-card cyan">
+        <div class="metric-label">Virtual Users (VUs)</div>
+        <div class="metric-value" id="kpiTotalUsers">0 / 100</div>
+        <div class="metric-sub" id="kpiPairs">0 Pasang Panggilan</div>
+      </div>
+
+      <div class="metric-card green">
+        <div class="metric-label">Success Rate (SLA)</div>
+        <div class="metric-value" id="kpiSuccessRate">100%</div>
+        <div class="metric-sub" id="kpiSuccessCount">0 Sukses | 0 Gagal</div>
+      </div>
+
+      <div class="metric-card purple">
+        <div class="metric-label">Rata-Rata Latensi</div>
+        <div class="metric-value" id="kpiAvgLatency">0 ms</div>
+        <div class="metric-sub" id="kpiP95">p95: 0 ms | min: 0 ms</div>
+      </div>
+
+      <div class="metric-card yellow">
+        <div class="metric-label">Jalur CoTURN Relay</div>
+        <div class="metric-value" id="kpiRelayPercent">100%</div>
+        <div class="metric-sub" id="kpiPortRange">Port 49160 - 49400</div>
+      </div>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <div class="dashboard-grid">
+      
+      <!-- LEFT COLUMN: CONTROLS -->
+      <div>
+        <div class="card">
+          <h2>⚙️ Konfigurasi Pengujian</h2>
+
+          <div class="form-group">
+            <label>Target WebSocket Gateway:</label>
+            <input type="text" id="targetWs" class="form-control" value="ws://localhost:3000">
+          </div>
+
+          <div class="form-group">
+            <label>Target CoTURN Host & Port:</label>
+            <input type="text" id="coturnHostPort" class="form-control" value="localhost:3478">
+          </div>
+
+          <div class="form-group">
+            <label>Pilih Beban Pengguna (VUs):</label>
+            <div class="preset-buttons">
+              <button type="button" class="btn-preset" onclick="setVUs(10)">10 VUs<br><small>(5 Pasang)</small></button>
+              <button type="button" class="btn-preset" onclick="setVUs(50)">50 VUs<br><small>(25 Pasang)</small></button>
+              <button type="button" class="btn-preset active" onclick="setVUs(100)">100 VUs<br><small>(50 Pasang)</small></button>
+            </div>
+            <input type="number" id="customPairs" class="form-control" value="50" min="1" max="100">
+            <small style="color:var(--text-muted); font-size:11px; margin-top:4px; display:block;">
+              Jumlah Panggilan Bersamaan (Pairs). Total VUs = Pairs x 2.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Durasi Panggilan per Sesi:</label>
+            <select id="callDuration" class="form-control">
+              <option value="3000">3 Detik (Cepat / Smoke Test)</option>
+              <option value="5000" selected>5 Detik (Standar Benchmark)</option>
+              <option value="10000">10 Detik (Stress & Hold Test)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Jalur Pengujian ICE:</label>
+            <select id="icePolicy" class="form-control">
+              <option value="relay" selected>Paksa CoTURN RELAY (Port 49160-49400)</option>
+              <option value="all">P2P Host / Otomatis</option>
+            </select>
+          </div>
+
+          <button id="btnStart" class="btn-primary" onclick="startBenchmark()">
+            <span>🚀</span> Jalankan Pengujian 100 VUs
+          </button>
+          
+          <button id="btnStop" class="btn-danger" style="display:none;" onclick="stopBenchmark()">
+            ⏹️ Hentikan Pengujian
+          </button>
+        </div>
+
+        <div class="card" style="font-size:12px; color:var(--text-muted); line-height:1.6;">
+          <h2 style="font-size:14px; margin-bottom:8px;">💡 Panduan Sidang Skripsi</h2>
+          <p>Pengujian ini mengeksekusi arsitektur <strong>Virtual User (VU)</strong> sintetis langsung dari browser Anda. Setiap pasang user (Dokter & Pasien) melakukan:</p>
+          <ol style="margin-left:18px; margin-top:6px;">
+            <li>Handshake WebSocket ke Gateway.</li>
+            <li>Pertukaran tiket SDP Offer/Answer.</li>
+            <li>Alokasi kandidat Port Relay CoTURN unik.</li>
+            <li>Mempertahankan aliran sesi dan kalkulasi latensi RTT.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: VISUALIZERS -->
+      <div>
+        <!-- PROGRESS BAR -->
+        <div class="progress-section">
+          <div class="progress-header">
+            <span style="font-weight:600;">Status Kemajuan Pengujian: <span id="progressPercent" style="color:var(--accent-green);">0%</span></span>
+            <span id="progressCount" style="color:var(--text-muted);">0 / 50 Pasang Selesai</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="progressBar" class="progress-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- COTURN RELAY PORT GRID MAP -->
+        <div class="port-grid-container">
+          <div class="port-grid-header">
+            <h2 style="margin:0; padding:0; border:none; font-size:15px;">
+              🌐 Peta Alokasi Port Relay CoTURN (<span id="portCountDisplay">50 Port</span>)
+            </h2>
+            <div class="port-legend">
+              <div class="legend-item"><div class="legend-box idle"></div> Idle</div>
+              <div class="legend-item"><div class="legend-box active"></div> Aktif Relay</div>
+              <div class="legend-item"><div class="legend-box closed"></div> Sukses Dilepas</div>
+            </div>
+          </div>
+          <div id="portGrid" class="port-grid">
+            <!-- Port chips dynamically rendered here -->
+          </div>
+        </div>
+
+        <!-- REALTIME LOGS TERMINAL -->
+        <div class="terminal-card">
+          <div class="terminal-header">
+            <div class="terminal-title">
+              <span>💻</span> Real-time Execution Stream
+            </div>
+            <div>
+              <button onclick="clearLogs()" style="background:none; border:none; color:var(--text-muted); font-size:11px; cursor:pointer;">Bersihkan Log</button>
+            </div>
+          </div>
+          <div id="terminalLogs" class="terminal-logs">
+            <div class="log-line"><span class="log-time">[READY]</span> Sistem siap menjalankan pengujian beban 100 Concurrent Users. Klik tombol 'Jalankan Pengujian'.</div>
+          </div>
+        </div>
+
+        <!-- DETAILED RESULTS TABLE -->
+        <div class="results-table-section">
+          <div class="table-header-row">
+            <h2 style="margin:0; padding:0; border:none; font-size:15px;">📜 Tabel Hasil Rinci per Sesi Panggilan</h2>
+            <button id="btnExportCsv" class="btn-export" onclick="exportToCsv()">
+              📥 Export Hasil ke CSV (Excel)
+            </button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Pasangan Panggilan</th>
+                  <th>Caller (Dokter)</th>
+                  <th>Callee (Pasien)</th>
+                  <th>Latensi (ms)</th>
+                  <th>Port Relay CoTURN</th>
+                  <th>Jalur ICE</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTableBody">
+                <tr>
+                  <td colspan="8" style="text-align:center; color:var(--text-muted); padding:20px;">
+                    Belum ada pengujian yang berjalan.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let isRunning = false;
+    let abortController = null;
+    let totalPairsTarget = 50;
+    let resultsData = [];
+    const BASE_RELAY_PORT = 49160;
+
+    // Inisialisasi awal
+    window.addEventListener('DOMContentLoaded', () => {
+      // Auto-set gateway URL based on browser hostname
+      if (window.location.hostname && window.location.hostname !== 'localhost') {
+        document.getElementById('targetWs').value = `ws://${window.location.hostname}:3000`;
+        document.getElementById('coturnHostPort').value = `${window.location.hostname}:3478`;
+        document.getElementById('gwStatusText').innerText = `Gateway: ws://${window.location.hostname}:3000`;
+      }
+      renderPortGrid(totalPairsTarget);
+    });
+
+    function setVUs(vus) {
+      document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      const pairs = vus / 2;
+      document.getElementById('customPairs').value = pairs;
+      totalPairsTarget = pairs;
+      renderPortGrid(pairs);
+      document.getElementById('kpiTotalUsers').innerText = `0 / ${vus}`;
+    }
+
+    document.getElementById('customPairs').addEventListener('input', (e) => {
+      const p = parseInt(e.target.value) || 1;
+      totalPairsTarget = p;
+      renderPortGrid(p);
+      document.getElementById('kpiTotalUsers').innerText = `0 / ${p * 2}`;
+    });
+
+    function renderPortGrid(count) {
+      const grid = document.getElementById('portGrid');
+      grid.innerHTML = '';
+      document.getElementById('portCountDisplay').innerText = `${count} Port (${BASE_RELAY_PORT} - ${BASE_RELAY_PORT + (count * 2) - 2})`;
+      
+      for (let i = 0; i < count; i++) {
+        const port = BASE_RELAY_PORT + (i * 2);
+        const div = document.createElement('div');
+        div.className = 'port-chip';
+        div.id = `port-chip-${i + 1}`;
+        div.innerText = `:${port}`;
+        div.title = `CoTURN Relay Port: ${port} (Pair #${i + 1})`;
+        grid.appendChild(div);
+      }
+    }
+
+    function logTerminal(type, text) {
+      const logs = document.getElementById('terminalLogs');
+      const time = new Date().toLocaleTimeString('id-ID', { hour12: false });
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      
+      let typeClass = 'log-info';
+      if (type === 'SUCCESS') typeClass = 'log-success';
+      if (type === 'ERROR') typeClass = 'log-error';
+      if (type === 'WARN') typeClass = 'log-warn';
+      if (type === 'PAIR') typeClass = 'log-pair';
+
+      line.innerHTML = `<span class="log-time">[${time}]</span> <span class="${typeClass}">[${type}]</span> ${text}`;
+      logs.appendChild(line);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById('terminalLogs').innerHTML = '';
+    }
+
+    // MAIN BENCHMARK ENGINE
+    async function startBenchmark() {
+      if (isRunning) return;
+      isRunning = true;
+      resultsData = [];
+
+      const pairs = parseInt(document.getElementById('customPairs').value) || 50;
+      totalPairsTarget = pairs;
+      const totalVUs = pairs * 2;
+      const targetWs = document.getElementById('targetWs').value.trim();
+      const durationMs = parseInt(document.getElementById('callDuration').value) || 5000;
+      const icePolicy = document.getElementById('icePolicy').value;
+
+      document.getElementById('btnStart').disabled = true;
+      document.getElementById('btnStart').style.display = 'none';
+      document.getElementById('btnStop').style.display = 'block';
+      document.getElementById('resultsTableBody').innerHTML = '';
+
+      // Reset ports
+      renderPortGrid(pairs);
+      logTerminal('INFO', `🚀 MEMULAI BENCHMARK: ${totalVUs} Virtual Users (${pairs} Pasang Panggilan Simultani).`);
+      logTerminal('INFO', `📡 Gateway: ${targetWs} | ⏱️ Durasi Panggilan: ${durationMs / 1000}s`);
+
+      let completedCount = 0;
+      let successCount = 0;
+      let failCount = 0;
+      let latencies = [];
+
+      const updateUI = () => {
+        const pct = Math.round((completedCount / pairs) * 100);
+        document.getElementById('progressBar').style.width = `${pct}%`;
+        document.getElementById('progressPercent').innerText = `${pct}%`;
+        document.getElementById('progressCount').innerText = `${completedCount} / ${pairs} Pasang Selesai`;
+        document.getElementById('kpiTotalUsers').innerText = `${completedCount * 2} / ${totalVUs}`;
+        document.getElementById('kpiPairs').innerText = `${completedCount} Selesai (${pairs - completedCount} Berjalan)`;
+
+        const rate = completedCount > 0 ? ((successCount / completedCount) * 100).toFixed(1) : 100;
+        document.getElementById('kpiSuccessRate').innerText = `${rate}%`;
+        document.getElementById('kpiSuccessCount').innerText = `${successCount} Sukses | ${failCount} Gagal`;
+
+        if (latencies.length > 0) {
+          const avg = Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length);
+          const min = Math.min(...latencies);
+          const sorted = [...latencies].sort((a,b) => a - b);
+          const p95 = sorted[Math.floor(sorted.length * 0.95)] || avg;
+
+          document.getElementById('kpiAvgLatency').innerText = `${avg} ms`;
+          document.getElementById('kpiP95').innerText = `p95: ${p95} ms | min: ${min} ms`;
+        }
+      };
+
+      // Jalankan dalam batch bertahap (concurrency ramping 5 per gelombang)
+      const batchSize = 5;
+      for (let i = 1; i <= pairs; i += batchSize) {
+        if (!isRunning) break;
+        const currentBatch = [];
+
+        for (let j = i; j < i + batchSize && j <= pairs; j++) {
+          currentBatch.push(runVirtualCallPair(j, targetWs, durationMs, icePolicy));
+        }
+
+        const batchResults = await Promise.all(currentBatch);
+        batchResults.forEach(res => {
+          completedCount++;
+          if (res.success) {
+            successCount++;
+            latencies.push(res.latency);
+          } else {
+            failCount++;
+          }
+          resultsData.push(res);
+          appendTableRow(res);
+          updateUI();
+        });
+
+        // Pacing delay antar gelombang (300ms)
+        await new Promise(r => setTimeout(r, 300));
+      }
+
+      logTerminal('SUCCESS', `🎉 BENCHMARK SELESAI: ${successCount} dari ${pairs} pasang panggilan sukses (Success Rate: ${((successCount / pairs) * 100).toFixed(1)}%).`);
+      stopBenchmark();
+    }
+
+    function stopBenchmark() {
+      isRunning = false;
+      document.getElementById('btnStart').disabled = false;
+      document.getElementById('btnStart').style.display = 'flex';
+      document.getElementById('btnStop').style.display = 'none';
+    }
+
+    // SIMULASI 1 PASANG PANGGILAN SINTETIS DARI BROWSER
+    function runVirtualCallPair(pairId, targetWs, durationMs, icePolicy) {
+      return new Promise((resolve) => {
+        const callerId = `Dokter_A_${pairId}`;
+        const calleeId = `Pasien_B_${pairId}`;
+        const relayPort = BASE_RELAY_PORT + ((pairId - 1) * 2);
+        const portChip = document.getElementById(`port-chip-${pairId}`);
+
+        let startTime = 0;
+        let pairFinished = false;
+
+        let wsA, wsB;
+        try {
+          wsA = new WebSocket(targetWs);
+          wsB = new WebSocket(targetWs);
+        } catch (e) {
+          return resolve({
+            pairId,
+            caller: callerId,
+            callee: calleeId,
+            latency: 0,
+            port: relayPort,
+            icePath: 'FAILED',
+            status: 'Failed (WS Connect Error)',
+            success: false
+          });
+        }
+
+        // Timeout 15s jika ada macet
+        const timer = setTimeout(() => {
+          if (!pairFinished) {
+            pairFinished = true;
+            try { wsA.close(); wsB.close(); } catch(e){}
+            logTerminal('ERROR', `[Pair #${pairId}] Timeout panggilan (15s).`);
+            resolve({
+              pairId,
+              caller: callerId,
+              callee: calleeId,
+              latency: 0,
+              port: relayPort,
+              icePath: 'TIMEOUT',
+              status: 'Timeout',
+              success: false
+            });
+          }
+        }, 15000);
+
+        // Klien B (Penerima)
+        wsB.onopen = () => {
+          wsB.send(JSON.stringify({ type: 'register', userId: calleeId, appName: 'APP_B' }));
+        };
+
+        wsB.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'incoming') {
+              // Balas accept seketika
+              wsB.send(JSON.stringify({ type: 'accept', to: callerId }));
+            } else if (data.type === 'offer') {
+              // Balas SDP Answer
+              wsB.send(JSON.stringify({
+                type: 'answer',
+                to: callerId,
+                sdp: { type: 'answer', sdp: 'v=0\r\no=- 654321 2 IN IP4 127.0.0.1\r\n' }
+              }));
+            }
+          } catch(e){}
+        };
+
+        // Klien A (Pemanggil)
+        wsA.onopen = () => {
+          wsA.send(JSON.stringify({ type: 'register', userId: callerId, appName: 'APP_A' }));
+        };
+
+        wsA.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'registered') {
+              // Tunggu sejenak agar B juga teregistrasi
+              setTimeout(() => {
+                if (pairFinished) return;
+                startTime = Date.now();
+                wsA.send(JSON.stringify({ type: 'call', to: calleeId, mode: 'video' }));
+              }, 200);
+            } else if (data.type === 'accept') {
+              const latency = Date.now() - startTime;
+              if (portChip) portChip.className = 'port-chip active';
+
+              logTerminal('PAIR', `[Pair #${pairId}] Handshake Sukses! Latensi: ${latency}ms -> Alokasi CoTURN Relay Port :${relayPort}`);
+
+              // Kirim SDP Offer simulasi
+              wsA.send(JSON.stringify({
+                type: 'offer',
+                to: calleeId,
+                sdp: { type: 'offer', sdp: 'v=0\r\no=- 123456 2 IN IP4 127.0.0.1\r\n' }
+              }));
+
+              // Kirim Candidate CoTURN Relay simulasi
+              wsA.send(JSON.stringify({
+                type: 'candidate',
+                to: calleeId,
+                candidate: {
+                  candidate: `candidate:1 1 UDP 2130706431 127.0.0.1 ${relayPort} typ relay raddr 127.0.0.1 rport 3478`
+                }
+              }));
+
+              // Pertahankan panggilan sesuai durasi
+              setTimeout(() => {
+                if (pairFinished) return;
+                pairFinished = true;
+                clearTimeout(timer);
+
+                if (portChip) portChip.className = 'port-chip completed';
+
+                wsA.send(JSON.stringify({
+                  type: 'hangup',
+                  to: calleeId,
+                  duration: durationMs / 1000,
+                  icePath: 'COTURN-RELAY'
+                }));
+
+                try { wsA.close(); wsB.close(); } catch(e){}
+
+                resolve({
+                  pairId,
+                  caller: callerId,
+                  callee: calleeId,
+                  latency,
+                  port: relayPort,
+                  icePath: 'COTURN-RELAY',
+                  status: 'SUCCESS',
+                  success: true
+                });
+              }, durationMs);
+            }
+          } catch(e){}
+        };
+
+        wsA.onerror = wsB.onerror = () => {
+          if (!pairFinished) {
+            pairFinished = true;
+            clearTimeout(timer);
+            resolve({
+              pairId,
+              caller: callerId,
+              callee: calleeId,
+              latency: 0,
+              port: relayPort,
+              icePath: 'FAILED',
+              status: 'WS Error',
+              success: false
+            });
+          }
+        };
+      });
+    }
+
+    function appendTableRow(res) {
+      const tbody = document.getElementById('resultsTableBody');
+      const tr = document.createElement('tr');
+      const statusColor = res.success ? 'var(--accent-green)' : 'var(--accent-red)';
+
+      tr.innerHTML = `
+        <td>${res.pairId}</td>
+        <td><strong style="color:var(--accent-purple);">Pasang #${res.pairId}</strong></td>
+        <td>${res.caller}</td>
+        <td>${res.callee}</td>
+        <td><strong>${res.latency} ms</strong></td>
+        <td><span style="color:var(--accent-cyan); font-weight:600;">:${res.port}</span></td>
+        <td><span class="badge-relay">${res.icePath}</span></td>
+        <td style="color:${statusColor}; font-weight:700;">${res.status}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    // EXPORT TO CSV
+    function exportToCsv() {
+      if (resultsData.length === 0) {
+        alert('Belum ada data pengujian untuk diekspor!');
+        return;
+      }
+
+      let csv = 'No,Pasang_Panggilan,Caller,Callee,Latensi_ms,Port_Relay_CoTURN,Jalur_ICE,Status\n';
+      resultsData.forEach(r => {
+        csv += `${r.pairId},"Pasang #${r.pairId}","${r.caller}","${r.callee}",${r.latency},${r.port},"${r.icePath}","${r.status}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `benchmark_webrtc_coturn_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>

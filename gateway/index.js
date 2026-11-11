@@ -39,6 +39,14 @@ const server = http.createServer((req, res) => {
     return res.end();
   }
 
+  if (req.url === '/benchmark' || req.url === '/benchmark.html') {
+    const benchPath = path.join(__dirname, '..', 'client', 'benchmark.html');
+    if (fs.existsSync(benchPath)) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return fs.createReadStream(benchPath).pipe(res);
+    }
+  }
+
   if (req.url === '/api/status' || req.url === '/') {
     const onlineList = Array.from(clients.entries()).map(([userId, d]) => ({
       userId,
@@ -51,6 +59,7 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify({
       gateway: 'Shared WebRTC Gateway & Room Broker',
       status: 'active',
+      benchmarkDashboard: '/benchmark.html',
       onlineCount: clients.size,
       users: onlineList
     }));

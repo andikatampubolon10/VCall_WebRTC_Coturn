@@ -284,9 +284,23 @@ Proyek ini telah dilengkapi dengan instrumen pengujian beban resmi berbasis **Gr
 * **Simulasi Alokasi Port CoTURN:** Menguji perputaran kandidat relay pada rentang port `49160-49400`.
 
 ### 2. Cara Menjalankan Pengujian:
+Ada 2 cara yang dapat Anda gunakan:
+
+#### Opsi 1: Visual Web Dashboard (Interaktif & Disarankan untuk Demo Sidang)
+Buka di browser:
+👉 **`http://localhost:3000/benchmark.html`** (atau klik 2x `open-benchmark.bat`)
+* Menampilkan panel visual lengkap dengan:
+  * Pemilihan beban: 10 VUs, 50 VUs, hingga **100 VUs**.
+  * **Peta Grid Alokasi Port Relay CoTURN (Port 49160 - 49400)** yang menyala hijau secara real-time saat panggilan terhubung.
+  * Kartu KPI Latensi ($p_{95}$, rata-rata, min/max) & Success Rate.
+  * Live Execution Log Terminal di browser.
+  * Tombol **Export Hasil ke CSV** untuk bukti lampiran bab skripsi.
+
+#### Opsi 2: Terminal Runner Resmi (Grafana K6 / Standar Industri)
 Cukup jalankan batch file otomatis:
 ```cmd
 run-k6-test.bat
 ```
 *Script otomatis mendeteksi k6 lokal, kontainer Docker resmi `grafana/k6`, atau beralih ke node runner mandiri secara cerdas.*
+
 

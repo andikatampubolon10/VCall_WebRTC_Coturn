@@ -4,7 +4,16 @@
  * Menguji Signaling, Alokasi Coturn Relay, dan Pencatatan Database Neon.
  */
 
-const { WebSocket } = require('ws');
+let WebSocket;
+try {
+  WebSocket = require('ws').WebSocket || require('ws');
+} catch (e) {
+  try {
+    WebSocket = require('./gateway/node_modules/ws').WebSocket || require('./gateway/node_modules/ws');
+  } catch (e2) {
+    WebSocket = require('./server/node_modules/ws').WebSocket || require('./server/node_modules/ws');
+  }
+}
 
 const TARGET_URL = process.env.SIGNALING_URL || 'ws://localhost:3000';
 const TOTAL_PAIRS = 50; // 50 pasang = 100 Pengguna Berbarengan
