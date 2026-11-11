@@ -14,15 +14,15 @@ echo.
 
 :: 1. Memulai Gateway (Port 3000)
 echo [1/3] Menjalankan Shared WebRTC Gateway pada Port 3000...
-start "Gateway-Port-3000" /d "%~dp0gateway" cmd /k npm start
+start "Gateway-Port-3000" cmd /k "cd /d \"%~dp0gateway\" && node index.js"
 
 :: 2. Memulai Aplikasi A (Port 3001)
 echo [2/3] Menjalankan Aplikasi A (Portal RS / Dokter) pada Port 3001...
-start "App-A-Doctor-Portal-3001" /d "%~dp0app-a" cmd /k npm start
+start "App-A-Doctor-Portal-3001" cmd /k "cd /d \"%~dp0app-a\" && node server.js"
 
 :: 3. Memulai Aplikasi B (Port 3002)
 echo [3/3] Menjalankan Aplikasi B (Mobile Patient App) pada Port 3002...
-start "App-B-Patient-App-3002" /d "%~dp0app-b" cmd /k npm start
+start "App-B-Patient-App-3002" cmd /k "cd /d \"%~dp0app-b\" && node server.js"
 
 echo.
 echo Menunggu inisialisasi server (3 detik)...

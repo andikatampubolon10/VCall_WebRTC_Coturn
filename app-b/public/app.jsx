@@ -13,16 +13,50 @@ function AppB() {
   const [isMuted, setIsMuted] = useState(false);
   const [isCamOff, setIsCamOff] = useState(false);
 
+  // Observabilitas & Telemetri Real-Time Mobile
+  const [logs, setLogs] = useState([]);
+  const [isObsCollapsed, setIsObsCollapsed] = useState(false);
+  const [showCallObs, setShowCallObs] = useState(true);
+  const [stats, setStats] = useState({
+    activePath: 'IDLE',
+    protocol: '-',
+    localCandidate: '-',
+    remoteCandidate: '-',
+    rtt: 0,
+    bitrate: 0,
+    packetsLost: 0,
+    iceConnectionState: 'idle',
+    connectionState: 'idle'
+  });
+
   const wsRef = useRef(null);
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const timerRef = useRef(null);
+  const statsIntervalRef = useRef(null);
   const candidateQueueRef = useRef([]);
   const configRef = useRef(null);
   const callPeerRef = useRef(null);
   const remoteStreamRef = useRef(null);
+  const logEndRef = useRef(null);
+
+  const addLog = (tag, message, type = 'info') => {
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    console.log(`[App B][${tag}] ${message}`);
+    setLogs(prev => [
+      ...prev.slice(-60),
+      { id: Date.now() + Math.random(), time: timeStr, tag, message, type }
+    ]);
+  };
+
+  useEffect(() => {
+    if (logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs]);
 
   // 1. Inisialisasi dari Backend Aplikasi B (Port 3002)
   useEffect(() => {
@@ -152,8 +186,105 @@ function AppB() {
     return () => clearInterval(pingInterval);
   }, []);
 
+  // Polling getStats() untuk Observabilitas STUN/TURN Real-Time di Ponsel
+  const startStatsPolling = (pc) => {
+    if (statsIntervalRef.current) clearInterval(statsIntervalRef.current);
+    let prevBytes = 0;
+    let prevTimestamp = 0;
+
+    statsIntervalRef.current = setInterval(async () => {
+      if (!pc || pc.connectionState === 'closed') return;
+      try {
+        const reports = await pc.getStats();
+        let selectedPair = null;
+
+        reports.forEach(report => {
+          if (report.type === 'transport' && report.selectedCandidatePairId) {
+            selectedPair = reports.get(report.selectedCandidatePairId);
+          }
+        });
+
+        if (!selectedPair) {
+          reports.forEach(report => {
+            if (report.type === 'candidate-pair' && (report.selected || report.nominated)) {
+              selectedPair = report;
+            }
+          });
+        }
+
+        let activePath = 'IDLE';
+        let rtt = 0;
+        let protocol = '-';
+        let localStr = '-';
+        let remoteStr = '-';
+
+        if (selectedPair) {
+          const localCand = reports.get(selectedPair.localCandidateId);
+          const remoteCand = reports.get(selectedPair.remoteCandidateId);
+
+          if (localCand && remoteCand) {
+            const lType = (localCand.candidateType || '').toLowerCase();
+            const rType = (remoteCand.candidateType || '').toLowerCase();
+            protocol = (localCand.protocol || 'udp').toUpperCase();
+
+            if (lType === 'relay' || rType === 'relay') {
+              activePath = 'RELAY';
+            } else if (lType === 'srflx' || rType === 'srflx') {
+              activePath = 'SRFLX';
+            } else {
+              activePath = 'HOST';
+            }
+
+            localStr = `${localCand.address || localCand.ip}:${localCand.port} (${lType.toUpperCase()})`;
+            remoteStr = `${remoteCand.address || remoteCand.ip}:${remoteCand.port} (${rType.toUpperCase()})`;
+
+            if (selectedPair.currentRoundTripTime !== undefined) {
+              rtt = Math.round(selectedPair.currentRoundTripTime * 1000);
+            }
+          }
+        }
+
+        let bitrate = 0;
+        let packetsLost = 0;
+
+        reports.forEach(report => {
+          if (report.type === 'inbound-rtp' && (report.kind === 'video' || report.kind === 'audio')) {
+            if (report.packetsLost !== undefined) {
+              packetsLost = report.packetsLost;
+            }
+            if (report.bytesReceived !== undefined && prevBytes > 0) {
+              const dt = (report.timestamp - prevTimestamp) / 1000;
+              if (dt > 0) {
+                bitrate = Math.round(((report.bytesReceived - prevBytes) * 8) / dt / 1000);
+              }
+            }
+            prevBytes = report.bytesReceived;
+            prevTimestamp = report.timestamp;
+          }
+        });
+
+        setStats(prev => ({
+          ...prev,
+          activePath: activePath !== 'IDLE' ? activePath : prev.activePath,
+          protocol: protocol !== '-' ? protocol : prev.protocol,
+          localCandidate: localStr !== '-' ? localStr : prev.localCandidate,
+          remoteCandidate: remoteStr !== '-' ? remoteStr : prev.remoteCandidate,
+          rtt: rtt > 0 ? rtt : prev.rtt,
+          bitrate: bitrate > 0 ? bitrate : prev.bitrate,
+          packetsLost,
+          iceConnectionState: pc.iceConnectionState,
+          connectionState: pc.connectionState
+        }));
+
+      } catch (err) {
+        console.warn("getStats error:", err);
+      }
+    }, 1000);
+  };
+
   // 3. WebRTC PeerConnection
   const createPeerConnection = (targetUser) => {
+    addLog('WEBRTC', `Membuat RTCPeerConnection untuk target: ${targetUser}`, 'webrtc');
     const iceServers = configRef.current?.iceServers || [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
@@ -181,7 +312,6 @@ function AppB() {
     ];
 
     const pc = new RTCPeerConnection({ iceServers });
-
     pcRef.current = pc;
     candidateQueueRef.current = [];
 
@@ -189,10 +319,11 @@ function AppB() {
       localStreamRef.current.getTracks().forEach(track => {
         pc.addTrack(track, localStreamRef.current);
       });
+      addLog('MEDIA', 'Kamera & Audio lokal siap ditransmisikan.', 'media');
     }
 
     pc.ontrack = (event) => {
-      console.log("[App B] Remote track received:", event.track.kind);
+      addLog('MEDIA', `Menerima stream dokter remote (${event.track.kind})`, 'media');
       if (!remoteStreamRef.current) {
         remoteStreamRef.current = new MediaStream();
       }
@@ -209,26 +340,44 @@ function AppB() {
     pc.onicecandidate = (event) => {
       const target = targetUser || callPeerRef.current || callPeer;
       if (event.candidate && wsRef.current && target) {
-        console.log(`[App B] Sending ICE candidate to ${target}:`, event.candidate.candidate);
+        const cStr = event.candidate.candidate;
+        if (cStr.includes('typ relay')) {
+          addLog('TURN', `⚡ KANDIDAT TURN RELAY TERBENTUK: standard.relay.metered.ca (Port Relay OK)`, 'turn');
+        } else if (cStr.includes('typ srflx')) {
+          addLog('STUN', `🌐 KANDIDAT STUN PUBLIK TERBENTUK: IP Publik terdeteksi (${event.candidate.address || 'Public'})`, 'stun');
+        } else if (cStr.includes('typ host')) {
+          addLog('HOST', `🏠 Kandidat Host IP Lokal Ponsel (${event.candidate.address})`, 'ice');
+        }
+
         wsRef.current.send(JSON.stringify({
           type: 'candidate',
           to: target,
           candidate: event.candidate
         }));
+      } else if (!event.candidate) {
+        addLog('ICE', 'Semua ICE Candidate lokal selesai dikumpulkan.', 'ice');
       }
     };
 
     pc.oniceconnectionstatechange = () => {
-      console.log("[App B ICE]:", pc.iceConnectionState);
-      if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+      const state = pc.iceConnectionState;
+      const tagType = (state === 'connected' || state === 'completed') ? 'turn' : state === 'failed' ? 'error' : 'ice';
+      addLog('ICE', `Status Jalur ICE Ponsel: ${state.toUpperCase()}`, tagType);
+      setStats(prev => ({ ...prev, iceConnectionState: state }));
+      if (state === 'connected' || state === 'completed') {
         startTimer();
+        startStatsPolling(pc);
       }
     };
 
     pc.onconnectionstatechange = () => {
-      console.log("[App B Connection State]:", pc.connectionState);
-      if (pc.connectionState === 'connected') {
+      const state = pc.connectionState;
+      const tagType = state === 'connected' ? 'webrtc' : state === 'failed' ? 'error' : 'ice';
+      addLog('WEBRTC', `Status Koneksi Peer: ${state.toUpperCase()}`, tagType);
+      setStats(prev => ({ ...prev, connectionState: state }));
+      if (state === 'connected') {
         startTimer();
+        startStatsPolling(pc);
       }
     };
 
@@ -237,8 +386,9 @@ function AppB() {
 
   const setupMedia = async () => {
     try {
+      addLog('MEDIA', 'Mengaktifkan kamera & mic ponsel...', 'media');
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: { ideal: 640 }, height: { ideal: 480 } }, 
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, 
         audio: true 
       });
       localStreamRef.current = stream;
@@ -248,6 +398,7 @@ function AppB() {
       }
       return stream;
     } catch (err) {
+      addLog('ERROR', `Gagal akses kamera/mic: ${err.message}`, 'error');
       alert("Gagal mengakses kamera/mikrofon: " + err.message);
       throw err;
     }
@@ -259,6 +410,7 @@ function AppB() {
     setCallPeer(targetUser);
     setPeerApp(targetApp);
     setCallState('calling');
+    addLog('CALL', `Memanggil ${targetUser} (${targetApp}) via Gateway...`, 'webrtc');
 
     wsRef.current.send(JSON.stringify({
       type: 'call',
@@ -268,11 +420,13 @@ function AppB() {
   };
 
   const startCallAsInitiator = async () => {
+    addLog('WEBRTC', 'Panggilan diterima dokter. Menyiapkan media & SDP Offer...', 'webrtc');
     await setupMedia();
     const pc = createPeerConnection(callPeerRef.current);
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
+    addLog('SDP', 'SDP Offer siap, mengirim ke dokter...', 'webrtc');
     wsRef.current.send(JSON.stringify({
       type: 'offer',
       to: callPeerRef.current,
@@ -283,6 +437,7 @@ function AppB() {
   // Terima Panggilan
   const acceptCall = async () => {
     setCallState('in-call');
+    addLog('CALL', `Menerima panggilan dari ${callPeerRef.current}...`, 'webrtc');
     await setupMedia();
 
     wsRef.current.send(JSON.stringify({
@@ -295,6 +450,7 @@ function AppB() {
     callPeerRef.current = fromPeer;
     setCallPeer(fromPeer);
     setCallState('in-call');
+    addLog('SDP', `Menerima SDP Offer dari dokter. Memasang remote description...`, 'webrtc');
     await setupMedia();
 
     const pc = createPeerConnection(fromPeer);
@@ -303,6 +459,7 @@ function AppB() {
     for (const c of candidateQueueRef.current) {
       try {
         await pc.addIceCandidate(c);
+        addLog('ICE', `Candidate antrian dipasang: ${c.candidate.substring(0, 45)}...`, 'ice');
       } catch (e) {
         console.warn("Candidate queue error:", e);
       }
@@ -311,6 +468,7 @@ function AppB() {
 
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
+    addLog('SDP', 'SDP Answer siap, mengirim kembali ke dokter...', 'webrtc');
 
     wsRef.current.send(JSON.stringify({
       type: 'answer',
@@ -321,10 +479,12 @@ function AppB() {
 
   const handleAnswer = async (sdpAnswer) => {
     if (pcRef.current) {
+      addLog('SDP', 'Menerima SDP Answer dari dokter. Memasang remote description...', 'webrtc');
       await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdpAnswer));
       for (const c of candidateQueueRef.current) {
         try {
           await pcRef.current.addIceCandidate(c);
+          addLog('ICE', `Candidate antrian dipasang: ${c.candidate.substring(0, 45)}...`, 'ice');
         } catch (e) {
           console.warn("Candidate queue error:", e);
         }
@@ -335,11 +495,18 @@ function AppB() {
 
   const handleCandidate = async (candidate) => {
     if (!candidate) return;
+    const cStr = candidate.candidate || '';
+    const tag = cStr.includes('typ relay') ? 'TURN' : cStr.includes('typ srflx') ? 'STUN' : 'HOST';
+    const logType = tag === 'TURN' ? 'turn' : tag === 'STUN' ? 'stun' : 'ice';
+
     try {
+      const iceCand = new RTCIceCandidate(candidate);
       if (pcRef.current && pcRef.current.remoteDescription && pcRef.current.remoteDescription.type) {
-        await pcRef.current.addIceCandidate(candidate);
+        await pcRef.current.addIceCandidate(iceCand);
+        addLog(tag, `Menerima kandidat [${tag}] dari lawan bicara dan dipasang`, logType);
       } else {
-        candidateQueueRef.current.push(candidate);
+        candidateQueueRef.current.push(iceCand);
+        addLog(tag, `Menerima kandidat [${tag}] dari lawan bicara (diantrikan)`, logType);
       }
     } catch (err) {
       console.warn("Gagal addIceCandidate:", err);
@@ -353,12 +520,17 @@ function AppB() {
         to: callPeer
       }));
     }
+    addLog('CALL', 'Panggilan ditutup.', 'warn');
     saveCallLog('completed', callDuration);
     resetCallState();
   };
 
   const saveCallLog = (status, duration) => {
     if (!callPeer) return;
+    const recordedPath = stats.activePath === 'RELAY' ? 'TURN (Metered Cloud)' :
+                         stats.activePath === 'SRFLX' ? 'STUN (P2P Reflexive)' :
+                         stats.activePath === 'HOST' ? 'HOST (Lokal LAN)' : 'COTURN / P2P';
+
     fetch('/api/call-logs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -370,7 +542,7 @@ function AppB() {
         callType: 'video',
         status: status,
         durationSeconds: duration,
-        icePath: 'COTURN / P2P'
+        icePath: recordedPath
       })
     }).then(() => loadCallLogs()).catch(() => {});
   };
@@ -381,12 +553,17 @@ function AppB() {
     setPeerApp(null);
     setCallDuration(0);
     if (timerRef.current) clearInterval(timerRef.current);
+    if (statsIntervalRef.current) clearInterval(statsIntervalRef.current);
     cleanupMedia();
   };
 
   const cleanupMedia = () => {
     callPeerRef.current = null;
     remoteStreamRef.current = null;
+    if (statsIntervalRef.current) {
+      clearInterval(statsIntervalRef.current);
+      statsIntervalRef.current = null;
+    }
     if (pcRef.current) {
       pcRef.current.close();
       pcRef.current = null;
@@ -452,7 +629,9 @@ function AppB() {
 
         <div className="system-info-pills">
           <span className="pill pill-sg">🇸🇬 Neon DB: Singapore (system_b_db)</span>
-          <span className="pill pill-port">📱 Aplikasi B: Port 3002</span>
+          <span className={`pill ${isRegistered ? 'pill-port' : 'pill-danger'}`}>
+            {isRegistered ? '🟢 Terhubung ke Gateway' : '🔴 Gateway Terputus'}
+          </span>
         </div>
       </div>
 
@@ -484,9 +663,18 @@ function AppB() {
             ))}
 
             {users.filter(u => u.userId !== currentUser).length === 0 && (
-              <div style={{ textAlign: 'center', padding: '16px', color: '#94a3b8', fontSize: '12px' }}>
-                Tidak ada pengguna lain yang online.<br/>
-                Pastikan <strong>Aplikasi A (Port 3001)</strong> sedang dibuka di tab lain.
+              <div style={{ textAlign: 'center', padding: '16px', fontSize: '12px' }}>
+                {!isRegistered ? (
+                  <div style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.15)', padding: '10px', borderRadius: '8px' }}>
+                    ⚠️ Belum terhubung ke Gateway (Port 3000).<br/>
+                    Menghubungkan ulang...
+                  </div>
+                ) : (
+                  <div style={{ color: '#94a3b8' }}>
+                    Dokter belum online.<br/>
+                    Pastikan <strong>Aplikasi A (Port 3001)</strong> sedang dibuka di Laptop.
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -522,6 +710,81 @@ function AppB() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Observabilitas Real-Time STUN/TURN Mobile */}
+        <div className="mobile-observability">
+          <div className="mobile-obs-header">
+            <div className="mobile-obs-title">
+              <div className="obs-pulse"></div>
+              <span>Observabilitas STUN/TURN Real-Time</span>
+            </div>
+            <div className="mobile-obs-actions">
+              <button className="mobile-obs-btn" onClick={() => setLogs([])}>🧹 Log</button>
+              <button className="mobile-obs-btn" onClick={() => setIsObsCollapsed(!isObsCollapsed)}>
+                {isObsCollapsed ? '▲ Buka' : '▼ Tutup'}
+              </button>
+            </div>
+          </div>
+
+          {!isObsCollapsed && (
+            <React.Fragment>
+              <div className="mobile-telemetry-grid">
+                <div className="mobile-telemetry-card">
+                  <span className="telemetry-label">Jalur Aktif</span>
+                  <div>
+                    {stats.activePath === 'RELAY' && (
+                      <span className="badge-path badge-relay">⚡ RELAY (TURN Metered)</span>
+                    )}
+                    {stats.activePath === 'SRFLX' && (
+                      <span className="badge-path badge-srflx">🌐 SRFLX (STUN P2P)</span>
+                    )}
+                    {stats.activePath === 'HOST' && (
+                      <span className="badge-path badge-host">🏠 HOST (Lokal)</span>
+                    )}
+                    {stats.activePath === 'IDLE' && (
+                      <span style={{ fontSize: '10px', color: '#64748b' }}>⏳ Menunggu...</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mobile-telemetry-card">
+                  <span className="telemetry-label">Protokol</span>
+                  <span className="telemetry-val">{stats.protocol || 'UDP'}</span>
+                </div>
+
+                <div className="mobile-telemetry-card">
+                  <span className="telemetry-label">Latensi (RTT)</span>
+                  <span className="telemetry-val" style={{ color: stats.rtt < 120 ? '#34d399' : '#fbbf24' }}>
+                    {stats.rtt ? `${stats.rtt} ms` : '-'}
+                  </span>
+                </div>
+
+                <div className="mobile-telemetry-card">
+                  <span className="telemetry-label">Bitrate Video</span>
+                  <span className="telemetry-val" style={{ color: '#38bdf8' }}>
+                    {stats.bitrate ? `${stats.bitrate} kbps` : '-'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mobile-log-console">
+                {logs.map(l => (
+                  <div key={l.id} className="log-row">
+                    <span className="log-time">{l.time}</span>
+                    <span className={`log-tag tag-${l.type}`}>{l.tag}</span>
+                    <span className="log-msg">{l.message}</span>
+                  </div>
+                ))}
+                {logs.length === 0 && (
+                  <div style={{ color: '#475569', fontStyle: 'italic', padding: '4px 0' }}>
+                    Siap memantau STUN & TURN Metered saat panggilan berlangsung.
+                  </div>
+                )}
+                <div ref={logEndRef} />
+              </div>
+            </React.Fragment>
+          )}
         </div>
       </div>
 
@@ -599,9 +862,27 @@ function AppB() {
             ></video>
 
             {/* Header info */}
-            <div className="call-header-overlay">
-              <span className="call-title">Konsultasi dengan {callPeer}</span>
-              <span className="call-timer">{formatTime(callDuration)}</span>
+            <div className="call-header-overlay" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                <span className="call-title">Konsultasi dengan {callPeer}</span>
+                <span className="call-timer">{formatTime(callDuration)}</span>
+              </div>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
+                {stats.activePath === 'RELAY' && (
+                  <span className="badge-path badge-relay" style={{ fontSize: '9px', padding: '2px 6px' }}>⚡ RELAY (TURN Metered)</span>
+                )}
+                {stats.activePath === 'SRFLX' && (
+                  <span className="badge-path badge-srflx" style={{ fontSize: '9px', padding: '2px 6px' }}>🌐 SRFLX (STUN P2P)</span>
+                )}
+                {stats.activePath === 'HOST' && (
+                  <span className="badge-path badge-host" style={{ fontSize: '9px', padding: '2px 6px' }}>🏠 HOST (Lokal)</span>
+                )}
+                {stats.rtt > 0 && (
+                  <span style={{ fontSize: '9px', color: '#94a3b8', background: 'rgba(0,0,0,0.5)', padding: '2px 6px', borderRadius: '4px' }}>
+                    ⏱️ {stats.rtt}ms {stats.bitrate > 0 ? `• 🚀 ${stats.bitrate}kbps` : ''}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* PiP Local Video */}

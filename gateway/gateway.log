@@ -1,0 +1,160 @@
+﻿â—‡ injected env (0) from .env
+=======================================================
+ðŸŒ SHARED WEBRTC GATEWAY & ROOM BROKER
+ðŸ“¡ Berjalan di Port: http://localhost:3000
+ðŸ“¡ WebSocket URL   : ws://localhost:3000
+=======================================================
+[Gateway] Koneksi WebSocket baru diterima
+[Gateway] Terdaftar: User A [Aplikasi: APP_A]
+[Gateway] Koneksi WebSocket baru diterima
+[Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[Gateway] Koneksi WebSocket baru diterima
+[Gateway] Terdaftar: User A [Aplikasi: APP_A]
+[Gateway] Terputus: User B
+[Gateway] Koneksi WebSocket baru diterima
+[Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[Gateway] Terputus: User B
+[Gateway] Koneksi WebSocket baru diterima
+[Gateway] Terputus: User A
+[Gateway] Koneksi WebSocket baru diterima
+[Gateway] Terdaftar: User A [Aplikasi: APP_A]
+[Gateway] Terputus: User A
+[Gateway] Koneksi WebSocket baru diterima
+[Gateway] Terdaftar: User A [Aplikasi: APP_A]
+[Gateway] Koneksi WebSocket baru diterima
+[Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[Gateway] Panggilan Antar-Aplikasi: User A (APP_A) -> User B (APP_B) [Room: room_1794370217093_User A_User B]
+[Gateway] SDP Offer dari User A âž” User B
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:2083767251 1 udp 2122260223 172.22.80.1 49968 typ host generation 0 ufrag KJ9R network-id 2
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:11565490 1 udp 2122194687 192.168.15.182 49969 typ host generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:2083767251 1 udp 2122260223 172.22.80.1 49970 typ host generation 0 ufrag KJ9R network-id 2
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:11565490 1 udp 2122194687 192.168.15.182 49971 typ host generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User A âž” User B: candidate:387777394 1 udp 1685987071 114.9.65.194 29777 typ srflx raddr 192.168.15.182 rport 49971 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User A âž” User B: candidate:387777394 1 udp 1685987071 114.9.65.194 28952 typ srflx raddr 192.168.15.182 rport 49969 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User A âž” User B: candidate:387777394 1 udp 1685987071 114.9.65.194 10204 typ srflx raddr 192.168.15.182 rport 49969 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User A âž” User B: candidate:387777394 1 udp 1685987071 114.9.65.194 58901 typ srflx raddr 192.168.15.182 rport 49971 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:2496119845 1 tcp 1518280447 172.22.80.1 9 typ host tcptype active generation 0 ufrag KJ9R network-id 2
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:750054606 1 tcp 1518214911 192.168.15.182 9 typ host tcptype active generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:2496119845 1 tcp 1518280447 172.22.80.1 9 typ host tcptype active generation 0 ufrag KJ9R network-id 2
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:750054606 1 tcp 1518214911 192.168.15.182 9 typ host tcptype active generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:592648672 1 udp 58598143 172.104.167.32 29008 typ relay raddr 114.9.65.194 rport 42608 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:592648672 1 udp 58598143 172.104.167.32 39725 typ relay raddr 114.9.65.194 rport 14975 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:592648672 1 udp 58597631 172.104.167.32 32588 typ relay raddr 114.9.65.194 rport 34618 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:592648672 1 udp 58597631 172.104.167.32 50293 typ relay raddr 114.9.65.194 rport 20538 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:1292288518 1 udp 25043455 172.104.167.32 28028 typ relay raddr 114.9.65.194 rport 12732 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:1292288518 1 udp 25043455 172.104.167.32 48140 typ relay raddr 114.9.65.194 rport 12555 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:2387814319 1 udp 8265727 172.104.167.32 29647 typ relay raddr 114.9.65.194 rport 20502 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:2387814319 1 udp 8265727 172.104.167.32 36412 typ relay raddr 114.9.65.194 rport 46637 generation 0 ufrag KJ9R network-id 1 network-cost 10
+[Gateway] SDP Answer dari User B âž” User A
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:3513332069 1 udp 2122129151 100.113.242.71 49559 typ host generation 0 ufrag z/gf network-id 2 network-cost 900
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:2735378725 1 udp 2122262783 2400:9800:d2c:df34:18e6:9578:ddf0:efe8 44259 typ host generation 0 ufrag z/gf network-id 1 network-cost 900
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:4118726691 1 udp 2122197247 2400:9800:f0:c25c:18e6:df60:c3c0:d2c 36006 typ host generation 0 ufrag z/gf network-id 3 network-cost 900
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:801367537 1 tcp 1518149375 100.113.242.71 9 typ host tcptype active generation 0 ufrag z/gf network-id 2 network-cost 900
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:1570784689 1 tcp 1518283007 2400:9800:d2c:df34:18e6:9578:ddf0:efe8 9 typ host tcptype active generation 0 ufrag z/gf network-id 1 network-cost 900
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:198450359 1 tcp 1518217471 2400:9800:f0:c25c:18e6:df60:c3c0:d2c 9 typ host tcptype active generation 0 ufrag z/gf network-id 3 network-cost 900
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User B âž” User A: candidate:1201756092 1 udp 1685921535 140.213.7.84 33528 typ srflx raddr 100.113.242.71 rport 49559 generation 0 ufrag z/gf network-id 2 network-cost 900
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User B âž” User A: candidate:780946192 1 udp 58532095 172.104.167.32 49642 typ relay raddr 140.213.7.84 rport 33528 generation 0 ufrag z/gf network-id 2 network-cost 900
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User B âž” User A: candidate:780946192 1 udp 58532607 172.104.167.32 42243 typ relay raddr 140.213.7.84 rport 33528 generation 0 ufrag z/gf network-id 2 network-cost 900
+[Gateway] Terputus: User A
+[Gateway] Koneksi WebSocket baru diterima
+[Gateway] Terdaftar: User A [Aplikasi: APP_A]
+[Gateway] Panggilan Antar-Aplikasi: User A (APP_A) -> User B (APP_B) [Room: room_1794370730771_User A_User B]
+[Gateway] SDP Offer dari User A âž” User B
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:2198474376 1 udp 2122260223 172.22.80.1 64080 typ host generation 0 ufrag sGs0 network-id 2
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:755684416 1 udp 2122194687 192.168.15.182 64081 typ host generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:2198474376 1 udp 2122260223 172.22.80.1 64082 typ host generation 0 ufrag sGs0 network-id 2
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:755684416 1 udp 2122194687 192.168.15.182 64083 typ host generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User A âž” User B: candidate:343753605 1 udp 1685987071 114.9.65.194 9064 typ srflx raddr 192.168.15.182 rport 64083 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User A âž” User B: candidate:343753605 1 udp 1685987071 114.9.65.194 9414 typ srflx raddr 192.168.15.182 rport 64081 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User A âž” User B: candidate:343753605 1 udp 1685987071 114.9.65.194 48133 typ srflx raddr 192.168.15.182 rport 64081 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User A âž” User B: candidate:343753605 1 udp 1685987071 114.9.65.194 28646 typ srflx raddr 192.168.15.182 rport 64083 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:902631476 1 tcp 1518280447 172.22.80.1 9 typ host tcptype active generation 0 ufrag sGs0 network-id 2
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:1871020481 1 tcp 1518214911 192.168.15.182 9 typ host tcptype active generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:902631476 1 tcp 1518280447 172.22.80.1 9 typ host tcptype active generation 0 ufrag sGs0 network-id 2
+[Gateway Candidate ðŸ  HOST LAN] dari User A âž” User B: candidate:1871020481 1 tcp 1518214911 192.168.15.182 9 typ host tcptype active generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:1818314605 1 udp 58598143 172.104.167.32 44739 typ relay raddr 114.9.65.194 rport 12539 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:1818314605 1 udp 58598143 172.104.167.32 21640 typ relay raddr 114.9.65.194 rport 61978 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:1818314605 1 udp 58597631 172.104.167.32 39322 typ relay raddr 114.9.65.194 rport 54939 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:1818314605 1 udp 58597631 172.104.167.32 26708 typ relay raddr 114.9.65.194 rport 1566 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:1292288518 1 udp 25043455 172.104.167.32 48863 typ relay raddr 114.9.65.194 rport 61401 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:1292288518 1 udp 25043455 172.104.167.32 34506 typ relay raddr 114.9.65.194 rport 57553 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:2387814319 1 udp 8265727 172.104.167.32 27777 typ relay raddr 114.9.65.194 rport 51222 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User A âž” User B: candidate:2387814319 1 udp 8265727 172.104.167.32 58354 typ relay raddr 114.9.65.194 rport 38098 generation 0 ufrag sGs0 network-id 1 network-cost 10
+[Gateway] SDP Answer dari User B âž” User A
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:1354042424 1 udp 2122129151 100.113.242.71 54717 typ host generation 0 ufrag PZsh network-id 2 network-cost 900
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:879938046 1 udp 2122262783 2400:9800:d2c:df34:18e6:9578:ddf0:efe8 45998 typ host generation 0 ufrag PZsh network-id 1 network-cost 900
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:4092587211 1 udp 2122197247 2400:9800:f0:c25c:18e6:df60:c3c0:d2c 36105 typ host generation 0 ufrag PZsh network-id 3 network-cost 900
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:779808416 1 tcp 1518149375 100.113.242.71 9 typ host tcptype active generation 0 ufrag PZsh network-id 2 network-cost 900
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:1253911398 1 tcp 1518283007 2400:9800:d2c:df34:18e6:9578:ddf0:efe8 9 typ host tcptype active generation 0 ufrag PZsh network-id 1 network-cost 900
+[Gateway Candidate ðŸ  HOST LAN] dari User B âž” User A: candidate:2367688275 1 tcp 1518217471 2400:9800:f0:c25c:18e6:df60:c3c0:d2c 9 typ host tcptype active generation 0 ufrag PZsh network-id 3 network-cost 900
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User B âž” User A: candidate:2440780658 1 udp 1685921535 140.213.7.84 4683 typ srflx raddr 100.113.242.71 rport 54717 generation 0 ufrag PZsh network-id 2 network-cost 900
+[Gateway Candidate ðŸŒ STUN SRFLX (IP Publik)] dari User B âž” User A: candidate:1062921908 1 udp 1685987071 140.213.6.198 27716 typ srflx raddr 2400:9800:f0:c25c:18e6:df60:c3c0:d2c rport 36105 generation 0 ufrag PZsh network-id 3 network-cost 900
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User B âž” User A: candidate:3131378145 1 udp 58532095 172.104.167.32 28539 typ relay raddr 140.213.7.84 rport 4683 generation 0 ufrag PZsh network-id 2 network-cost 900
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User B âž” User A: candidate:3131378145 1 udp 58532607 172.104.167.32 27228 typ relay raddr 140.213.7.84 rport 4683 generation 0 ufrag PZsh network-id 2 network-cost 900
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User B âž” User A: candidate:3131378145 1 udp 58597631 172.104.167.32 54307 typ relay raddr 140.213.6.59 rport 47326 generation 0 ufrag PZsh network-id 3 network-cost 900
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User B âž” User A: candidate:3131378145 1 udp 58598143 172.104.167.32 27121 typ relay raddr 112.215.45.246 rport 55463 generation 0 ufrag PZsh network-id 3 network-cost 900
+[Gateway Candidate âš¡ TURN RELAY (Metered Cloud)] dari User B âž” User A: candidate:351370624 1 udp 8265727 172.104.167.32 27036 typ relay raddr 140.213.6.68 rport 50764 generation 0 ufrag PZsh network-id 3 network-cost 900
+[Gateway] Terputus: User B
+[11.31.55]  =======================================================
+[11.31.55]  🌐 SHARED WEBRTC GATEWAY & ROOM BROKER
+[11.31.55]  📡 Berjalan di Port: http://localhost:3000
+[11.31.55]  📡 WebSocket URL   : ws://localhost:3000
+[11.31.55]  =======================================================
+[11.31.55]  [Gateway] Koneksi WebSocket baru diterima
+[11.31.55]  [Gateway] Terdaftar: User A [Aplikasi: APP_A]
+[11.36.19]  [Gateway] Koneksi WebSocket baru diterima
+[11.36.19]  [Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[11.36.22]  [Gateway] Terputus: User B
+[11.36.24]  [Gateway] Koneksi WebSocket baru diterima
+[11.36.24]  [Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[11.36.27]  [Gateway] Panggilan Antar-Aplikasi: User B (APP_B) -> User A (APP_A) [Room: room_1794371787587_User B_User A]
+[11.36.33]  [Gateway] SDP Offer dari User B ➔ User A
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:4286603871 1 udp 2122129151 100.113.242.71 47473 typ host generation 0 ufrag SNyp network-id 2 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:2605164441 1 udp 2122262783 2400:9800:d2c:df34:18e6:9578:ddf0:efe8 45259 typ host generation 0 ufrag SNyp network-id 1 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:1557824172 1 udp 2122197247 2400:9800:f0:c25c:18e6:df60:c3c0:d2c 52437 typ host generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:4286603871 1 udp 2122129151 100.113.242.71 44606 typ host generation 0 ufrag SNyp network-id 2 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:2605164441 1 udp 2122262783 2400:9800:d2c:df34:18e6:9578:ddf0:efe8 53508 typ host generation 0 ufrag SNyp network-id 1 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:1557824172 1 udp 2122197247 2400:9800:f0:c25c:18e6:df60:c3c0:d2c 44477 typ host generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:2169471175 1 tcp 1518149375 100.113.242.71 9 typ host tcptype active generation 0 ufrag SNyp network-id 2 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:3850913025 1 tcp 1518283007 2400:9800:d2c:df34:18e6:9578:ddf0:efe8 9 typ host tcptype active generation 0 ufrag SNyp network-id 1 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:571826228 1 tcp 1518217471 2400:9800:f0:c25c:18e6:df60:c3c0:d2c 9 typ host tcptype active generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:2169471175 1 tcp 1518149375 100.113.242.71 9 typ host tcptype active generation 0 ufrag SNyp network-id 2 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:3850913025 1 tcp 1518283007 2400:9800:d2c:df34:18e6:9578:ddf0:efe8 9 typ host tcptype active generation 0 ufrag SNyp network-id 1 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:571826228 1 tcp 1518217471 2400:9800:f0:c25c:18e6:df60:c3c0:d2c 9 typ host tcptype active generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.33]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:1045312789 1 udp 1685921535 140.213.7.77 52221 typ srflx raddr 100.113.242.71 rport 44606 generation 0 ufrag SNyp network-id 2 network-cost 900
+[11.36.33]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:1045312789 1 udp 1685921535 140.213.7.77 11241 typ srflx raddr 100.113.242.71 rport 47473 generation 0 ufrag SNyp network-id 2 network-cost 900
+[11.36.33]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:361785222 1 udp 58532607 172.104.167.32 47745 typ relay raddr 140.213.7.77 rport 11241 generation 0 ufrag SNyp network-id 2 network-cost 900
+[11.36.33]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:361785222 1 udp 58532095 172.104.167.32 48874 typ relay raddr 140.213.7.77 rport 11241 generation 0 ufrag SNyp network-id 2 network-cost 900
+[11.36.33]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:361785222 1 udp 58597631 172.104.167.32 40248 typ relay raddr 140.213.6.187 rport 5076 generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.33]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:361785222 1 udp 58532095 172.104.167.32 35519 typ relay raddr 140.213.7.77 rport 52221 generation 0 ufrag SNyp network-id 2 network-cost 900
+[11.36.33]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:361785222 1 udp 58597631 172.104.167.32 40662 typ relay raddr 140.213.6.187 rport 54358 generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.33]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:361785222 1 udp 58598143 172.104.167.32 55009 typ relay raddr 140.213.6.254 rport 25834 generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.33]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:361785222 1 udp 58598143 172.104.167.32 49197 typ relay raddr 140.213.6.69 rport 26862 generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.33]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:361785222 1 udp 58532607 172.104.167.32 46556 typ relay raddr 140.213.7.77 rport 52221 generation 0 ufrag SNyp network-id 2 network-cost 900
+[11.36.33]  [Gateway] SDP Answer dari User A ➔ User B
+[11.36.33]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:880830846 1 udp 25043455 172.104.167.32 35383 typ relay raddr 140.213.6.254 rport 10031 generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:3482545392 1 udp 2122260223 172.22.80.1 61677 typ host generation 0 ufrag tnYu network-id 2
+[11.36.33]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:3072325055 1 udp 2122194687 192.168.15.182 61678 typ host generation 0 ufrag tnYu network-id 1 network-cost 10
+[11.36.34]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User A ➔ User B: candidate:1877785393 1 udp 1685987071 114.9.65.194 2305 typ srflx raddr 192.168.15.182 rport 61678 generation 0 ufrag tnYu network-id 1 network-cost 10
+[11.36.34]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User A ➔ User B: candidate:1877785393 1 udp 1685987071 114.9.65.194 65031 typ srflx raddr 192.168.15.182 rport 61678 generation 0 ufrag tnYu network-id 1 network-cost 10
+[11.36.34]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:2423228627 1 udp 1685987071 140.213.6.187 5076 typ srflx raddr 2400:9800:f0:c25c:18e6:df60:c3c0:d2c rport 44477 generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.34]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:2423228627 1 udp 1685987071 112.215.45.244 58906 typ srflx raddr 2400:9800:f0:c25c:18e6:df60:c3c0:d2c rport 52437 generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.36.34]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:1799238159 1 tcp 1518280447 172.22.80.1 9 typ host tcptype active generation 0 ufrag tnYu network-id 2
+[11.36.34]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:3331121665 1 tcp 1518214911 192.168.15.182 9 typ host tcptype active generation 0 ufrag tnYu network-id 1 network-cost 10
+[11.36.34]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:1513343658 1 udp 58598143 172.104.167.32 49307 typ relay raddr 114.9.65.194 rport 64702 generation 0 ufrag tnYu network-id 1 network-cost 10
+[11.36.34]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:1513343658 1 udp 58597631 172.104.167.32 40861 typ relay raddr 114.9.65.194 rport 23322 generation 0 ufrag tnYu network-id 1 network-cost 10
+[11.36.34]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:351370624 1 udp 8265727 172.104.167.32 28288 typ relay raddr 140.213.6.69 rport 30214 generation 0 ufrag SNyp network-id 3 network-cost 900
+[11.38.37]  [Gateway] Terputus: User B
+[12.04.22]  [Gateway] Koneksi WebSocket baru diterima
+[12.04.22]  [Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[12.53.24]  [Gateway] Terputus: User A
+[12.58.47]  [Gateway] Terputus: User B
+[12.58.49]  [Gateway] Koneksi WebSocket baru diterima
+[12.58.49]  [Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[14.27.19]  [Gateway] Terputus: User B
+[14.27.22]  [Gateway] Koneksi WebSocket baru diterima
+[14.27.22]  [Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[14.59.46]  [Gateway] Terputus: User B
+[16.53.14]  [Gateway] Koneksi WebSocket baru diterima
+[16.53.14]  [Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[16.53.20]  [Gateway] Terputus: User B

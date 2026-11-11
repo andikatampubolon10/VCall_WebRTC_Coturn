@@ -1,8 +1,33 @@
 const http = require('http');
 const { WebSocketServer, WebSocket } = require('ws');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
+
+// Logging ganda ke Terminal Console & File gateway.log
+const logFilePath = path.join(__dirname, 'gateway.log');
+const origLog = console.log;
+const origErr = console.error;
+
+function appendToLog(prefix, args) {
+  try {
+    const time = new Date().toLocaleTimeString('id-ID', { hour12: false });
+    const text = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ');
+    fs.appendFileSync(logFilePath, `[${time}] ${prefix} ${text}\n`, 'utf8');
+  } catch (e) {}
+}
+
+console.log = (...args) => {
+  origLog(...args);
+  appendToLog('', args);
+};
+
+console.error = (...args) => {
+  origErr(...args);
+  appendToLog('[ERROR]', args);
+};
 
 // HTTP Status Server
 const server = http.createServer((req, res) => {
@@ -195,7 +220,14 @@ wss.on('connection', (ws) => {
 
       case 'candidate': {
         if (!currentUserId) return;
-        console.log(`[Gateway Candidate dari ${currentUserId} ➔ ${to}]:`, candidate?.candidate);
+        const candStr = candidate?.candidate || '';
+        let candType = '🏠 HOST LAN';
+        if (candStr.includes('typ relay')) {
+          candType = '⚡ TURN RELAY (Metered Cloud)';
+        } else if (candStr.includes('typ srflx')) {
+          candType = '🌐 STUN SRFLX (IP Publik)';
+        }
+        console.log(`[Gateway Candidate ${candType}] dari ${currentUserId} ➔ ${to}: ${candStr}`);
         sendTo(to, { type: 'candidate', from: currentUserId, candidate });
         break;
       }
