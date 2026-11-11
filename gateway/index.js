@@ -2,7 +2,141 @@ const http = require('http');
 const { WebSocketServer, WebSocket } = require('ws');
 const fs = require('fs');
 const path = require('path');
+const dgram = require('dgram');
+const crypto = require('crypto');
 require('dotenv').config();
+
+function crc32(buf) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) {
+    crc ^= buf[i];
+    for (let j = 0; j < 8; j++) {
+      crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
+    }
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function requestRealTurnAllocation(host = '127.0.0.1', port = 3478, username = 'simulasi', password = 'password123') {
+  return new Promise((resolve) => {
+    const socket = dgram.createSocket('udp4');
+    let resolved = false;
+
+    const cleanup = (relayPort, err) => {
+      if (resolved) return;
+      resolved = true;
+      try { socket.close(); } catch(e){}
+      if (relayPort) {
+        resolve({ success: true, relayPort });
+      } else {
+        resolve({ success: false, error: err || 'Timeout' });
+      }
+    };
+
+    const timer = setTimeout(() => cleanup(null, 'TURN allocate timeout 3000ms'), 3000);
+
+    const txId = crypto.randomBytes(12);
+    const header = Buffer.alloc(20);
+    header.writeUInt16BE(0x0003, 0); // Allocate Request
+    header.writeUInt16BE(8, 2);
+    header.writeUInt32BE(0x2112A442, 4);
+    txId.copy(header, 8);
+    const attrReqTransport = Buffer.from([0x00, 0x19, 0x00, 0x04, 0x11, 0x00, 0x00, 0x00]);
+
+    socket.on('message', (msg) => {
+      if (msg.length < 20) return;
+      const type = msg.readUInt16BE(0);
+
+      if (type === 0x0113) {
+        let offset = 20;
+        let realm = '', nonce = '';
+        while (offset < msg.length) {
+          const aType = msg.readUInt16BE(offset);
+          const aLen = msg.readUInt16BE(offset + 2);
+          if (aType === 0x0014) realm = msg.toString('utf8', offset + 4, offset + 4 + aLen);
+          if (aType === 0x0015) nonce = msg.toString('utf8', offset + 4, offset + 4 + aLen);
+          offset += 4 + aLen + ((4 - (aLen % 4)) % 4);
+        }
+
+        const newTx = crypto.randomBytes(12);
+        const authHeader = Buffer.alloc(20);
+        authHeader.writeUInt16BE(0x0003, 0);
+        authHeader.writeUInt32BE(0x2112A442, 4);
+        newTx.copy(authHeader, 8);
+
+        const parts = [];
+        parts.push(Buffer.from([0x00, 0x19, 0x00, 0x04, 0x11, 0x00, 0x00, 0x00]));
+
+        const uBuf = Buffer.from(username);
+        const uAttr = Buffer.alloc(4 + uBuf.length + ((4 - (uBuf.length % 4)) % 4));
+        uAttr.writeUInt16BE(0x0006, 0);
+        uAttr.writeUInt16BE(uBuf.length, 2);
+        uBuf.copy(uAttr, 4);
+        parts.push(uAttr);
+
+        const rBuf = Buffer.from(realm);
+        const rAttr = Buffer.alloc(4 + rBuf.length + ((4 - (rBuf.length % 4)) % 4));
+        rAttr.writeUInt16BE(0x0014, 0);
+        rAttr.writeUInt16BE(rBuf.length, 2);
+        rBuf.copy(rAttr, 4);
+        parts.push(rAttr);
+
+        const nBuf = Buffer.from(nonce);
+        const nAttr = Buffer.alloc(4 + nBuf.length + ((4 - (nBuf.length % 4)) % 4));
+        nAttr.writeUInt16BE(0x0015, 0);
+        nAttr.writeUInt16BE(nBuf.length, 2);
+        nBuf.copy(nAttr, 4);
+        parts.push(nAttr);
+
+        const bodyBeforeMi = Buffer.concat(parts);
+        const totalLenWithMi = bodyBeforeMi.length + 24;
+        authHeader.writeUInt16BE(totalLenWithMi, 2);
+
+        const key = crypto.createHash('md5').update(`${username}:${realm}:${password}`).digest();
+        const hmac = crypto.createHmac('sha1', key);
+        hmac.update(Buffer.concat([authHeader, bodyBeforeMi]));
+        const miHash = hmac.digest();
+
+        const miAttr = Buffer.alloc(24);
+        miAttr.writeUInt16BE(0x0008, 0);
+        miAttr.writeUInt16BE(20, 2);
+        miHash.copy(miAttr, 4);
+
+        const totalLenWithFp = totalLenWithMi + 8;
+        authHeader.writeUInt16BE(totalLenWithFp, 2);
+
+        const fullWithoutFp = Buffer.concat([authHeader, bodyBeforeMi, miAttr]);
+        const fpCrc = (crc32(fullWithoutFp) ^ 0x5354554e) >>> 0;
+        const fpAttr = Buffer.alloc(8);
+        fpAttr.writeUInt16BE(0x8028, 0);
+        fpAttr.writeUInt16BE(4, 2);
+        fpAttr.writeUInt32BE(fpCrc, 4);
+
+        socket.send(Buffer.concat([authHeader, bodyBeforeMi, miAttr, fpAttr]), port, host);
+      } else if (type === 0x0103) {
+        clearTimeout(timer);
+        let offset = 20;
+        let relayPort = null;
+        while (offset < msg.length) {
+          const aType = msg.readUInt16BE(offset);
+          const aLen = msg.readUInt16BE(offset + 2);
+          if (aType === 0x0016) {
+            relayPort = msg.readUInt16BE(offset + 6) ^ 0x2112;
+            break;
+          }
+          offset += 4 + aLen + ((4 - (aLen % 4)) % 4);
+        }
+        cleanup(relayPort);
+      }
+    });
+
+    socket.on('error', (e) => cleanup(null, e.message));
+
+    socket.send(Buffer.concat([header, attrReqTransport]), port, host, (err) => {
+      if (err) cleanup(null, err.message);
+    });
+  });
+}
 
 const PORT = process.env.PORT || 3000;
 
@@ -30,13 +164,30 @@ console.error = (...args) => {
 };
 
 // HTTP Status Server
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
     return res.end();
+  }
+
+  // API Alokasi Turn Asli via Protokol UDP RFC 5766 ke CoTURN Port 3478
+  if (req.url.startsWith('/api/benchmark/allocate')) {
+    const coturnHost = process.env.COTURN_HOST || '127.0.0.1';
+    const coturnPort = parseInt(process.env.COTURN_PORT || '3478');
+    const coturnUser = process.env.COTURN_USER || 'simulasi';
+    const coturnPass = process.env.COTURN_PASS || 'password123';
+
+    try {
+      const allocResult = await requestRealTurnAllocation(coturnHost, coturnPort, coturnUser, coturnPass);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(allocResult));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: err.message }));
+    }
   }
 
   if (req.url === '/benchmark' || req.url === '/benchmark.html') {

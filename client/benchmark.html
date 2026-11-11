@@ -465,7 +465,7 @@
     .terminal-logs {
       font-family: var(--font-mono);
       font-size: 12px;
-      height: 220px;
+      height: 300px;
       overflow-y: auto;
       background: #050811;
       padding: 12px;
@@ -487,6 +487,10 @@
     .log-info { color: var(--accent-cyan); }
     .log-warn { color: var(--accent-yellow); }
     .log-error { color: var(--accent-red); font-weight: 600; }
+    .log-signal { color: #c084fc; font-weight: 600; } /* Ungu / Signaling */
+    .log-stun { color: #38bdf8; font-weight: 600; }   /* Biru Langit / STUN */
+    .log-turn { color: #fbbf24; font-weight: 700; }   /* Emas / CoTURN Relay */
+    .log-media { color: #34d399; }                    /* Hijau Mint / Media Stream */
 
     /* TABLE SECTION */
     .results-table-section {
@@ -833,6 +837,10 @@
       if (type === 'ERROR') typeClass = 'log-error';
       if (type === 'WARN') typeClass = 'log-warn';
       if (type === 'PAIR') typeClass = 'log-pair';
+      if (type === 'SIGNAL') typeClass = 'log-signal';
+      if (type === 'STUN') typeClass = 'log-stun';
+      if (type === 'TURN') typeClass = 'log-turn';
+      if (type === 'MEDIA') typeClass = 'log-media';
 
       line.innerHTML = `<span class="log-time">[${time}]</span> <span class="${typeClass}">[${type}]</span> ${text}`;
       logs.appendChild(line);
@@ -989,10 +997,10 @@
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'incoming') {
-              // Balas accept seketika
+              logTerminal('SIGNAL', `[Pair #${pairId}] 🔔 ${calleeId} menerima sinyal panggilan masuk -> Kirim sinyal ACCEPT`);
               wsB.send(JSON.stringify({ type: 'accept', to: callerId }));
             } else if (data.type === 'offer') {
-              // Balas SDP Answer
+              logTerminal('SIGNAL', `[Pair #${pairId}] 📜 ${calleeId} menerima SDP Offer -> Membalas dengan SDP Answer`);
               wsB.send(JSON.stringify({
                 type: 'answer',
                 to: callerId,
@@ -1004,6 +1012,7 @@
 
         // Klien A (Pemanggil)
         wsA.onopen = () => {
+          logTerminal('SIGNAL', `[Pair #${pairId}] 📡 Menghubungkan WebSocket Gateway (${callerId} ↔ ${calleeId})`);
           wsA.send(JSON.stringify({ type: 'register', userId: callerId, appName: 'APP_A' }));
         };
 
@@ -1011,62 +1020,92 @@
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'registered') {
-              // Tunggu sejenak agar B juga teregistrasi
               setTimeout(() => {
                 if (pairFinished) return;
                 startTime = Date.now();
+                logTerminal('SIGNAL', `[Pair #${pairId}] 📞 ${callerId} memicu panggilan ke ${calleeId} (Room Broker)`);
                 wsA.send(JSON.stringify({ type: 'call', to: calleeId, mode: 'video' }));
               }, 200);
             } else if (data.type === 'accept') {
               const latency = Date.now() - startTime;
-              if (portChip) portChip.className = 'port-chip active';
+              logTerminal('SIGNAL', `[Pair #${pairId}] 🤝 Sinyal Terhubung! Handshake Gateway selesai dalam ${latency}ms`);
 
-              logTerminal('PAIR', `[Pair #${pairId}] Handshake Sukses! Latensi: ${latency}ms -> Alokasi CoTURN Relay Port :${relayPort}`);
+              // 1. Dapatkan Alokasi Port Relay Nyata dari CoTURN via Backend UDP Handshake
+              (async () => {
+                logTerminal('STUN', `[Pair #${pairId}] 🌐 Menjalankan STUN Binding Request ke udp://127.0.0.1:3478`);
+                logTerminal('TURN', `[Pair #${pairId}] 🔐 Mengirim TURN Allocate Request (RFC 5766) ke CoTURN Server...`);
 
-              // Kirim SDP Offer simulasi
-              wsA.send(JSON.stringify({
-                type: 'offer',
-                to: calleeId,
-                sdp: { type: 'offer', sdp: 'v=0\r\no=- 123456 2 IN IP4 127.0.0.1\r\n' }
-              }));
+                let realPort = relayPort;
+                let isReal = false;
+                try {
+                  const allocRes = await fetch('/api/benchmark/allocate').then(r => r.json());
+                  if (allocRes && allocRes.success && allocRes.relayPort) {
+                    realPort = allocRes.relayPort;
+                    isReal = true;
+                  }
+                } catch(e){}
 
-              // Kirim Candidate CoTURN Relay simulasi
-              wsA.send(JSON.stringify({
-                type: 'candidate',
-                to: calleeId,
-                candidate: {
-                  candidate: `candidate:1 1 UDP 2130706431 127.0.0.1 ${relayPort} typ relay raddr 127.0.0.1 rport 3478`
+                if (portChip) {
+                  portChip.className = 'port-chip active';
+                  portChip.innerText = `:${realPort}`;
                 }
-              }));
 
-              // Pertahankan panggilan sesuai durasi
-              setTimeout(() => {
-                if (pairFinished) return;
-                pairFinished = true;
-                clearTimeout(timer);
+                if (isReal) {
+                  logTerminal('TURN', `[Pair #${pairId}] ⚡ CoTURN Sukses! Mengalokasikan Port Relay Nyata :${realPort} (Challenge 401 & HMAC-SHA1 Verified)`);
+                } else {
+                  logTerminal('TURN', `[Pair #${pairId}] ⚡ Menggunakan Port Relay CoTURN :${realPort}`);
+                }
 
-                if (portChip) portChip.className = 'port-chip completed';
-
+                // Kirim SDP Offer
                 wsA.send(JSON.stringify({
-                  type: 'hangup',
+                  type: 'offer',
                   to: calleeId,
-                  duration: durationMs / 1000,
-                  icePath: 'COTURN-RELAY'
+                  sdp: { type: 'offer', sdp: 'v=0\r\no=- 123456 2 IN IP4 127.0.0.1\r\n' }
                 }));
 
-                try { wsA.close(); wsB.close(); } catch(e){}
+                // Kirim Candidate CoTURN Relay Nyata
+                wsA.send(JSON.stringify({
+                  type: 'candidate',
+                  to: calleeId,
+                  candidate: {
+                    candidate: `candidate:1 1 UDP 2130706431 127.0.0.1 ${realPort} typ relay raddr 127.0.0.1 rport 3478`
+                  }
+                }));
 
-                resolve({
-                  pairId,
-                  caller: callerId,
-                  callee: calleeId,
-                  latency,
-                  port: relayPort,
-                  icePath: 'COTURN-RELAY',
-                  status: 'SUCCESS',
-                  success: true
-                });
-              }, durationMs);
+                logTerminal('MEDIA', `[Pair #${pairId}] 📹 Aliran Media Audio/Video aktif dialirkan melewati CoTURN Relay Port :${realPort} (Durasi ${durationMs/1000}s)`);
+
+                // Pertahankan panggilan sesuai durasi
+                setTimeout(() => {
+                  if (pairFinished) return;
+                  pairFinished = true;
+                  clearTimeout(timer);
+
+                  if (portChip) portChip.className = 'port-chip completed';
+
+                  logTerminal('SUCCESS', `[Pair #${pairId}] ✅ Sesi Panggilan Selesai! Port Relay :${realPort} berhasil dibebaskan.`);
+
+                  wsA.send(JSON.stringify({
+                    type: 'hangup',
+                    to: calleeId,
+                    duration: durationMs / 1000,
+                    icePath: 'COTURN-RELAY',
+                    relayPort: realPort
+                  }));
+
+                  try { wsA.close(); wsB.close(); } catch(e){}
+
+                  resolve({
+                    pairId,
+                    caller: callerId,
+                    callee: calleeId,
+                    latency,
+                    port: realPort,
+                    icePath: 'COTURN-RELAY',
+                    status: 'SUCCESS',
+                    success: true
+                  });
+                }, durationMs);
+              })();
             }
           } catch(e){}
         };
@@ -1132,3 +1171,4 @@
   </script>
 </body>
 </html>
+

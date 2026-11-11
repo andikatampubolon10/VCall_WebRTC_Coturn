@@ -13,3 +13,4 @@ echo [INFO] Jika halaman belum tampil, pastikan Gateway/Server sudah aktif
 echo dengan menjalankan 'start-ecosystem.bat' terlebih dahulu.
 echo ======================================================================
 timeout /t 3 >nul
+
