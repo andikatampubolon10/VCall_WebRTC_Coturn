@@ -4,7 +4,7 @@ const path = require('path');
 const { WebSocketServer, WebSocket } = require('ws');
 const db = require('./db');
 
-// Inisialisasi koneksi PostgreSQL Neon
+// Inisialisasi koneksi ke KEDUA database PostgreSQL (Neon US East & Neon Singapore)
 db.initDb().catch(err => console.error('[DB] Gagal start db:', err));
 
 const PORT = process.env.PORT || 3000;
@@ -25,11 +25,11 @@ const MIME_TYPES = {
   '.wav': 'audio/wav'
 };
 
-// 1. HTTP Server untuk menyajikan UI Web Client & REST API Riwayat
+// 1. HTTP Server untuk Web Client & REST API Dual-System
 const server = http.createServer(async (req, res) => {
   let reqUrl = req.url.split('?')[0];
 
-  // CORS Headers untuk API
+  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -39,30 +39,45 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  // API: Cek status koneksi DB Neon
+  // API: Status koneksi kedua database (Sistem A & Sistem B)
   if (reqUrl === '/api/db-status') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ status: 'connected', provider: 'Neon PostgreSQL' }));
+    return res.end(JSON.stringify({
+      status: 'connected',
+      gateway: 'Shared WebRTC Gateway / Room Broker',
+      systems: {
+        systemA: {
+          name: 'Sistem A',
+          provider: 'Neon PostgreSQL (US East)',
+          connected: !!db.poolA
+        },
+        systemB: {
+          name: 'Sistem B',
+          provider: 'Neon PostgreSQL (Singapore)',
+          connected: !!db.poolB
+        }
+      }
+    }));
   }
 
-  // API: Ambil riwayat panggilan terbaru
-  if (reqUrl === '/api/call-logs') {
+  // API: Ambil riwayat panggilan Sistem A
+  if (reqUrl === '/api/system-a/call-logs') {
     try {
-      const logs = await db.getRecentCallLogs(30);
+      const logs = await db.getRecentCallLogs('A', 30);
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ success: true, data: logs }));
+      return res.end(JSON.stringify({ success: true, system: 'A', data: logs }));
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: false, error: err.message }));
     }
   }
 
-  // API: Ambil metrik Coturn terbaru
-  if (reqUrl === '/api/metrics') {
+  // API: Ambil riwayat panggilan Sistem B
+  if (reqUrl === '/api/system-b/call-logs') {
     try {
-      const metrics = await db.getRecentMetrics(50);
+      const logs = await db.getRecentCallLogs('B', 30);
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ success: true, data: metrics }));
+      return res.end(JSON.stringify({ success: true, system: 'B', data: logs }));
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: false, error: err.message }));
@@ -85,7 +100,6 @@ const server = http.createServer(async (req, res) => {
 
   const filePath = path.join(CLIENT_DIR, reqUrl);
 
-  // Mencegah directory traversal security issue
   if (!filePath.startsWith(CLIENT_DIR)) {
     res.writeHead(403);
     return res.end('403 Forbidden');
@@ -105,15 +119,16 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-// 2. WebSocket Signaling Server
+// 2. WebSocket Signaling Server & Room Broker
 const wss = new WebSocketServer({ server });
 
-// Map userId -> { ws, busyWith: null | string }
+// Map userId -> { ws, system: 'A'|'B', busyWith: null, callIds: { idA, idB }, roomId: null }
 const clients = new Map();
 
 function broadcastUserList() {
   const userList = Array.from(clients.entries()).map(([userId, data]) => ({
     userId,
+    system: data.system || 'A',
     isBusy: data.busyWith !== null
   }));
 
@@ -140,19 +155,20 @@ function sendToUser(toUserId, messageObj) {
 
 wss.on('connection', (ws) => {
   let currentUserId = null;
+  let currentSystem = 'A';
 
-  console.log('[Signaling] Klien baru terhubung via WebSocket');
+  console.log('[Gateway Broker] Klien baru terhubung via WebSocket');
 
   ws.on('message', async (data) => {
     let msg;
     try {
       msg = JSON.parse(data.toString());
     } catch (e) {
-      console.error('[Signaling] Format JSON tidak valid:', data.toString());
+      console.error('[Gateway] Format JSON tidak valid:', data.toString());
       return;
     }
 
-    const { type, to, mode, sdp, candidate, reason } = msg;
+    const { type, to, mode, sdp, candidate, reason, system } = msg;
 
     switch (type) {
       case 'register': {
@@ -162,27 +178,41 @@ wss.on('connection', (ws) => {
           return;
         }
 
+        // Tentukan sistem: Jika tidak dikirim, infer dari username atau default
+        currentSystem = (system === 'B' || requestedId.includes('B')) ? 'B' : 'A';
+        currentUserId = requestedId;
+
         // Jika ID sudah dipakai oleh koneksi aktif lain
-        if (clients.has(requestedId) && clients.get(requestedId).ws !== ws) {
+        if (clients.has(currentUserId) && clients.get(currentUserId).ws !== ws) {
           ws.send(JSON.stringify({
             type: 'error',
             code: 'duplicate_user',
-            message: `User '${requestedId}' sudah aktif di perangkat/tab lain.`
+            message: `User '${currentUserId}' sudah aktif di perangkat/tab lain.`
           }));
           return;
         }
 
-        currentUserId = requestedId;
-        clients.set(currentUserId, { ws, busyWith: null, callId: null });
-        console.log(`[Signaling] User terdaftar: ${currentUserId}`);
+        clients.set(currentUserId, {
+          ws,
+          system: currentSystem,
+          busyWith: null,
+          callIds: { idA: null, idB: null },
+          roomId: null
+        });
 
-        // Catat user online ke PostgreSQL Neon
-        db.upsertUser(currentUserId, 'online').catch(() => {});
+        console.log(`[Gateway Broker] User terdaftar: ${currentUserId} [SISTEM ${currentSystem}]`);
+
+        // Catat status user ke database sistem masing-masing
+        db.upsertUser(currentUserId, currentSystem, 'online').catch(() => {});
 
         // Konfirmasi registrasi berhasil
-        ws.send(JSON.stringify({ type: 'registered', userId: currentUserId }));
+        ws.send(JSON.stringify({
+          type: 'registered',
+          userId: currentUserId,
+          system: currentSystem
+        }));
 
-        // Siarkan daftar user online terbaru ke semua klien
+        // Siarkan daftar user online
         broadcastUserList();
         break;
       }
@@ -209,49 +239,67 @@ wss.on('connection', (ws) => {
           return;
         }
 
-        // Catat panggilan baru ke PostgreSQL Neon
-        let callId = null;
+        const myData = clients.get(currentUserId);
+        const callerSys = myData ? myData.system : 'A';
+        const calleeSys = target.system || 'B';
+
+        // Buat Room ID unik untuk panggilan antar-sistem ini
+        const roomId = `room_${Date.now()}_${callerSys}_${calleeSys}`;
+
+        // Catat panggilan baru ke KEDUA Database (Sistem A dan Sistem B)
+        let callIds = { idA: null, idB: null };
         try {
-          callId = await db.logCallStart({ caller: currentUserId, callee: to, callType: mode || 'video' });
+          callIds = await db.logCallStart({
+            caller: currentUserId,
+            callee: to,
+            callerSystem: callerSys,
+            calleeSystem: calleeSys,
+            callType: mode || 'video'
+          });
         } catch (e) {
           console.error('[DB] Gagal mencatat logCallStart:', e.message);
         }
 
-        // Tandai status sementara calling
-        const myData = clients.get(currentUserId);
         if (myData) {
           myData.busyWith = to;
-          myData.callId = callId;
+          myData.callIds = callIds;
+          myData.roomId = roomId;
         }
         target.busyWith = currentUserId;
-        target.callId = callId;
+        target.callIds = callIds;
+        target.roomId = roomId;
 
-        console.log(`[Signaling] Panggilan: ${currentUserId} -> ${to} (mode: ${mode}, callId: ${callId})`);
+        console.log(`[Gateway Broker] Panggilan Antar-Sistem: ${currentUserId} (Sistem ${callerSys}) -> ${to} (Sistem ${calleeSys}) [Room: ${roomId}]`);
         broadcastUserList();
 
         sendToUser(to, {
           type: 'incoming',
           from: currentUserId,
+          fromSystem: callerSys,
           mode: mode || 'video',
-          callId
+          roomId,
+          callId: target.system === 'B' ? callIds.idB : callIds.idA
         });
 
         ws.send(JSON.stringify({
           type: 'calling',
           to,
-          callId
+          targetSystem: calleeSys,
+          roomId,
+          callId: myData.system === 'A' ? callIds.idA : callIds.idB
         }));
         break;
       }
 
       case 'accept': {
         if (!currentUserId) return;
-        console.log(`[Signaling] Panggilan diterima oleh ${currentUserId} untuk ${to}`);
+        console.log(`[Gateway Broker] Panggilan diterima oleh ${currentUserId} untuk ${to}`);
         const myData = clients.get(currentUserId);
         sendToUser(to, {
           type: 'accept',
           from: currentUserId,
-          callId: myData ? myData.callId : null
+          roomId: myData ? myData.roomId : null,
+          callId: myData && myData.callIds ? (myData.system === 'A' ? myData.callIds.idA : myData.callIds.idB) : null
         });
         broadcastUserList();
         break;
@@ -259,28 +307,31 @@ wss.on('connection', (ws) => {
 
       case 'reject': {
         if (!currentUserId) return;
-        console.log(`[Signaling] Panggilan ditolak oleh ${currentUserId} untuk ${to}`);
+        console.log(`[Gateway Broker] Panggilan ditolak oleh ${currentUserId} untuk ${to}`);
 
         const myData = clients.get(currentUserId);
         const targetData = clients.get(to);
-        const activeCallId = (myData && myData.callId) || (targetData && targetData.callId);
+        const activeCallIds = (myData && myData.callIds) || (targetData && targetData.callIds) || {};
 
-        // Catat penolakan panggilan ke PostgreSQL Neon
+        // Catat penolakan panggilan ke kedua database
         db.logCallEnd({
-          callId: activeCallId,
+          callIdA: activeCallIds.idA,
+          callIdB: activeCallIds.idB,
           caller: to,
           callee: currentUserId,
           status: 'rejected'
         }).catch(() => {});
 
-        // Bersihkan status sibuk
+        // Bersihkan status
         if (myData) {
           myData.busyWith = null;
-          myData.callId = null;
+          myData.callIds = { idA: null, idB: null };
+          myData.roomId = null;
         }
         if (targetData && targetData.busyWith === currentUserId) {
           targetData.busyWith = null;
-          targetData.callId = null;
+          targetData.callIds = { idA: null, idB: null };
+          targetData.roomId = null;
         }
 
         sendToUser(to, {
@@ -294,7 +345,6 @@ wss.on('connection', (ws) => {
 
       case 'offer': {
         if (!currentUserId) return;
-        console.log(`[Signaling] Meneruskan Offer SDP dari ${currentUserId} ke ${to}`);
         sendToUser(to, {
           type: 'offer',
           from: currentUserId,
@@ -305,7 +355,6 @@ wss.on('connection', (ws) => {
 
       case 'answer': {
         if (!currentUserId) return;
-        console.log(`[Signaling] Meneruskan Answer SDP dari ${currentUserId} ke ${to}`);
         sendToUser(to, {
           type: 'answer',
           from: currentUserId,
@@ -324,51 +373,28 @@ wss.on('connection', (ws) => {
         break;
       }
 
-      case 'hangup': {
+      case 'chat': {
         if (!currentUserId) return;
-        console.log(`[Signaling] Panggilan diakhiri oleh ${currentUserId} untuk ${to}`);
-
         const myData = clients.get(currentUserId);
-        const targetData = clients.get(to);
-        const activeCallId = msg.callId || (myData && myData.callId) || (targetData && targetData.callId);
-
-        // Simpan riwayat panggilan dan metrik akhir ke PostgreSQL Neon
-        db.logCallEnd({
-          callId: activeCallId,
-          caller: currentUserId,
-          callee: to,
-          status: 'completed',
-          durationSeconds: msg.duration || 0,
-          icePath: msg.icePath || null,
-          bitrateKbps: msg.bitrate || null,
-          packetsLost: msg.packetsLost || 0,
-          rttMs: msg.rtt || null
-        }).catch(err => console.error('[DB] Gagal logCallEnd di hangup:', err.message));
-
-        if (myData) {
-          myData.busyWith = null;
-          myData.callId = null;
-        }
-        if (targetData && targetData.busyWith === currentUserId) {
-          targetData.busyWith = null;
-          targetData.callId = null;
-        }
-
-        sendToUser(to, {
-          type: 'hangup',
-          from: currentUserId,
-          callId: activeCallId
-        });
-        broadcastUserList();
+        const sys = myData ? myData.system : 'A';
+        // Catat chat ke database sistem pengirim
+        db.logChatMessage({
+          system: sys,
+          callId: myData && myData.callIds ? (sys === 'A' ? myData.callIds.idA : myData.callIds.idB) : null,
+          sender: currentUserId,
+          receiver: to,
+          message: msg.text || ''
+        }).catch(() => {});
         break;
       }
 
       case 'stats': {
-        // Menerima metrik periodik dari browser klien
+        if (!currentUserId) return;
         const myData = clients.get(currentUserId);
-        const activeCallId = msg.callId || (myData && myData.callId);
+        const sys = myData ? myData.system : 'A';
         db.logCoturnMetric({
-          callId: activeCallId,
+          system: sys,
+          callId: myData && myData.callIds ? (sys === 'A' ? myData.callIds.idA : myData.callIds.idB) : null,
           username: currentUserId,
           candidateType: msg.candidateType,
           localIp: msg.localIp,
@@ -381,69 +407,90 @@ wss.on('connection', (ws) => {
         break;
       }
 
-      case 'chat_log': {
-        // Catat pesan chat ke database
+      case 'hangup': {
+        if (!currentUserId) return;
+        console.log(`[Gateway Broker] Panggilan diakhiri oleh ${currentUserId} untuk ${to}`);
+
         const myData = clients.get(currentUserId);
-        const activeCallId = msg.callId || (myData && myData.callId);
-        db.logChatMessage({
-          callId: activeCallId,
-          sender: currentUserId,
-          receiver: to,
-          message: msg.message
+        const targetData = clients.get(to);
+        const activeCallIds = (myData && myData.callIds) || (targetData && targetData.callIds) || {};
+
+        // Catat panggilan selesai di KEDUA Database!
+        db.logCallEnd({
+          callIdA: activeCallIds.idA,
+          callIdB: activeCallIds.idB,
+          caller: currentUserId,
+          callee: to,
+          status: 'completed',
+          durationSeconds: msg.duration || 0,
+          icePath: msg.icePath || null,
+          bitrateKbps: msg.bitrate || null,
+          packetsLost: msg.packetsLost || 0,
+          rttMs: msg.rtt || null
         }).catch(() => {});
+
+        if (myData) {
+          myData.busyWith = null;
+          myData.callIds = { idA: null, idB: null };
+          myData.roomId = null;
+        }
+        if (targetData && targetData.busyWith === currentUserId) {
+          targetData.busyWith = null;
+          targetData.callIds = { idA: null, idB: null };
+          targetData.roomId = null;
+        }
+
+        sendToUser(to, {
+          type: 'hangup',
+          from: currentUserId,
+          reason: msg.reason || 'Panggilan diakhiri'
+        });
+        broadcastUserList();
         break;
       }
 
       default:
-        console.warn(`[Signaling] Tipe pesan tidak dikenal: ${type}`);
+        console.warn(`[Gateway Broker] Tipe pesan tidak dikenal: ${type}`);
     }
   });
 
   ws.on('close', () => {
-    if (currentUserId) {
-      db.upsertUser(currentUserId, 'offline').catch(() => {});
-    }
-
     if (currentUserId && clients.has(currentUserId)) {
       const myData = clients.get(currentUserId);
       if (myData && myData.busyWith) {
-        // Catat berakhirnya panggilan ke database
-        db.logCallEnd({
-          callId: myData.callId,
-          caller: currentUserId,
-          callee: myData.busyWith,
-          status: 'completed'
-        }).catch(() => {});
-
-        // Lawan bicara diberi tahu bahwa koneksi terputus (FR-05)
         sendToUser(myData.busyWith, {
           type: 'hangup',
           from: currentUserId,
-          reason: `Koneksi '${currentUserId}' terputus`
+          reason: `Koneksi '${currentUserId}' terputus dari Gateway`
         });
         const peer = clients.get(myData.busyWith);
         if (peer && peer.busyWith === currentUserId) {
           peer.busyWith = null;
-          peer.callId = null;
+          peer.callIds = { idA: null, idB: null };
+          peer.roomId = null;
         }
       }
 
+      // Catat status offline di database sistem yang sesuai
+      db.upsertUser(currentUserId, currentSystem, 'offline').catch(() => {});
+
       clients.delete(currentUserId);
-      console.log(`[Signaling] User terputus: ${currentUserId}`);
+      console.log(`[Gateway Broker] User terputus: ${currentUserId} [SISTEM ${currentSystem}]`);
       broadcastUserList();
     }
   });
 
   ws.on('error', (err) => {
-    console.error(`[Signaling] WebSocket error pada user ${currentUserId}:`, err.message);
+    console.error(`[Gateway Broker] WebSocket error: ${err.message}`);
   });
 });
 
 server.listen(PORT, () => {
   console.log(`=======================================================`);
-  console.log(`🚀 WebRTC Signaling & Web Server berjalan!`);
-  console.log(`🌐 Akses User A / B: http://localhost:${PORT}`);
-  console.log(`🧪 Akses Trickle Test: http://localhost:${PORT}/trickle`);
+  console.log(`🌐 SHARED WEBRTC GATEWAY & ROOM BROKER BERJALAN!`);
+  console.log(`📡 Port Gateway  : http://localhost:${PORT}`);
+  console.log(`🏥 Database A    : Neon PostgreSQL (US East)`);
+  console.log(`📱 Database B    : Neon PostgreSQL (Singapore)`);
+  console.log(`🧪 Trickle Test  : http://localhost:${PORT}/trickle`);
   console.log(`=======================================================`);
 });
-

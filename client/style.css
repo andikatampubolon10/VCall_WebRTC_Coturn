@@ -1054,6 +1054,112 @@ input:focus {
 .tag-relay { background: #005c4b; color: #25d366; }
 .tag-err { background: #4d1f24; color: #ff8b8b; }
 
+/* Dual-System Selector & Badges */
+.system-selector-box {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.system-pills {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.system-radio {
+  flex: 1;
+  cursor: pointer;
+}
+
+.system-radio input {
+  display: none;
+}
+
+.system-pill {
+  display: block;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-size: 12px;
+  transition: all 0.2s;
+  background: var(--bg-card);
+  color: var(--text-muted);
+}
+
+.system-radio input:checked + .pill-a {
+  background: rgba(0, 168, 132, 0.2);
+  border-color: var(--accent-green-light);
+  color: var(--accent-green-light);
+  box-shadow: 0 0 10px rgba(0, 168, 132, 0.3);
+}
+
+.system-radio input:checked + .pill-b {
+  background: rgba(142, 68, 173, 0.25);
+  border-color: #bb86fc;
+  color: #bb86fc;
+  box-shadow: 0 0 10px rgba(187, 134, 252, 0.3);
+}
+
+.badge-sys-a {
+  background: #005c4b;
+  color: #25d366;
+  border: 1px solid #25d366;
+  font-size: 11px;
+}
+
+.badge-sys-b {
+  background: #3c1e5a;
+  color: #bb86fc;
+  border: 1px solid #bb86fc;
+  font-size: 11px;
+}
+
+.btn-chip.chip-a {
+  border-color: rgba(0, 168, 132, 0.4);
+  color: var(--accent-green-light);
+}
+
+.btn-chip.chip-b {
+  border-color: rgba(187, 134, 252, 0.4);
+  color: #bb86fc;
+}
+
+.tag-sys-a {
+  display: inline-block;
+  font-size: 10px;
+  background: rgba(0, 168, 132, 0.2);
+  color: var(--accent-green-light);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  border: 1px solid rgba(0, 168, 132, 0.4);
+}
+
+.tag-sys-b {
+  display: inline-block;
+  font-size: 10px;
+  background: rgba(187, 134, 252, 0.2);
+  color: #bb86fc;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  border: 1px solid rgba(187, 134, 252, 0.4);
+}
+
+.inter-call-badge {
+  display: inline-block;
+  background: rgba(243, 156, 18, 0.2);
+  color: #f39c12;
+  border: 1px solid #f39c12;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 @media (max-width: 900px) {
   .call-container {
     flex-direction: column;

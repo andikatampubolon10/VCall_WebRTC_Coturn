@@ -17,13 +17,14 @@
         </svg>
       </div>
       <div class="header-title">
-        <h1>WebRTC Call Simulator</h1>
-        <span class="sub-text">Simulasi Voice/Video Call dengan STUN & TURN Coturn</span>
+        <h1>WebRTC Inter-System Simulator</h1>
+        <span class="sub-text">Shared Gateway & Room Broker | Sistem A & Sistem B</span>
       </div>
     </div>
     <div class="header-right">
       <div id="userBadge" class="user-badge" style="display:none;">
         <span class="status-dot online"></span>
+        <span id="currentUserSystemBadge" class="badge badge-sys-a">Sistem A</span>
         <span id="currentUserName">User</span>
         <button id="logoutBtn" class="btn-text">Keluar</button>
       </div>
@@ -38,14 +39,28 @@
     <!-- 1. LAYAR LOGIN -->
     <section id="loginScreen" class="screen card login-card">
       <h2>Masuk ke Simulasi</h2>
-      <p class="card-desc">Buka tab kedua di browser Anda untuk bertindak sebagai User B.</p>
+      <p class="card-desc">Simulasi panggilan antar 2 sistem independen (Sistem A ↔ Sistem B).</p>
       
+      <div class="form-group system-selector-box">
+        <label>Pilih Sistem Aplikasi & Database:</label>
+        <div class="system-pills">
+          <label class="system-radio">
+            <input type="radio" name="systemSelect" id="sysRadioA" value="A" checked onchange="onSystemChange('A')">
+            <span class="system-pill pill-a">🏥 <strong>Sistem A</strong> (Neon US-East)</span>
+          </label>
+          <label class="system-radio">
+            <input type="radio" name="systemSelect" id="sysRadioB" value="B" onchange="onSystemChange('B')">
+            <span class="system-pill pill-b">📱 <strong>Sistem B</strong> (Neon Singapore)</span>
+          </label>
+        </div>
+      </div>
+
       <div class="form-group">
         <label for="usernameInput">Pilih atau Masukkan Nama Pengguna:</label>
         <div class="preset-users">
-          <button type="button" class="btn-chip" onclick="selectPresetUser('User A')">User A</button>
-          <button type="button" class="btn-chip" onclick="selectPresetUser('User B')">User B</button>
-          <button type="button" class="btn-chip" onclick="selectPresetUser('User C')">User C</button>
+          <button type="button" class="btn-chip chip-a" onclick="selectPresetUser('User A', 'A')">User A (Sistem A)</button>
+          <button type="button" class="btn-chip chip-b" onclick="selectPresetUser('User B', 'B')">User B (Sistem B)</button>
+          <button type="button" class="btn-chip chip-b" onclick="selectPresetUser('User B2', 'B')">User B2 (Sistem B)</button>
         </div>
         <input type="text" id="usernameInput" placeholder="Contoh: User A" maxlength="20" autofocus>
       </div>
@@ -310,7 +325,7 @@
     </div>
   </aside>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
 

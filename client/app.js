@@ -19,6 +19,7 @@ let appState = 'idle';
 let currentCallPeer = null;
 let currentCallMode = 'video'; // 'voice' | 'video'
 let isCallInitiator = false;
+let mySystem = 'A'; // 'A' (Neon US-East) | 'B' (Neon Singapore)
 
 // Queue untuk ICE Candidates sebelum remote description terpasang (FR-23)
 let iceCandidateQueue = [];
@@ -152,9 +153,16 @@ hideDebugBtn.addEventListener('click', () => {
 });
 
 // Helper preset login cepat
-window.selectPresetUser = function(name) {
+window.selectPresetUser = function(name, sys = 'A') {
   usernameInput.value = name;
+  mySystem = sys;
+  const radio = document.getElementById(sys === 'B' ? 'sysRadioB' : 'sysRadioA');
+  if (radio) radio.checked = true;
   usernameInput.focus();
+};
+
+window.onSystemChange = function(sys) {
+  mySystem = sys;
 };
 
 // ==========================================
@@ -243,10 +251,11 @@ function connectSignalingServer(username) {
   ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
-    logEvent('SIG', 'SIG', `Terhubung ke server. Mendaftarkan user: "${username}"`);
+    logEvent('SIG', 'SIG', `Terhubung ke Gateway. Mendaftarkan user: "${username}" [Sistem ${mySystem}]`);
     sendSignalingMessage({
       type: 'register',
-      userId: username
+      userId: username,
+      system: mySystem
     });
   };
 
@@ -291,11 +300,17 @@ async function handleSignalingMessage(msg) {
   switch (type) {
     case 'registered':
       currentUserId = msg.userId;
+      mySystem = msg.system || mySystem;
       currentUserNameEl.innerText = currentUserId;
+      const sysBadge = document.getElementById('currentUserSystemBadge');
+      if (sysBadge) {
+        sysBadge.className = `badge ${mySystem === 'B' ? 'badge-sys-b' : 'badge-sys-a'}`;
+        sysBadge.innerText = mySystem === 'B' ? 'Sistem B (Singapore)' : 'Sistem A (US-East)';
+      }
       userBadge.style.display = 'flex';
       loginScreen.style.display = 'none';
       lobbyScreen.style.display = 'block';
-      logEvent('SIG', 'SIG', `Registrasi terverifikasi sebagai: <strong>${currentUserId}</strong>`);
+      logEvent('SIG', 'SIG', `Registrasi terverifikasi: <strong>${currentUserId}</strong> [Sistem ${mySystem}]`);
       break;
 
     case 'users':
@@ -320,8 +335,8 @@ async function handleSignalingMessage(msg) {
       currentCallMode = mode || 'video';
       isCallInitiator = false;
 
-      incomingCallerName.innerText = from;
-      incomingCallMode.innerText = currentCallMode === 'video' ? '📹 Panggilan Video Masuk...' : '📞 Panggilan Suara Masuk...';
+      incomingCallerName.innerHTML = `${from} <span class="${msg.fromSystem === 'B' ? 'tag-sys-b' : 'tag-sys-a'}">${msg.fromSystem === 'B' ? 'Sistem B' : 'Sistem A'}</span>`;
+      incomingCallMode.innerText = currentCallMode === 'video' ? '📹 Panggilan Video Masuk (Antar-Sistem)...' : '📞 Panggilan Suara Masuk (Antar-Sistem)...';
       incomingModal.style.display = 'flex';
       playRingtone('incoming');
       logEvent('SIG', 'SIG', `Menerima panggilan masuk dari: <strong>${from}</strong> (${currentCallMode})`);
@@ -403,12 +418,18 @@ function renderOnlineUsers(users) {
 
     const initial = u.userId.charAt(0).toUpperCase();
     const isBusy = u.isBusy;
+    const userSys = u.system || 'A';
+    const isInterSystem = userSys !== mySystem;
 
     item.innerHTML = `
       <div class="user-item-left">
-        <div class="user-avatar-circle">${initial}</div>
+        <div class="user-avatar-circle" style="${userSys === 'B' ? 'background:#3c1e5a; color:#bb86fc;' : ''}">${initial}</div>
         <div class="user-meta">
-          <div class="user-title">${u.userId}</div>
+          <div class="user-title">
+            ${u.userId}
+            <span class="${userSys === 'B' ? 'tag-sys-b' : 'tag-sys-a'}">${userSys === 'B' ? 'Sistem B (Neon SG)' : 'Sistem A (Neon US)'}</span>
+            ${isInterSystem ? '<span class="inter-call-badge">🌐 Antar-Sistem</span>' : ''}
+          </div>
           <div class="user-status-text">${isBusy ? '🔴 Sedang dalam panggilan' : '🟢 Online dan siap'}</div>
         </div>
       </div>
@@ -1071,7 +1092,7 @@ function resetToIdle() {
 function showCallScreen() {
   lobbyScreen.style.display = 'none';
   callScreen.style.display = 'flex';
-  callPartnerName.innerText = currentCallPeer;
+  callPartnerName.innerHTML = `${currentCallPeer} <span class="badge ${mySystem === 'A' ? 'badge-sys-b' : 'badge-sys-a'}">${mySystem === 'A' ? 'Sistem B' : 'Sistem A'}</span>`;
   callStatusBadge.className = 'badge badge-connecting';
   callStatusBadge.innerText = 'Menghubungkan...';
 }

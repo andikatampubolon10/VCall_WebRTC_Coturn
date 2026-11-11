@@ -1,0 +1,15 @@
+{
+  "name": "app-a",
+  "version": "1.0.0",
+  "description": "Aplikasi A - Standalone App dengan Database Neon US-East",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "dotenv": "^18.0.10",
+    "pg": "^8.23.1"
+  }
+}
+

@@ -216,3 +216,51 @@ Konfigurasi server terletak pada file [`coturn/turnserver.conf`](file:///d:/SEME
 - **Realm**: `localhost`
 - **Username**: `simulasi`
 - **Password**: `password123`
+
+---
+
+## 🚀 Ekosistem 2 Aplikasi Mandiri (React + Shared Gateway + 2 Database Neon)
+
+Sistem ini mendukung simulasi panggilan antar dua aplikasi perangkat lunak yang **terpisah secara fisik & arsitektur**:
+
+```
++------------------------------------+        +------------------------------------+
+|     APLIKASI A (Port 3001)         |        |     APLIKASI B (Port 3002)         |
+|  - Theme: Hospital / Doctor Portal |        |  - Theme: Mobile Patient App       |
+|  - Framework: React 18 UI          |        |  - Framework: React 18 UI          |
+|  - Database: Neon DB (US-East)     |        |  - Database: Neon DB (Singapore)   |
+|  - User: User A                    |        |  - User: User B                    |
++-----------------+------------------+        +------------------+-----------------+
+                  |                                              |
+                  +----------------------+-----------------------+
+                                         |
+                                         v
+                         +-------------------------------+
+                         |   SHARED WEBRTC GATEWAY       |
+                         |   (Port 3000 / WebSocket)     |
+                         |   - Room Broker & Signaling   |
+                         +---------------+---------------+
+                                         |
+                                         v
+                         +-------------------------------+
+                         |       COTURN SERVER           |
+                         |   - STUN / TURN (Port 3478)   |
+                         +-------------------------------+
+```
+
+### Cara Menjalankan Ekosistem 2 Aplikasi:
+Cukup jalankan batch file launcher satu-klik:
+```cmd
+start-ecosystem.bat
+```
+Script otomatis akan:
+1. Menjalankan Docker Coturn (`docker compose up -d`).
+2. Menjalankan Shared WebRTC Gateway pada Port 3000 (`gateway/`).
+3. Menjalankan Aplikasi A pada Port 3001 (`app-a/`) yang terhubung ke **Neon US-East**.
+4. Menjalankan Aplikasi B pada Port 3002 (`app-b/`) yang terhubung ke **Neon Singapore**.
+5. Membuka kedua aplikasi secara berdampingan di browser Anda (`http://localhost:3001` dan `http://localhost:3002`).
+
+Untuk menghentikan semua layanan:
+```cmd
+stop-ecosystem.bat
+```
