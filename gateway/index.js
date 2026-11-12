@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const dgram = require('dgram');
 const crypto = require('crypto');
+const os = require('os');
 require('dotenv').config();
 
 function crc32(buf) {
@@ -370,6 +371,43 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       return fs.createReadStream(benchPath).pipe(res);
     }
+  }
+
+  // API Metrik Real-time Server (CPU, RAM, Sockets)
+  if (req.url === '/api/metrics' || req.url === '/api/system/metrics') {
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const usedMem = totalMem - freeMem;
+    const loadAvg = os.loadavg();
+    const cpus = os.cpus();
+    const memUsage = process.memoryUsage();
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({
+      cpu: {
+        cores: cpus.length,
+        model: cpus[0] ? cpus[0].model : 'Unknown',
+        load1m: loadAvg[0],
+        load5m: loadAvg[1],
+        load15m: loadAvg[2],
+        cpuPercent: Math.min(100, Math.round((loadAvg[0] / (cpus.length || 1)) * 100))
+      },
+      ram: {
+        totalMB: Math.round(totalMem / (1024 * 1024)),
+        usedMB: Math.round(usedMem / (1024 * 1024)),
+        freeMB: Math.round(freeMem / (1024 * 1024)),
+        usedPercent: parseFloat(((usedMem / totalMem) * 100).toFixed(1))
+      },
+      process: {
+        rssMB: Math.round(memUsage.rss / (1024 * 1024)),
+        heapUsedMB: Math.round(memUsage.heapUsed / (1024 * 1024))
+      },
+      network: {
+        activeWsClients: clients.size,
+        activeTurnAllocations: activeTurnAllocations.size
+      },
+      uptimeSec: Math.round(process.uptime())
+    }));
   }
 
   // API Status Gateway (JSON)
