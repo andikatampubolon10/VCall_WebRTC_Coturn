@@ -13,6 +13,21 @@ function AppB() {
   const [isMuted, setIsMuted] = useState(false);
   const [isCamOff, setIsCamOff] = useState(false);
 
+  // State Tampilan & Chat AI Konsultasi Dokter
+  const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' | 'ai-chat'
+  const [chatMessages, setChatMessages] = useState([
+    {
+      id: 1,
+      sender: 'ai',
+      text: 'Halo Budi (User B)! 👋 Saya Medi-AI Triage Assistant. Bagaimana kondisi kesehatan Anda hari ini? Ceritakan keluhan atau gejala yang Anda rasakan.',
+      time: 'Baru saja'
+    }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [isAiTyping, setIsAiTyping] = useState(false);
+  const [pendingCallPrompt, setPendingCallPrompt] = useState(false);
+  const chatEndRef = useRef(null);
+
   // Observabilitas & Telemetri Real-Time Mobile
   const [logs, setLogs] = useState([]);
   const [isObsCollapsed, setIsObsCollapsed] = useState(false);
@@ -57,6 +72,57 @@ function AppB() {
       logEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [logs]);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages, isAiTyping, viewMode]);
+
+  const sendUserMessage = (text) => {
+    const trimmed = (text || '').trim();
+    if (!trimmed) return;
+
+    const userMsg = {
+      id: Date.now(),
+      sender: 'user',
+      text: trimmed,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatInput('');
+    setIsAiTyping(true);
+
+    setTimeout(() => {
+      setIsAiTyping(false);
+      const aiReply = {
+        id: Date.now() + 1,
+        sender: 'ai',
+        text: `Keluhan Anda telah saya analisa dan dicatat: "${trimmed}". Sistem triase otomatis merekomendasikan Pemeriksaan Tatap Muka Langsung dengan Dokter Jaga di Aplikasi A (Sistem Rumah Sakit) via Video Call WebRTC.`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setChatMessages(prev => [...prev, aiReply]);
+      setPendingCallPrompt(true);
+    }, 900);
+  };
+
+  const triggerDoctorCall = () => {
+    const doctor = users.find(u => u.appName === 'APP_A') || users.find(u => u.userId !== currentUser);
+    if (!doctor) {
+      const warningMsg = {
+        id: Date.now(),
+        sender: 'ai',
+        text: '⚠️ Dokter di Aplikasi A (Port 3001) sedang belum aktif/online. Mohon pastikan Aplikasi A dibuka di laptop dokter terlebih dahulu, lalu klik tombol panggil kembali.',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setChatMessages(prev => [...prev, warningMsg]);
+      return;
+    }
+
+    addLog('CALL', `Memicu panggilan video ke dokter: ${doctor.userId} (${doctor.appName})`, 'webrtc');
+    startCall(doctor.userId, doctor.appName);
+  };
 
   // 1. Inisialisasi dari Backend Aplikasi B (Port 3002)
   useEffect(() => {
@@ -521,6 +587,18 @@ function AppB() {
       }));
     }
     addLog('CALL', 'Panggilan ditutup.', 'warn');
+    if (callDuration > 0) {
+      setChatMessages(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          sender: 'ai',
+          text: `✅ Konsultasi Video Call dengan ${callPeer || 'Dokter'} telah selesai (Durasi: ${formatTime(callDuration)}). Catatan riwayat telah otomatis tersimpan ke Database Neon Singapore.`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+      setPendingCallPrompt(false);
+    }
     saveCallLog('completed', callDuration);
     resetCallState();
   };
@@ -615,178 +693,354 @@ function AppB() {
         <div className="notch-camera"></div>
       </div>
 
-      {/* Top Header */}
-      <div className="mobile-header">
-        <div className="header-top">
-          <div className="patient-badge">
-            <div className="avatar-circle">{currentUser.charAt(5) || 'B'}</div>
-            <div className="patient-title">
-              <h2>Halo, {currentUser}!</h2>
-              <span><span className="dot-pulse"></span> {isRegistered ? 'Terhubung ke Gateway' : 'Menghubungkan...'}</span>
+      {viewMode === 'ai-chat' ? (
+        <div className="chat-view">
+          {/* Top Bar Chat */}
+          <div className="chat-topbar">
+            <button className="btn-chat-back" onClick={() => setViewMode('dashboard')}>
+              ◀ Beranda
+            </button>
+            <div className="bot-mini-avatar">🤖</div>
+            <div className="chat-bot-details">
+              <div className="chat-bot-name">Medi-AI Doctor Assistant</div>
+              <div className="chat-bot-status">
+                <span className="dot-pulse" style={{ width: '6px', height: '6px' }}></span>
+                Tersambung ke Dokter di Aplikasi A
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="system-info-pills">
-          <span className="pill pill-sg">🇸🇬 Neon DB: Singapore (system_b_db)</span>
-          <span className={`pill ${isRegistered ? 'pill-port' : 'pill-danger'}`}>
-            {isRegistered ? '🟢 Terhubung ke Gateway' : '🔴 Gateway Terputus'}
-          </span>
-        </div>
-      </div>
-
-      {/* Scrollable Content */}
-      <div className="mobile-body">
-        {/* Konsultasi Dokter Card */}
-        <div className="action-card">
-          <h3>🩺 Dokter & Rekan Konsultasi</h3>
-          <p>
-            Daftar pengguna online dari <strong>Aplikasi A (Sistem Rumah Sakit)</strong> yang siap dihubungi:
-          </p>
-
-          <div>
-            {users.filter(u => u.userId !== currentUser).map(u => (
-              <div key={u.userId} className="doctor-item">
-                <div className="doctor-avatar">{u.userId.charAt(0)}</div>
-                <div className="doctor-details">
-                  <div className="name">{u.userId}</div>
-                  <div className="role">{u.appName === 'APP_A' ? '🏥 Dokter di Aplikasi A' : '📱 Pasien di Aplikasi B'}</div>
+          {/* Area Pesan Chat */}
+          <div className="chat-messages-area">
+            {chatMessages.map(msg => (
+              <div key={msg.id} className={`chat-bubble-row ${msg.sender}`}>
+                {msg.sender === 'ai' && <div className="bot-mini-avatar">🤖</div>}
+                <div className={`chat-bubble ${msg.sender}`}>
+                  <div style={{ whiteSpace: 'pre-line' }}>{msg.text}</div>
+                  <span className="chat-msg-time">{msg.time}</span>
                 </div>
-                <button 
-                  className="btn-start-call"
-                  disabled={u.isBusy || callState !== 'idle'}
-                  onClick={() => startCall(u.userId, u.appName)}
-                >
-                  {u.isBusy ? 'Sibuk' : '📹 Hubungi'}
+              </div>
+            ))}
+
+            {isAiTyping && (
+              <div className="chat-bubble-row ai">
+                <div className="bot-mini-avatar">🤖</div>
+                <div className="typing-box">
+                  <span className="typing-dot"></span>
+                  <span className="typing-dot"></span>
+                  <span className="typing-dot"></span>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Complaint Options (Pilihan Cepat Keluhan) */}
+            <div className="quick-chips-section">
+              <div className="quick-chips-title">Pilih keluhan umum Anda:</div>
+              <div className="quick-chips-wrap">
+                <button className="chip-btn" onClick={() => sendUserMessage('Demam tinggi, pusing kepala dan badan meriang')}>
+                  <span>🤒 Demam tinggi & pusing meriang</span>
+                  <span>➔</span>
+                </button>
+                <button className="chip-btn" onClick={() => sendUserMessage('Batuk pilek berkepanjangan dan dada terasa sesak')}>
+                  <span>🫁 Batuk pilek & sesak nafas</span>
+                  <span>➔</span>
+                </button>
+                <button className="chip-btn" onClick={() => sendUserMessage('Ingin konsultasi hasil laboratorium darah terbaru')}>
+                  <span>🩺 Konsultasi hasil pemeriksaan lab</span>
+                  <span>➔</span>
+                </button>
+                <button className="chip-btn" onClick={() => sendUserMessage('Mau tanya efek samping obat dan penyesuaian resep')}>
+                  <span>💊 Konsultasi obat & resep dokter</span>
+                  <span>➔</span>
                 </button>
               </div>
-            ))}
-
-            {users.filter(u => u.userId !== currentUser).length === 0 && (
-              <div style={{ textAlign: 'center', padding: '16px', fontSize: '12px' }}>
-                {!isRegistered ? (
-                  <div style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.15)', padding: '10px', borderRadius: '8px' }}>
-                    ⚠️ Belum terhubung ke Gateway (Port 3000).<br/>
-                    Menghubungkan ulang...
-                  </div>
-                ) : (
-                  <div style={{ color: '#94a3b8' }}>
-                    Dokter belum online.<br/>
-                    Pastikan <strong>Aplikasi A (Port 3001)</strong> sedang dibuka di Laptop.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Riwayat Konsultasi (Neon Singapore) */}
-        <div className="history-card">
-          <h4>
-            Riwayat Konsultasi Pasien
-            <span>DB Singapore (system_b_db)</span>
-          </h4>
-
-          <div>
-            {callLogs.map(log => (
-              <div key={log.id} className="history-item">
-                <div>
-                  <div className="history-caller">
-                    {log.caller} ➔ {log.callee}
-                  </div>
-                  <div className="history-meta">
-                    {log.caller_system} ke {log.callee_system} • {new Date(log.started_at).toLocaleTimeString()}
-                  </div>
-                </div>
-                <div className="history-dur">
-                  {log.duration_seconds}s
-                </div>
-              </div>
-            ))}
-
-            {callLogs.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '12px', color: '#64748b', fontSize: '11px' }}>
-                Belum ada riwayat konsultasi di database Sistem B.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Observabilitas Real-Time STUN/TURN Mobile */}
-        <div className="mobile-observability">
-          <div className="mobile-obs-header">
-            <div className="mobile-obs-title">
-              <div className="obs-pulse"></div>
-              <span>Observabilitas STUN/TURN Real-Time</span>
             </div>
-            <div className="mobile-obs-actions">
-              <button className="mobile-obs-btn" onClick={() => setLogs([])}>🧹 Log</button>
-              <button className="mobile-obs-btn" onClick={() => setIsObsCollapsed(!isObsCollapsed)}>
-                {isObsCollapsed ? '▲ Buka' : '▼ Tutup'}
+
+            {/* Card Pemicu Panggilan Video ke Dokter */}
+            {pendingCallPrompt && (
+              <div className="call-trigger-card">
+                <div className="call-trigger-title">📹 SIAP TERHUBUNG KE DOKTER</div>
+                <div className="call-trigger-desc">
+                  Asisten AI telah menyiapkan kamar konsultasi. Klik tombol di bawah untuk langsung menyambungkan panggilan video tatap muka ke <strong>Dokter Jaga di Aplikasi A (Sistem Rumah Sakit)</strong>:
+                </div>
+                <button 
+                  className="btn-call-doctor-now"
+                  disabled={callState !== 'idle'}
+                  onClick={triggerDoctorCall}
+                >
+                  📞 Hubungi Dokter di Aplikasi A Sekarang ➔
+                </button>
+              </div>
+            )}
+
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Bar Input Chat */}
+          <div className="chat-input-bar">
+            <input 
+              type="text" 
+              className="chat-input-field"
+              placeholder="Ketik keluhan atau pertanyaan Anda..."
+              value={chatInput}
+              onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && sendUserMessage(chatInput)}
+            />
+            <button className="btn-chat-send" onClick={() => sendUserMessage(chatInput)}>
+              ➤
+            </button>
+          </div>
+        </div>
+      ) : (
+        <React.Fragment>
+          {/* Top Header */}
+          <div className="mobile-header">
+            <div className="header-top">
+              <div className="patient-badge">
+                <div className="avatar-circle">{currentUser.charAt(5) || 'B'}</div>
+                <div className="patient-title">
+                  <h2>Halo, Budi Santoso ({currentUser})!</h2>
+                  <span><span className="dot-pulse"></span> {isRegistered ? 'Terhubung ke Gateway' : 'Menghubungkan...'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="system-info-pills">
+              <span className="pill pill-sg">🇸🇬 Neon DB: Singapore (system_b_db)</span>
+              <span className={`pill ${isRegistered ? 'pill-port' : 'pill-danger'}`}>
+                {isRegistered ? '🟢 Terhubung ke Gateway' : '🔴 Gateway Terputus'}
+              </span>
+            </div>
+          </div>
+
+          {/* Scrollable Content */}
+          <div className="mobile-body">
+            {/* Tanda Vital Pasien */}
+            <div className="vitals-card">
+              <div className="vitals-header">
+                <span>❤️</span> Tanda Vital Pasien (Monitoring Terkini)
+              </div>
+              <div className="vitals-grid">
+                <div className="vital-item">
+                  <span className="vital-num">120/80</span>
+                  <span className="vital-lbl">Tekanan Darah</span>
+                </div>
+                <div className="vital-item">
+                  <span className="vital-num">74 bpm</span>
+                  <span className="vital-lbl">Denyut Nadi</span>
+                </div>
+                <div className="vital-item">
+                  <span className="vital-num">36.5 °C</span>
+                  <span className="vital-lbl">Suhu Tubuh</span>
+                </div>
+                <div className="vital-item">
+                  <span className="vital-num">98% O₂</span>
+                  <span className="vital-lbl">Saturasi Oksigen</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 🌟 HERO CARD: KONSULTASI DOKTER AI */}
+            <div className="ai-hero-card">
+              <div className="ai-hero-top">
+                <div className="ai-badge-pill">
+                  <span>✨</span> SMART AI TRIAGE
+                </div>
+                <span style={{ fontSize: '11px', color: '#a7f3d0', fontWeight: '700' }}>
+                  🟢 Dokter Jaga Siap
+                </span>
+              </div>
+              <h3 className="ai-hero-title">
+                <span>🤖</span> Konsultasi Dokter AI
+              </h3>
+              <p className="ai-hero-desc">
+                Konsultasikan keluhan Anda dengan Asisten Medis AI untuk analisa awal gejala dan langsung hubungkan panggilan video tatap muka ke <strong>Dokter di Aplikasi A</strong>.
+              </p>
+              <button 
+                className="btn-ai-consult"
+                onClick={() => setViewMode('ai-chat')}
+              >
+                <span>💬</span> Buka Konsultasi Chat & Panggil Dokter ➔
               </button>
             </div>
-          </div>
 
-          {!isObsCollapsed && (
-            <React.Fragment>
-              <div className="mobile-telemetry-grid">
-                <div className="mobile-telemetry-card">
-                  <span className="telemetry-label">Jalur Aktif</span>
-                  <div>
-                    {stats.activePath === 'RELAY' && (
-                      <span className="badge-path badge-relay">⚡ RELAY (TURN Metered)</span>
-                    )}
-                    {stats.activePath === 'SRFLX' && (
-                      <span className="badge-path badge-srflx">🌐 SRFLX (STUN P2P)</span>
-                    )}
-                    {stats.activePath === 'HOST' && (
-                      <span className="badge-path badge-host">🏠 HOST (Lokal)</span>
-                    )}
-                    {stats.activePath === 'IDLE' && (
-                      <span style={{ fontSize: '10px', color: '#64748b' }}>⏳ Menunggu...</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mobile-telemetry-card">
-                  <span className="telemetry-label">Protokol</span>
-                  <span className="telemetry-val">{stats.protocol || 'UDP'}</span>
-                </div>
-
-                <div className="mobile-telemetry-card">
-                  <span className="telemetry-label">Latensi (RTT)</span>
-                  <span className="telemetry-val" style={{ color: stats.rtt < 120 ? '#34d399' : '#fbbf24' }}>
-                    {stats.rtt ? `${stats.rtt} ms` : '-'}
-                  </span>
-                </div>
-
-                <div className="mobile-telemetry-card">
-                  <span className="telemetry-label">Bitrate Video</span>
-                  <span className="telemetry-val" style={{ color: '#38bdf8' }}>
-                    {stats.bitrate ? `${stats.bitrate} kbps` : '-'}
-                  </span>
-                </div>
+            {/* Menu Layanan Pasien Cepat */}
+            <div className="quick-menu-grid">
+              <div className="menu-tile" onClick={() => setViewMode('ai-chat')}>
+                <span className="menu-icon">🩺</span>
+                <span className="menu-label">Konsul AI</span>
               </div>
+              <div className="menu-tile">
+                <span className="menu-icon">📅</span>
+                <span className="menu-label">Jadwal Poli</span>
+              </div>
+              <div className="menu-tile">
+                <span className="menu-icon">💊</span>
+                <span className="menu-label">Resep Obat</span>
+              </div>
+              <div className="menu-tile">
+                <span className="menu-icon">📋</span>
+                <span className="menu-label">Rekam Medis</span>
+              </div>
+            </div>
 
-              <div className="mobile-log-console">
-                {logs.map(l => (
-                  <div key={l.id} className="log-row">
-                    <span className="log-time">{l.time}</span>
-                    <span className={`log-tag tag-${l.type}`}>{l.tag}</span>
-                    <span className="log-msg">{l.message}</span>
+            {/* Konsultasi Dokter Card (Direct) */}
+            <div className="action-card">
+              <h3>🩺 Dokter & Rekan Konsultasi Langsung</h3>
+              <p>
+                Daftar pengguna online dari <strong>Aplikasi A (Sistem Rumah Sakit)</strong> yang siap dihubungi:
+              </p>
+
+              <div>
+                {users.filter(u => u.userId !== currentUser).map(u => (
+                  <div key={u.userId} className="doctor-item">
+                    <div className="doctor-avatar">{u.userId.charAt(0)}</div>
+                    <div className="doctor-details">
+                      <div className="name">{u.userId}</div>
+                      <div className="role">{u.appName === 'APP_A' ? '🏥 Dokter di Aplikasi A' : '📱 Pasien di Aplikasi B'}</div>
+                    </div>
+                    <button 
+                      className="btn-start-call"
+                      disabled={u.isBusy || callState !== 'idle'}
+                      onClick={() => startCall(u.userId, u.appName)}
+                    >
+                      {u.isBusy ? 'Sibuk' : '📹 Hubungi'}
+                    </button>
                   </div>
                 ))}
-                {logs.length === 0 && (
-                  <div style={{ color: '#475569', fontStyle: 'italic', padding: '4px 0' }}>
-                    Siap memantau STUN & TURN Metered saat panggilan berlangsung.
+
+                {users.filter(u => u.userId !== currentUser).length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '16px', fontSize: '12px' }}>
+                    {!isRegistered ? (
+                      <div style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.15)', padding: '10px', borderRadius: '8px' }}>
+                        ⚠️ Belum terhubung ke Gateway (Port 3000).<br/>
+                        Menghubungkan ulang...
+                      </div>
+                    ) : (
+                      <div style={{ color: '#94a3b8' }}>
+                        Dokter belum online.<br/>
+                        Pastikan <strong>Aplikasi A (Port 3001)</strong> sedang dibuka di Laptop.
+                      </div>
+                    )}
                   </div>
                 )}
-                <div ref={logEndRef} />
               </div>
-            </React.Fragment>
-          )}
-        </div>
-      </div>
+            </div>
+
+            {/* Riwayat Konsultasi (Neon Singapore) */}
+            <div className="history-card">
+              <h4>
+                Riwayat Konsultasi Pasien
+                <span>DB Singapore (system_b_db)</span>
+              </h4>
+
+              <div>
+                {callLogs.map(log => (
+                  <div key={log.id} className="history-item">
+                    <div>
+                      <div className="history-caller">
+                        {log.caller} ➔ {log.callee}
+                      </div>
+                      <div className="history-meta">
+                        {log.caller_system} ke {log.callee_system} • {new Date(log.started_at).toLocaleTimeString()}
+                      </div>
+                    </div>
+                    <div className="history-dur">
+                      {log.duration_seconds}s
+                    </div>
+                  </div>
+                ))}
+
+                {callLogs.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '12px', color: '#64748b', fontSize: '11px' }}>
+                    Belum ada riwayat konsultasi di database Sistem B.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Observabilitas Real-Time STUN/TURN Mobile */}
+            <div className="mobile-observability">
+              <div className="mobile-obs-header">
+                <div className="mobile-obs-title">
+                  <div className="obs-pulse"></div>
+                  <span>Observabilitas STUN/TURN Real-Time</span>
+                </div>
+                <div className="mobile-obs-actions">
+                  <button className="mobile-obs-btn" onClick={() => setLogs([])}>🧹 Log</button>
+                  <button className="mobile-obs-btn" onClick={() => setIsObsCollapsed(!isObsCollapsed)}>
+                    {isObsCollapsed ? '▲ Buka' : '▼ Tutup'}
+                  </button>
+                </div>
+              </div>
+
+              {!isObsCollapsed && (
+                <React.Fragment>
+                  <div className="mobile-telemetry-grid">
+                    <div className="mobile-telemetry-card">
+                      <span className="telemetry-label">Jalur Aktif</span>
+                      <div>
+                        {stats.activePath === 'RELAY' && (
+                          <span className="badge-path badge-relay">⚡ RELAY (TURN Metered)</span>
+                        )}
+                        {stats.activePath === 'SRFLX' && (
+                          <span className="badge-path badge-srflx">🌐 SRFLX (STUN P2P)</span>
+                        )}
+                        {stats.activePath === 'HOST' && (
+                          <span className="badge-path badge-host">🏠 HOST (Lokal)</span>
+                        )}
+                        {stats.activePath === 'IDLE' && (
+                          <span style={{ fontSize: '10px', color: '#64748b' }}>⏳ Menunggu...</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mobile-telemetry-card">
+                      <span className="telemetry-label">Protokol</span>
+                      <span className="telemetry-val">{stats.protocol || 'UDP'}</span>
+                    </div>
+
+                    <div className="mobile-telemetry-card">
+                      <span className="telemetry-label">Latensi (RTT)</span>
+                      <span className="telemetry-val" style={{ color: stats.rtt < 120 ? '#34d399' : '#fbbf24' }}>
+                        {stats.rtt ? `${stats.rtt} ms` : '-'}
+                      </span>
+                    </div>
+
+                    <div className="mobile-telemetry-card">
+                      <span className="telemetry-label">Bitrate Video</span>
+                      <span className="telemetry-val" style={{ color: '#38bdf8' }}>
+                        {stats.bitrate ? `${stats.bitrate} kbps` : '-'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mobile-log-console">
+                    {logs.map(l => (
+                      <div key={l.id} className="log-row">
+                        <span className="log-time">{l.time}</span>
+                        <span className={`log-tag tag-${l.type}`}>{l.tag}</span>
+                        <span className="log-msg">{l.message}</span>
+                      </div>
+                    ))}
+                    {logs.length === 0 && (
+                      <div style={{ color: '#475569', fontStyle: 'italic', padding: '4px 0' }}>
+                        Siap memantau STUN & TURN Metered saat panggilan berlangsung.
+                      </div>
+                    )}
+                    <div ref={logEndRef} />
+                  </div>
+                </React.Fragment>
+              )}
+            </div>
+          </div>
+
+          {/* Floating Action Button (FAB) AI Bot */}
+          <button className="floating-ai-fab" onClick={() => setViewMode('ai-chat')}>
+            <span>🤖</span> Konsultasi AI
+          </button>
+        </React.Fragment>
+      )}
 
       {/* Screen Panggilan Masuk (Incoming Modal) */}
       {callState === 'ringing' && (
