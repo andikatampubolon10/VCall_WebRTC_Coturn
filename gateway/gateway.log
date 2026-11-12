@@ -1068,6 +1068,7 @@
 [22.38.23]  [Gateway] Terputus: Pasien_B_4
 [22.38.23]  [Gateway] Terputus: Dokter_A_5
 [22.38.23]  [Gateway] Terputus: Pasien_B_5
+<<<<<<< HEAD
 [09.16.09]  =======================================================
 [09.16.09]  🌐 SHARED WEBRTC GATEWAY & ROOM BROKER
 [09.16.09]  📡 Berjalan di Port: http://localhost:3000
@@ -1974,3 +1975,15 @@
 [19.18.48]  [Gateway] Terputus: Dokter_A_49
 [19.18.48]  [Gateway] Terputus: Pasien_B_50
 [19.18.48]  [Gateway] Terputus: Dokter_A_50
+=======
+[19.06.36]  =======================================================
+[19.06.36]  🌐 SHARED WEBRTC GATEWAY & ROOM BROKER
+[19.06.36]  📡 Berjalan di Port: http://localhost:3000
+[19.06.36]  📡 WebSocket URL   : ws://localhost:3000
+[19.06.36]  =======================================================
+[19.06.38]  [Gateway] Koneksi WebSocket baru diterima
+[19.06.38]  [Gateway] Terdaftar: User A [Aplikasi: APP_A]
+[19.08.58]  [Gateway] Koneksi WebSocket baru diterima
+[19.08.58]  [Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[19.18.13]  [Gateway] Terputus: User B
+>>>>>>> a4e7b3855ff687958148bb092f45681cec0460df

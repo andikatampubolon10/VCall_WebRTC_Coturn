@@ -29,8 +29,22 @@ app.get('/api/config', (req, res) => {
     gwUrl = gwUrl.replace('localhost', reqHost);
   }
 
+  const turnHost = process.env.COTURN_HOST || reqHost;
+
   const iceServers = [
-    // 1. STUN Google (Prioritas 1: Gratis & Cepat untuk P2P langsung)
+    // 0. Coturn Server Sendiri (Port 3478)
+    { urls: `stun:${turnHost}:3478` },
+    {
+      urls: `turn:${turnHost}:3478?transport=udp`,
+      username: process.env.COTURN_USER || 'simulasi',
+      credential: process.env.COTURN_PASSWORD || 'password123'
+    },
+    {
+      urls: `turn:${turnHost}:3478?transport=tcp`,
+      username: process.env.COTURN_USER || 'simulasi',
+      credential: process.env.COTURN_PASSWORD || 'password123'
+    },
+    // 1. STUN Google (Prioritas Cepat untuk P2P langsung)
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     // 2. STUN Metered Resmi
