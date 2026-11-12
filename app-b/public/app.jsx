@@ -19,7 +19,7 @@ function AppB() {
     {
       id: 1,
       sender: 'ai',
-      text: 'Halo Budi (User B)! 👋 Saya Medi-AI Triage Assistant. Bagaimana kondisi kesehatan Anda hari ini? Ceritakan keluhan atau gejala yang Anda rasakan.',
+      text: 'Halo Andi (User B)! 👋 Saya Medi-AI Triage Assistant. Bagaimana kondisi kesehatan Anda hari ini? Ceritakan keluhan atau gejala yang Anda rasakan.',
       time: 'Baru saja'
     }
   ]);
@@ -146,7 +146,7 @@ function AppB() {
     fetch('/api/call-logs')
       .then(res => res.json())
       .then(res => { if (res.success) setCallLogs(res.data); })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   // 2. Koneksi ke Shared WebRTC Gateway (Port 3000)
@@ -453,14 +453,14 @@ function AppB() {
   const setupMedia = async () => {
     try {
       addLog('MEDIA', 'Mengaktifkan kamera & mic ponsel...', 'media');
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, 
-        audio: true 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+        audio: true
       });
       localStreamRef.current = stream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
-        localVideoRef.current.play().catch(() => {});
+        localVideoRef.current.play().catch(() => { });
       }
       return stream;
     } catch (err) {
@@ -606,8 +606,8 @@ function AppB() {
   const saveCallLog = (status, duration) => {
     if (!callPeer) return;
     const recordedPath = stats.activePath === 'RELAY' ? 'TURN (Metered Cloud)' :
-                         stats.activePath === 'SRFLX' ? 'STUN (P2P Reflexive)' :
-                         stats.activePath === 'HOST' ? 'HOST (Lokal LAN)' : 'COTURN / P2P';
+      stats.activePath === 'SRFLX' ? 'STUN (P2P Reflexive)' :
+        stats.activePath === 'HOST' ? 'HOST (Lokal LAN)' : 'COTURN / P2P';
 
     fetch('/api/call-logs', {
       method: 'POST',
@@ -622,7 +622,7 @@ function AppB() {
         durationSeconds: duration,
         icePath: recordedPath
       })
-    }).then(() => loadCallLogs()).catch(() => {});
+    }).then(() => loadCallLogs()).catch(() => { });
   };
 
   const resetCallState = () => {
@@ -763,7 +763,7 @@ function AppB() {
                 <div className="call-trigger-desc">
                   Asisten AI telah menyiapkan kamar konsultasi. Klik tombol di bawah untuk langsung menyambungkan panggilan video tatap muka ke <strong>Dokter Jaga di Aplikasi A (Sistem Rumah Sakit)</strong>:
                 </div>
-                <button 
+                <button
                   className="btn-call-doctor-now"
                   disabled={callState !== 'idle'}
                   onClick={triggerDoctorCall}
@@ -778,8 +778,8 @@ function AppB() {
 
           {/* Bar Input Chat */}
           <div className="chat-input-bar">
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="chat-input-field"
               placeholder="Ketik keluhan atau pertanyaan Anda..."
               value={chatInput}
@@ -856,7 +856,7 @@ function AppB() {
               <p className="ai-hero-desc">
                 Konsultasikan keluhan Anda dengan Asisten Medis AI untuk analisa awal gejala dan langsung hubungkan panggilan video tatap muka ke <strong>Dokter di Aplikasi A</strong>.
               </p>
-              <button 
+              <button
                 className="btn-ai-consult"
                 onClick={() => setViewMode('ai-chat')}
               >
@@ -899,7 +899,7 @@ function AppB() {
                       <div className="name">{u.userId}</div>
                       <div className="role">{u.appName === 'APP_A' ? '🏥 Dokter di Aplikasi A' : '📱 Pasien di Aplikasi B'}</div>
                     </div>
-                    <button 
+                    <button
                       className="btn-start-call"
                       disabled={u.isBusy || callState !== 'idle'}
                       onClick={() => startCall(u.userId, u.appName)}
@@ -913,12 +913,12 @@ function AppB() {
                   <div style={{ textAlign: 'center', padding: '16px', fontSize: '12px' }}>
                     {!isRegistered ? (
                       <div style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.15)', padding: '10px', borderRadius: '8px' }}>
-                        ⚠️ Belum terhubung ke Gateway (Port 3000).<br/>
+                        ⚠️ Belum terhubung ke Gateway (Port 3000).<br />
                         Menghubungkan ulang...
                       </div>
                     ) : (
                       <div style={{ color: '#94a3b8' }}>
-                        Dokter belum online.<br/>
+                        Dokter belum online.<br />
                         Pastikan <strong>Aplikasi A (Port 3001)</strong> sedang dibuka di Laptop.
                       </div>
                     )}
@@ -1053,7 +1053,7 @@ function AppB() {
           </div>
 
           <div className="dialog-actions">
-            <button 
+            <button
               className="action-btn-circle btn-reject"
               onClick={() => {
                 wsRef.current.send(JSON.stringify({ type: 'reject', to: callPeer }));
@@ -1063,7 +1063,7 @@ function AppB() {
             >
               ✕
             </button>
-            <button 
+            <button
               className="action-btn-circle btn-answer"
               onClick={acceptCall}
               title="Terima"
@@ -1087,7 +1087,7 @@ function AppB() {
           </div>
 
           <div className="dialog-actions">
-            <button 
+            <button
               className="action-btn-circle btn-reject"
               onClick={hangupCall}
               title="Batalkan"
@@ -1102,16 +1102,16 @@ function AppB() {
       {callState === 'in-call' && (
         <div className="mobile-call-screen">
           <div className="remote-stream-box">
-            <video 
+            <video
               ref={(el) => {
                 remoteVideoRef.current = el;
                 if (el && remoteStreamRef.current && el.srcObject !== remoteStreamRef.current) {
                   el.srcObject = remoteStreamRef.current;
-                  el.play().catch(() => {});
+                  el.play().catch(() => { });
                 }
-              }} 
-              autoPlay 
-              playsInline 
+              }}
+              autoPlay
+              playsInline
               id="patientRemoteVideo"
             ></video>
 
@@ -1141,17 +1141,17 @@ function AppB() {
 
             {/* PiP Local Video */}
             <div className="local-pip-box">
-              <video 
+              <video
                 ref={(el) => {
                   localVideoRef.current = el;
                   if (el && localStreamRef.current && el.srcObject !== localStreamRef.current) {
                     el.srcObject = localStreamRef.current;
-                    el.play().catch(() => {});
+                    el.play().catch(() => { });
                   }
-                }} 
-                autoPlay 
-                playsInline 
-                muted 
+                }}
+                autoPlay
+                playsInline
+                muted
                 id="patientLocalVideo"
               ></video>
             </div>
@@ -1159,7 +1159,7 @@ function AppB() {
 
           {/* Bottom Floating Call Controls */}
           <div className="mobile-call-controls">
-            <button 
+            <button
               className={`btn-circle ${isMuted ? 'active-off' : ''}`}
               onClick={toggleMic}
               title={isMuted ? "Unmute Mic" : "Mute Mic"}
@@ -1167,7 +1167,7 @@ function AppB() {
               {isMuted ? '🔇' : '🎙️'}
             </button>
 
-            <button 
+            <button
               className="btn-circle btn-hangup"
               onClick={hangupCall}
               title="Akhiri Panggilan"
@@ -1175,7 +1175,7 @@ function AppB() {
               📞
             </button>
 
-            <button 
+            <button
               className={`btn-circle ${isCamOff ? 'active-off' : ''}`}
               onClick={toggleCam}
               title={isCamOff ? "Nyalakan Kamera" : "Matikan Kamera"}
