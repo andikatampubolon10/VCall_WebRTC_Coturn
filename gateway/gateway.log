@@ -1378,3 +1378,599 @@
 [18.26.20]  📡 Berjalan di Port: http://localhost:3000
 [18.26.20]  📡 WebSocket URL   : ws://localhost:3000
 [18.26.20]  =======================================================
+[18.36.04]  =======================================================
+[18.36.04]  🌐 SHARED WEBRTC GATEWAY & ROOM BROKER
+[18.36.04]  📡 Berjalan di Port: http://localhost:3000
+[18.36.04]  📡 WebSocket URL   : ws://localhost:3000
+[18.36.04]  =======================================================
+[18.36.53]  [Gateway] Koneksi WebSocket baru diterima
+[18.36.53]  [Gateway] Terdaftar: User A [Aplikasi: APP_A]
+[18.37.13]  [Gateway] Koneksi WebSocket baru diterima
+[18.37.13]  [Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[18.37.36]  [Gateway] Panggilan Antar-Aplikasi: User B (APP_B) -> User A (APP_A) [Room: room_1794483456055_User B_User A]
+[18.37.40]  [Gateway] SDP Offer dari User B ➔ User A
+[18.37.40]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:273481205 1 udp 2122260223 192.168.15.125 41863 typ host generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.40]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:4025573922 1 udp 2122194687 154.164.207.149 41960 typ host generation 0 ufrag moWD network-id 1 network-cost 900
+[18.37.40]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:273481205 1 udp 2122260223 192.168.15.125 45729 typ host generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.40]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:4025573922 1 udp 2122194687 154.164.207.149 53710 typ host generation 0 ufrag moWD network-id 1 network-cost 900
+[18.37.40]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:2256837420 1 udp 1686052607 114.9.65.194 7320 typ srflx raddr 192.168.15.125 rport 41863 generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.40]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:2256837420 1 udp 1686052607 114.9.65.194 61000 typ srflx raddr 192.168.15.125 rport 45729 generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.40]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:2256837420 1 udp 1686052607 114.9.65.194 14985 typ srflx raddr 192.168.15.125 rport 41863 generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.40]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:2256837420 1 udp 1686052607 114.9.65.194 7592 typ srflx raddr 192.168.15.125 rport 45729 generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.41]  [Gateway] SDP Answer dari User A ➔ User B
+[18.37.41]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:3151901901 1 udp 2122260223 192.168.15.244 57654 typ host generation 0 ufrag UzYb network-id 1 network-cost 10
+[18.37.41]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:2987792919 1 tcp 1518280447 192.168.15.244 9 typ host tcptype active generation 0 ufrag UzYb network-id 1 network-cost 10
+[18.37.41]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User A ➔ User B: candidate:2121375879 1 udp 1686052607 114.9.65.194 31287 typ srflx raddr 192.168.15.244 rport 57654 generation 0 ufrag UzYb network-id 1 network-cost 10
+[18.37.41]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User A ➔ User B: candidate:2121375879 1 udp 1686052607 114.9.65.194 20981 typ srflx raddr 192.168.15.244 rport 57654 generation 0 ufrag UzYb network-id 1 network-cost 10
+[18.37.41]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:4008061281 1 tcp 1518280447 192.168.15.125 9 typ host tcptype active generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.41]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:291223222 1 tcp 1518214911 154.164.207.149 9 typ host tcptype active generation 0 ufrag moWD network-id 1 network-cost 900
+[18.37.41]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:4008061281 1 tcp 1518280447 192.168.15.125 9 typ host tcptype active generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.41]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:291223222 1 tcp 1518214911 154.164.207.149 9 typ host tcptype active generation 0 ufrag moWD network-id 1 network-cost 900
+[18.37.41]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:889173361 1 udp 58663679 172.104.167.32 31516 typ relay raddr 114.9.65.194 rport 23825 generation 0 ufrag UzYb network-id 1 network-cost 10
+[18.37.41]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:889173361 1 udp 58663167 172.104.167.32 27596 typ relay raddr 114.9.65.194 rport 2721 generation 0 ufrag UzYb network-id 1 network-cost 10
+[18.37.41]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:3677646631 1 udp 58663167 172.104.167.32 22584 typ relay raddr 114.9.65.194 rport 39529 generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.41]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:3677646631 1 udp 58663679 172.104.167.32 33742 typ relay raddr 114.9.65.194 rport 61924 generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.41]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:1028993233 1 udp 25108991 172.104.167.32 44899 typ relay raddr 114.9.65.194 rport 55858 generation 0 ufrag UzYb network-id 1 network-cost 10
+[18.37.41]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:341749548 1 udp 8331263 172.104.167.32 51926 typ relay raddr 114.9.65.194 rport 55745 generation 0 ufrag UzYb network-id 1 network-cost 10
+[18.37.41]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:880830846 1 udp 25108991 172.104.167.32 33295 typ relay raddr 114.9.65.194 rport 49269 generation 0 ufrag moWD network-id 2 network-cost 10
+[18.37.41]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:351370624 1 udp 8331263 172.104.167.32 54713 typ relay raddr 114.9.65.194 rport 27028 generation 0 ufrag moWD network-id 2 network-cost 10
+[18.38.05]  [Gateway] Panggilan Antar-Aplikasi: User B (APP_B) -> User A (APP_A) [Room: room_1794483485052_User B_User A]
+[18.38.08]  [Gateway] SDP Offer dari User B ➔ User A
+[18.38.08]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:1030741084 1 udp 2122260223 192.168.15.125 37616 typ host generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.08]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:1975725541 1 udp 2122194687 154.164.207.149 35685 typ host generation 0 ufrag qd82 network-id 1 network-cost 900
+[18.38.08]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:1030741084 1 udp 2122260223 192.168.15.125 34734 typ host generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.08]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:1975725541 1 udp 2122194687 154.164.207.149 49472 typ host generation 0 ufrag qd82 network-id 1 network-cost 900
+[18.38.08]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:1139931473 1 tcp 1518280447 192.168.15.125 9 typ host tcptype active generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.08]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:190646504 1 tcp 1518214911 154.164.207.149 9 typ host tcptype active generation 0 ufrag qd82 network-id 1 network-cost 900
+[18.38.08]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:1139931473 1 tcp 1518280447 192.168.15.125 9 typ host tcptype active generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.08]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:190646504 1 tcp 1518214911 154.164.207.149 9 typ host tcptype active generation 0 ufrag qd82 network-id 1 network-cost 900
+[18.38.08]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:2451914082 1 udp 1686052607 114.9.65.194 10855 typ srflx raddr 192.168.15.125 rport 34734 generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.08]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:2451914082 1 udp 1686052607 114.9.65.194 64608 typ srflx raddr 192.168.15.125 rport 34734 generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.08]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:2451914082 1 udp 1686052607 114.9.65.194 34562 typ srflx raddr 192.168.15.125 rport 37616 generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.08]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:2451914082 1 udp 1686052607 114.9.65.194 62771 typ srflx raddr 192.168.15.125 rport 37616 generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.08]  [Gateway] SDP Answer dari User A ➔ User B
+[18.38.08]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:4279916743 1 udp 2122260223 192.168.15.244 57151 typ host generation 0 ufrag 8GGY network-id 1 network-cost 10
+[18.38.08]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User A ➔ User B: candidate:449838241 1 udp 1686052607 114.9.65.194 35013 typ srflx raddr 192.168.15.244 rport 57151 generation 0 ufrag 8GGY network-id 1 network-cost 10
+[18.38.08]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User A ➔ User B: candidate:449838241 1 udp 1686052607 114.9.65.194 32073 typ srflx raddr 192.168.15.244 rport 57151 generation 0 ufrag 8GGY network-id 1 network-cost 10
+[18.38.08]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:743635532 1 tcp 1518280447 192.168.15.244 9 typ host tcptype active generation 0 ufrag 8GGY network-id 1 network-cost 10
+[18.38.08]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:3680645490 1 udp 58663167 172.104.167.32 56931 typ relay raddr 114.9.65.194 rport 39970 generation 0 ufrag 8GGY network-id 1 network-cost 10
+[18.38.09]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:3680645490 1 udp 58663679 172.104.167.32 43471 typ relay raddr 114.9.65.194 rport 9711 generation 0 ufrag 8GGY network-id 1 network-cost 10
+[18.38.09]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:1028993233 1 udp 25108991 172.104.167.32 28600 typ relay raddr 114.9.65.194 rport 5508 generation 0 ufrag 8GGY network-id 1 network-cost 10
+[18.38.09]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:1879514570 1 udp 58663167 172.104.167.32 35237 typ relay raddr 114.9.65.194 rport 59713 generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.09]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:341749548 1 udp 8331263 172.104.167.32 39375 typ relay raddr 114.9.65.194 rport 47099 generation 0 ufrag 8GGY network-id 1 network-cost 10
+[18.38.09]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:1879514570 1 udp 58663167 172.104.167.32 24148 typ relay raddr 114.9.65.194 rport 35806 generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.09]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:1879514570 1 udp 58663679 172.104.167.32 47403 typ relay raddr 114.9.65.194 rport 5734 generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.09]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:351370624 1 udp 8331263 172.104.167.32 58594 typ relay raddr 114.9.65.194 rport 39181 generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.09]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:880830846 1 udp 25108991 172.104.167.32 30764 typ relay raddr 114.9.65.194 rport 22395 generation 0 ufrag qd82 network-id 2 network-cost 10
+[18.38.21]  [Gateway] Panggilan Antar-Aplikasi: User A (APP_A) -> User B (APP_B) [Room: room_1794483501261_User A_User B]
+[18.38.27]  [Gateway] SDP Offer dari User A ➔ User B
+[18.38.27]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:2421371910 1 udp 2122260223 192.168.15.244 54856 typ host generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:2421371910 1 udp 2122260223 192.168.15.244 54857 typ host generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User A ➔ User B: candidate:3465659537 1 udp 1686052607 114.9.65.194 19368 typ srflx raddr 192.168.15.244 rport 54856 generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User A ➔ User B: candidate:3465659537 1 udp 1686052607 114.9.65.194 57665 typ srflx raddr 192.168.15.244 rport 54856 generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User A ➔ User B: candidate:3465659537 1 udp 1686052607 114.9.65.194 13761 typ srflx raddr 192.168.15.244 rport 54857 generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User A ➔ User B: candidate:3465659537 1 udp 1686052607 114.9.65.194 25254 typ srflx raddr 192.168.15.244 rport 54857 generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:2780994229 1 tcp 1518280447 192.168.15.244 9 typ host tcptype active generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate 🏠 HOST LAN] dari User A ➔ User B: candidate:2780994229 1 tcp 1518280447 192.168.15.244 9 typ host tcptype active generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:296893305 1 udp 58663167 172.104.167.32 54829 typ relay raddr 114.9.65.194 rport 12927 generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:296893305 1 udp 58663167 172.104.167.32 46783 typ relay raddr 114.9.65.194 rport 5744 generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:296893305 1 udp 58663679 172.104.167.32 43713 typ relay raddr 114.9.65.194 rport 41982 generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:296893305 1 udp 58663679 172.104.167.32 35977 typ relay raddr 114.9.65.194 rport 35888 generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway] SDP Answer dari User B ➔ User A
+[18.38.27]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:2936791604 1 udp 2122260223 192.168.15.125 39529 typ host generation 0 ufrag 5zCM network-id 2 network-cost 10
+[18.38.27]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:503203309 1 udp 2122194687 154.164.207.149 41327 typ host generation 0 ufrag 5zCM network-id 1 network-cost 900
+[18.38.27]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:1028993233 1 udp 25108991 172.104.167.32 59144 typ relay raddr 114.9.65.194 rport 26113 generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:1858450814 1 udp 1686052607 114.9.65.194 63225 typ srflx raddr 192.168.15.125 rport 39529 generation 0 ufrag 5zCM network-id 2 network-cost 10
+[18.38.27]  [Gateway Candidate 🌐 STUN SRFLX (IP Publik)] dari User B ➔ User A: candidate:1858450814 1 udp 1686052607 114.9.65.194 52858 typ srflx raddr 192.168.15.125 rport 39529 generation 0 ufrag 5zCM network-id 2 network-cost 10
+[18.38.27]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User A ➔ User B: candidate:341749548 1 udp 8331263 172.104.167.32 28768 typ relay raddr 114.9.65.194 rport 10368 generation 0 ufrag Z98Z network-id 1 network-cost 10
+[18.38.27]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:3519283372 1 tcp 1518280447 192.168.15.125 9 typ host tcptype active generation 0 ufrag 5zCM network-id 2 network-cost 10
+[18.38.27]  [Gateway Candidate 🏠 HOST LAN] dari User B ➔ User A: candidate:1664198517 1 tcp 1518214911 154.164.207.149 9 typ host tcptype active generation 0 ufrag 5zCM network-id 1 network-cost 900
+[18.38.27]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:3056254084 1 udp 58663167 172.104.167.32 53785 typ relay raddr 114.9.65.194 rport 35759 generation 0 ufrag 5zCM network-id 2 network-cost 10
+[18.38.27]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari User B ➔ User A: candidate:3056254084 1 udp 58663679 172.104.167.32 30865 typ relay raddr 114.9.65.194 rport 9313 generation 0 ufrag 5zCM network-id 2 network-cost 10
+[18.40.31]  [Gateway] Terputus: User B
+[19.01.11]  [Gateway] Koneksi WebSocket baru diterima
+[19.01.11]  [Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[19.01.34]  [Gateway] Terputus: User B
+[19.01.52]  [Gateway] Koneksi WebSocket baru diterima
+[19.01.52]  [Gateway] Terdaftar: User B [Aplikasi: APP_B]
+[19.02.38]  [Gateway] Terputus: User B
+[19.17.49]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.49]  [Gateway] Terdaftar: Dokter_A_1 [Aplikasi: APP_A]
+[19.17.49]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.49]  [Gateway] Terdaftar: Pasien_B_1 [Aplikasi: APP_B]
+[19.17.49]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.49]  [Gateway] Terdaftar: Dokter_A_2 [Aplikasi: APP_A]
+[19.17.49]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.49]  [Gateway] Terdaftar: Pasien_B_2 [Aplikasi: APP_B]
+[19.17.49]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.49]  [Gateway] Terdaftar: Dokter_A_3 [Aplikasi: APP_A]
+[19.17.49]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.49]  [Gateway] Terdaftar: Pasien_B_3 [Aplikasi: APP_B]
+[19.17.49]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.49]  [Gateway] Terdaftar: Dokter_A_4 [Aplikasi: APP_A]
+[19.17.49]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.49]  [Gateway] Terdaftar: Pasien_B_4 [Aplikasi: APP_B]
+[19.17.49]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.49]  [Gateway] Terdaftar: Pasien_B_5 [Aplikasi: APP_B]
+[19.17.49]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.49]  [Gateway] Terdaftar: Dokter_A_5 [Aplikasi: APP_A]
+[19.17.49]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_1 (APP_A) -> Pasien_B_1 (APP_B) [Room: room_1794485869675_Dokter_A_1_Pasien_B_1]
+[19.17.49]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_2 (APP_A) -> Pasien_B_2 (APP_B) [Room: room_1794485869792_Dokter_A_2_Pasien_B_2]
+[19.17.49]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_3 (APP_A) -> Pasien_B_3 (APP_B) [Room: room_1794485869797_Dokter_A_3_Pasien_B_3]
+[19.17.49]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_4 (APP_A) -> Pasien_B_4 (APP_B) [Room: room_1794485869803_Dokter_A_4_Pasien_B_4]
+[19.17.49]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_5 (APP_A) -> Pasien_B_5 (APP_B) [Room: room_1794485869824_Dokter_A_5_Pasien_B_5]
+[19.17.49]  [Gateway] SDP Offer dari Dokter_A_1 ➔ Pasien_B_1
+[19.17.49]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_1 ➔ Pasien_B_1: candidate:1 1 UDP 2130706431 127.0.0.1 49334 typ relay raddr 127.0.0.1 rport 3478
+[19.17.49]  [Gateway] SDP Answer dari Pasien_B_1 ➔ Dokter_A_1
+[19.17.49]  [Gateway] SDP Offer dari Dokter_A_2 ➔ Pasien_B_2
+[19.17.49]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_2 ➔ Pasien_B_2: candidate:1 1 UDP 2130706431 127.0.0.1 49214 typ relay raddr 127.0.0.1 rport 3478
+[19.17.49]  [Gateway] SDP Answer dari Pasien_B_2 ➔ Dokter_A_2
+[19.17.49]  [Gateway] SDP Offer dari Dokter_A_3 ➔ Pasien_B_3
+[19.17.49]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_3 ➔ Pasien_B_3: candidate:1 1 UDP 2130706431 127.0.0.1 49321 typ relay raddr 127.0.0.1 rport 3478
+[19.17.50]  [Gateway] SDP Answer dari Pasien_B_3 ➔ Dokter_A_3
+[19.17.50]  [Gateway] SDP Offer dari Dokter_A_4 ➔ Pasien_B_4
+[19.17.50]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_4 ➔ Pasien_B_4: candidate:1 1 UDP 2130706431 127.0.0.1 49190 typ relay raddr 127.0.0.1 rport 3478
+[19.17.50]  [Gateway] SDP Answer dari Pasien_B_4 ➔ Dokter_A_4
+[19.17.50]  [Gateway] SDP Offer dari Dokter_A_5 ➔ Pasien_B_5
+[19.17.50]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_5 ➔ Pasien_B_5: candidate:1 1 UDP 2130706431 127.0.0.1 49246 typ relay raddr 127.0.0.1 rport 3478
+[19.17.50]  [Gateway] SDP Answer dari Pasien_B_5 ➔ Dokter_A_5
+[19.17.54]  [Gateway] Terputus: Pasien_B_1
+[19.17.54]  [Gateway] Terputus: Dokter_A_1
+[19.17.54]  [Gateway] Terputus: Dokter_A_2
+[19.17.54]  [Gateway] Terputus: Pasien_B_2
+[19.17.55]  [Gateway] Terputus: Pasien_B_3
+[19.17.55]  [Gateway] Terputus: Dokter_A_3
+[19.17.55]  [Gateway] Terputus: Dokter_A_4
+[19.17.55]  [Gateway] Terputus: Pasien_B_4
+[19.17.55]  [Gateway] Terputus: Dokter_A_5
+[19.17.55]  [Gateway] Terputus: Pasien_B_5
+[19.17.55]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.55]  [Gateway] Terdaftar: Dokter_A_6 [Aplikasi: APP_A]
+[19.17.55]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.55]  [Gateway] Terdaftar: Pasien_B_6 [Aplikasi: APP_B]
+[19.17.55]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.55]  [Gateway] Terdaftar: Dokter_A_7 [Aplikasi: APP_A]
+[19.17.55]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.55]  [Gateway] Terdaftar: Pasien_B_7 [Aplikasi: APP_B]
+[19.17.55]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.55]  [Gateway] Terdaftar: Dokter_A_8 [Aplikasi: APP_A]
+[19.17.55]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.55]  [Gateway] Terdaftar: Pasien_B_8 [Aplikasi: APP_B]
+[19.17.55]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.55]  [Gateway] Terdaftar: Dokter_A_9 [Aplikasi: APP_A]
+[19.17.55]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.55]  [Gateway] Terdaftar: Pasien_B_9 [Aplikasi: APP_B]
+[19.17.55]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.55]  [Gateway] Terdaftar: Dokter_A_10 [Aplikasi: APP_A]
+[19.17.55]  [Gateway] Koneksi WebSocket baru diterima
+[19.17.55]  [Gateway] Terdaftar: Pasien_B_10 [Aplikasi: APP_B]
+[19.17.55]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_6 (APP_A) -> Pasien_B_6 (APP_B) [Room: room_1794485875498_Dokter_A_6_Pasien_B_6]
+[19.17.55]  [Gateway] SDP Offer dari Dokter_A_6 ➔ Pasien_B_6
+[19.17.55]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_6 ➔ Pasien_B_6: candidate:1 1 UDP 2130706431 127.0.0.1 49281 typ relay raddr 127.0.0.1 rport 3478
+[19.17.55]  [Gateway] SDP Answer dari Pasien_B_6 ➔ Dokter_A_6
+[19.17.55]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_7 (APP_A) -> Pasien_B_7 (APP_B) [Room: room_1794485875551_Dokter_A_7_Pasien_B_7]
+[19.17.55]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_8 (APP_A) -> Pasien_B_8 (APP_B) [Room: room_1794485875583_Dokter_A_8_Pasien_B_8]
+[19.17.55]  [Gateway] SDP Offer dari Dokter_A_7 ➔ Pasien_B_7
+[19.17.55]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_7 ➔ Pasien_B_7: candidate:1 1 UDP 2130706431 127.0.0.1 49195 typ relay raddr 127.0.0.1 rport 3478
+[19.17.55]  [Gateway] SDP Answer dari Pasien_B_7 ➔ Dokter_A_7
+[19.17.55]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_9 (APP_A) -> Pasien_B_9 (APP_B) [Room: room_1794485875616_Dokter_A_9_Pasien_B_9]
+[19.17.55]  [Gateway] SDP Offer dari Dokter_A_8 ➔ Pasien_B_8
+[19.17.55]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_8 ➔ Pasien_B_8: candidate:1 1 UDP 2130706431 127.0.0.1 49263 typ relay raddr 127.0.0.1 rport 3478
+[19.17.55]  [Gateway] SDP Answer dari Pasien_B_8 ➔ Dokter_A_8
+[19.17.55]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_10 (APP_A) -> Pasien_B_10 (APP_B) [Room: room_1794485875649_Dokter_A_10_Pasien_B_10]
+[19.17.55]  [Gateway] SDP Offer dari Dokter_A_9 ➔ Pasien_B_9
+[19.17.55]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_9 ➔ Pasien_B_9: candidate:1 1 UDP 2130706431 127.0.0.1 49294 typ relay raddr 127.0.0.1 rport 3478
+[19.17.55]  [Gateway] SDP Answer dari Pasien_B_9 ➔ Dokter_A_9
+[19.17.55]  [Gateway] SDP Offer dari Dokter_A_10 ➔ Pasien_B_10
+[19.17.55]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_10 ➔ Pasien_B_10: candidate:1 1 UDP 2130706431 127.0.0.1 49323 typ relay raddr 127.0.0.1 rport 3478
+[19.17.55]  [Gateway] SDP Answer dari Pasien_B_10 ➔ Dokter_A_10
+[19.18.00]  [Gateway] Terputus: Dokter_A_6
+[19.18.00]  [Gateway] Terputus: Pasien_B_6
+[19.18.00]  [Gateway] Terputus: Dokter_A_7
+[19.18.00]  [Gateway] Terputus: Pasien_B_7
+[19.18.00]  [Gateway] Terputus: Dokter_A_8
+[19.18.00]  [Gateway] Terputus: Pasien_B_8
+[19.18.00]  [Gateway] Terputus: Dokter_A_9
+[19.18.00]  [Gateway] Terputus: Pasien_B_9
+[19.18.00]  [Gateway] Terputus: Dokter_A_10
+[19.18.00]  [Gateway] Terputus: Pasien_B_10
+[19.18.00]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.00]  [Gateway] Terdaftar: Dokter_A_11 [Aplikasi: APP_A]
+[19.18.00]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.00]  [Gateway] Terdaftar: Pasien_B_11 [Aplikasi: APP_B]
+[19.18.00]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.00]  [Gateway] Terdaftar: Dokter_A_12 [Aplikasi: APP_A]
+[19.18.01]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.01]  [Gateway] Terdaftar: Pasien_B_12 [Aplikasi: APP_B]
+[19.18.01]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.01]  [Gateway] Terdaftar: Dokter_A_13 [Aplikasi: APP_A]
+[19.18.01]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.01]  [Gateway] Terdaftar: Pasien_B_13 [Aplikasi: APP_B]
+[19.18.01]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.01]  [Gateway] Terdaftar: Dokter_A_14 [Aplikasi: APP_A]
+[19.18.01]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.01]  [Gateway] Terdaftar: Pasien_B_14 [Aplikasi: APP_B]
+[19.18.01]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.01]  [Gateway] Terdaftar: Dokter_A_15 [Aplikasi: APP_A]
+[19.18.01]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.01]  [Gateway] Terdaftar: Pasien_B_15 [Aplikasi: APP_B]
+[19.18.01]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_11 (APP_A) -> Pasien_B_11 (APP_B) [Room: room_1794485881156_Dokter_A_11_Pasien_B_11]
+[19.18.01]  [Gateway] SDP Offer dari Dokter_A_11 ➔ Pasien_B_11
+[19.18.01]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_11 ➔ Pasien_B_11: candidate:1 1 UDP 2130706431 127.0.0.1 49203 typ relay raddr 127.0.0.1 rport 3478
+[19.18.01]  [Gateway] SDP Answer dari Pasien_B_11 ➔ Dokter_A_11
+[19.18.01]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_12 (APP_A) -> Pasien_B_12 (APP_B) [Room: room_1794485881202_Dokter_A_12_Pasien_B_12]
+[19.18.01]  [Gateway] SDP Offer dari Dokter_A_12 ➔ Pasien_B_12
+[19.18.01]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_12 ➔ Pasien_B_12: candidate:1 1 UDP 2130706431 127.0.0.1 49369 typ relay raddr 127.0.0.1 rport 3478
+[19.18.01]  [Gateway] SDP Answer dari Pasien_B_12 ➔ Dokter_A_12
+[19.18.01]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_13 (APP_A) -> Pasien_B_13 (APP_B) [Room: room_1794485881225_Dokter_A_13_Pasien_B_13]
+[19.18.01]  [Gateway] SDP Offer dari Dokter_A_13 ➔ Pasien_B_13
+[19.18.01]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_13 ➔ Pasien_B_13: candidate:1 1 UDP 2130706431 127.0.0.1 49386 typ relay raddr 127.0.0.1 rport 3478
+[19.18.01]  [Gateway] SDP Answer dari Pasien_B_13 ➔ Dokter_A_13
+[19.18.01]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_14 (APP_A) -> Pasien_B_14 (APP_B) [Room: room_1794485881267_Dokter_A_14_Pasien_B_14]
+[19.18.01]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_15 (APP_A) -> Pasien_B_15 (APP_B) [Room: room_1794485881295_Dokter_A_15_Pasien_B_15]
+[19.18.01]  [Gateway] SDP Offer dari Dokter_A_14 ➔ Pasien_B_14
+[19.18.01]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_14 ➔ Pasien_B_14: candidate:1 1 UDP 2130706431 127.0.0.1 49312 typ relay raddr 127.0.0.1 rport 3478
+[19.18.01]  [Gateway] SDP Answer dari Pasien_B_14 ➔ Dokter_A_14
+[19.18.01]  [Gateway] SDP Offer dari Dokter_A_15 ➔ Pasien_B_15
+[19.18.01]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_15 ➔ Pasien_B_15: candidate:1 1 UDP 2130706431 127.0.0.1 49160 typ relay raddr 127.0.0.1 rport 3478
+[19.18.01]  [Gateway] SDP Answer dari Pasien_B_15 ➔ Dokter_A_15
+[19.18.06]  [Gateway] Terputus: Dokter_A_11
+[19.18.06]  [Gateway] Terputus: Pasien_B_11
+[19.18.06]  [Gateway] Terputus: Pasien_B_12
+[19.18.06]  [Gateway] Terputus: Dokter_A_12
+[19.18.06]  [Gateway] Terputus: Dokter_A_13
+[19.18.06]  [Gateway] Terputus: Pasien_B_13
+[19.18.06]  [Gateway] Terputus: Dokter_A_14
+[19.18.06]  [Gateway] Terputus: Pasien_B_14
+[19.18.06]  [Gateway] Terputus: Dokter_A_15
+[19.18.06]  [Gateway] Terputus: Pasien_B_15
+[19.18.06]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.06]  [Gateway] Terdaftar: Dokter_A_16 [Aplikasi: APP_A]
+[19.18.06]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.06]  [Gateway] Terdaftar: Pasien_B_16 [Aplikasi: APP_B]
+[19.18.06]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.06]  [Gateway] Terdaftar: Dokter_A_17 [Aplikasi: APP_A]
+[19.18.06]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.06]  [Gateway] Terdaftar: Pasien_B_17 [Aplikasi: APP_B]
+[19.18.06]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.06]  [Gateway] Terdaftar: Dokter_A_18 [Aplikasi: APP_A]
+[19.18.06]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.06]  [Gateway] Terdaftar: Pasien_B_18 [Aplikasi: APP_B]
+[19.18.06]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.06]  [Gateway] Terdaftar: Dokter_A_19 [Aplikasi: APP_A]
+[19.18.06]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.06]  [Gateway] Terdaftar: Pasien_B_19 [Aplikasi: APP_B]
+[19.18.06]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.06]  [Gateway] Terdaftar: Dokter_A_20 [Aplikasi: APP_A]
+[19.18.06]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.06]  [Gateway] Terdaftar: Pasien_B_20 [Aplikasi: APP_B]
+[19.18.06]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_16 (APP_A) -> Pasien_B_16 (APP_B) [Room: room_1794485886765_Dokter_A_16_Pasien_B_16]
+[19.18.06]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_17 (APP_A) -> Pasien_B_17 (APP_B) [Room: room_1794485886794_Dokter_A_17_Pasien_B_17]
+[19.18.06]  [Gateway] SDP Offer dari Dokter_A_16 ➔ Pasien_B_16
+[19.18.06]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_16 ➔ Pasien_B_16: candidate:1 1 UDP 2130706431 127.0.0.1 49382 typ relay raddr 127.0.0.1 rport 3478
+[19.18.06]  [Gateway] SDP Answer dari Pasien_B_16 ➔ Dokter_A_16
+[19.18.06]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_18 (APP_A) -> Pasien_B_18 (APP_B) [Room: room_1794485886836_Dokter_A_18_Pasien_B_18]
+[19.18.06]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_19 (APP_A) -> Pasien_B_19 (APP_B) [Room: room_1794485886858_Dokter_A_19_Pasien_B_19]
+[19.18.06]  [Gateway] SDP Offer dari Dokter_A_17 ➔ Pasien_B_17
+[19.18.06]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_17 ➔ Pasien_B_17: candidate:1 1 UDP 2130706431 127.0.0.1 49337 typ relay raddr 127.0.0.1 rport 3478
+[19.18.06]  [Gateway] SDP Answer dari Pasien_B_17 ➔ Dokter_A_17
+[19.18.06]  [Gateway] SDP Offer dari Dokter_A_18 ➔ Pasien_B_18
+[19.18.06]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_18 ➔ Pasien_B_18: candidate:1 1 UDP 2130706431 127.0.0.1 49398 typ relay raddr 127.0.0.1 rport 3478
+[19.18.06]  [Gateway] SDP Answer dari Pasien_B_18 ➔ Dokter_A_18
+[19.18.06]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_20 (APP_A) -> Pasien_B_20 (APP_B) [Room: room_1794485886890_Dokter_A_20_Pasien_B_20]
+[19.18.06]  [Gateway] SDP Offer dari Dokter_A_19 ➔ Pasien_B_19
+[19.18.06]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_19 ➔ Pasien_B_19: candidate:1 1 UDP 2130706431 127.0.0.1 49326 typ relay raddr 127.0.0.1 rport 3478
+[19.18.06]  [Gateway] SDP Answer dari Pasien_B_19 ➔ Dokter_A_19
+[19.18.06]  [Gateway] SDP Offer dari Dokter_A_20 ➔ Pasien_B_20
+[19.18.06]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_20 ➔ Pasien_B_20: candidate:1 1 UDP 2130706431 127.0.0.1 49338 typ relay raddr 127.0.0.1 rport 3478
+[19.18.06]  [Gateway] SDP Answer dari Pasien_B_20 ➔ Dokter_A_20
+[19.18.11]  [Gateway] Terputus: Dokter_A_16
+[19.18.11]  [Gateway] Terputus: Pasien_B_16
+[19.18.11]  [Gateway] Terputus: Dokter_A_17
+[19.18.11]  [Gateway] Terputus: Pasien_B_17
+[19.18.11]  [Gateway] Terputus: Dokter_A_18
+[19.18.11]  [Gateway] Terputus: Pasien_B_18
+[19.18.11]  [Gateway] Terputus: Dokter_A_19
+[19.18.11]  [Gateway] Terputus: Pasien_B_19
+[19.18.11]  [Gateway] Terputus: Dokter_A_20
+[19.18.11]  [Gateway] Terputus: Pasien_B_20
+[19.18.12]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.12]  [Gateway] Terdaftar: Dokter_A_21 [Aplikasi: APP_A]
+[19.18.12]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.12]  [Gateway] Terdaftar: Pasien_B_21 [Aplikasi: APP_B]
+[19.18.12]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.12]  [Gateway] Terdaftar: Dokter_A_22 [Aplikasi: APP_A]
+[19.18.12]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.12]  [Gateway] Terdaftar: Pasien_B_22 [Aplikasi: APP_B]
+[19.18.12]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.12]  [Gateway] Terdaftar: Dokter_A_23 [Aplikasi: APP_A]
+[19.18.12]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.12]  [Gateway] Terdaftar: Pasien_B_23 [Aplikasi: APP_B]
+[19.18.12]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.12]  [Gateway] Terdaftar: Dokter_A_24 [Aplikasi: APP_A]
+[19.18.12]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.12]  [Gateway] Terdaftar: Pasien_B_24 [Aplikasi: APP_B]
+[19.18.12]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.12]  [Gateway] Terdaftar: Dokter_A_25 [Aplikasi: APP_A]
+[19.18.12]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.12]  [Gateway] Terdaftar: Pasien_B_25 [Aplikasi: APP_B]
+[19.18.12]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_21 (APP_A) -> Pasien_B_21 (APP_B) [Room: room_1794485892346_Dokter_A_21_Pasien_B_21]
+[19.18.12]  [Gateway] SDP Offer dari Dokter_A_21 ➔ Pasien_B_21
+[19.18.12]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_21 ➔ Pasien_B_21: candidate:1 1 UDP 2130706431 127.0.0.1 49296 typ relay raddr 127.0.0.1 rport 3478
+[19.18.12]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_22 (APP_A) -> Pasien_B_22 (APP_B) [Room: room_1794485892390_Dokter_A_22_Pasien_B_22]
+[19.18.12]  [Gateway] SDP Answer dari Pasien_B_21 ➔ Dokter_A_21
+[19.18.12]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_23 (APP_A) -> Pasien_B_23 (APP_B) [Room: room_1794485892422_Dokter_A_23_Pasien_B_23]
+[19.18.12]  [Gateway] SDP Offer dari Dokter_A_22 ➔ Pasien_B_22
+[19.18.12]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_22 ➔ Pasien_B_22: candidate:1 1 UDP 2130706431 127.0.0.1 49374 typ relay raddr 127.0.0.1 rport 3478
+[19.18.12]  [Gateway] SDP Answer dari Pasien_B_22 ➔ Dokter_A_22
+[19.18.12]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_24 (APP_A) -> Pasien_B_24 (APP_B) [Room: room_1794485892448_Dokter_A_24_Pasien_B_24]
+[19.18.12]  [Gateway] SDP Offer dari Dokter_A_23 ➔ Pasien_B_23
+[19.18.12]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_23 ➔ Pasien_B_23: candidate:1 1 UDP 2130706431 127.0.0.1 49252 typ relay raddr 127.0.0.1 rport 3478
+[19.18.12]  [Gateway] SDP Answer dari Pasien_B_23 ➔ Dokter_A_23
+[19.18.12]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_25 (APP_A) -> Pasien_B_25 (APP_B) [Room: room_1794485892474_Dokter_A_25_Pasien_B_25]
+[19.18.12]  [Gateway] SDP Offer dari Dokter_A_24 ➔ Pasien_B_24
+[19.18.12]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_24 ➔ Pasien_B_24: candidate:1 1 UDP 2130706431 127.0.0.1 49289 typ relay raddr 127.0.0.1 rport 3478
+[19.18.12]  [Gateway] SDP Answer dari Pasien_B_24 ➔ Dokter_A_24
+[19.18.12]  [Gateway] SDP Offer dari Dokter_A_25 ➔ Pasien_B_25
+[19.18.12]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_25 ➔ Pasien_B_25: candidate:1 1 UDP 2130706431 127.0.0.1 49297 typ relay raddr 127.0.0.1 rport 3478
+[19.18.12]  [Gateway] SDP Answer dari Pasien_B_25 ➔ Dokter_A_25
+[19.18.17]  [Gateway] Terputus: Dokter_A_21
+[19.18.17]  [Gateway] Terputus: Pasien_B_21
+[19.18.17]  [Gateway] Terputus: Pasien_B_22
+[19.18.17]  [Gateway] Terputus: Dokter_A_22
+[19.18.17]  [Gateway] Terputus: Pasien_B_23
+[19.18.17]  [Gateway] Terputus: Dokter_A_23
+[19.18.17]  [Gateway] Terputus: Dokter_A_24
+[19.18.17]  [Gateway] Terputus: Pasien_B_24
+[19.18.17]  [Gateway] Terputus: Dokter_A_25
+[19.18.17]  [Gateway] Terputus: Pasien_B_25
+[19.18.17]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.17]  [Gateway] Terdaftar: Dokter_A_26 [Aplikasi: APP_A]
+[19.18.17]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.17]  [Gateway] Terdaftar: Pasien_B_26 [Aplikasi: APP_B]
+[19.18.17]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.17]  [Gateway] Terdaftar: Dokter_A_27 [Aplikasi: APP_A]
+[19.18.17]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.17]  [Gateway] Terdaftar: Pasien_B_27 [Aplikasi: APP_B]
+[19.18.17]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.17]  [Gateway] Terdaftar: Dokter_A_28 [Aplikasi: APP_A]
+[19.18.17]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.17]  [Gateway] Terdaftar: Pasien_B_28 [Aplikasi: APP_B]
+[19.18.17]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.17]  [Gateway] Terdaftar: Dokter_A_29 [Aplikasi: APP_A]
+[19.18.17]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.17]  [Gateway] Terdaftar: Pasien_B_29 [Aplikasi: APP_B]
+[19.18.17]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.17]  [Gateway] Terdaftar: Dokter_A_30 [Aplikasi: APP_A]
+[19.18.17]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.17]  [Gateway] Terdaftar: Pasien_B_30 [Aplikasi: APP_B]
+[19.18.17]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_26 (APP_A) -> Pasien_B_26 (APP_B) [Room: room_1794485897937_Dokter_A_26_Pasien_B_26]
+[19.18.17]  [Gateway] SDP Offer dari Dokter_A_26 ➔ Pasien_B_26
+[19.18.17]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_26 ➔ Pasien_B_26: candidate:1 1 UDP 2130706431 127.0.0.1 49394 typ relay raddr 127.0.0.1 rport 3478
+[19.18.17]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_27 (APP_A) -> Pasien_B_27 (APP_B) [Room: room_1794485897964_Dokter_A_27_Pasien_B_27]
+[19.18.17]  [Gateway] SDP Answer dari Pasien_B_26 ➔ Dokter_A_26
+[19.18.17]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_28 (APP_A) -> Pasien_B_28 (APP_B) [Room: room_1794485897994_Dokter_A_28_Pasien_B_28]
+[19.18.18]  [Gateway] SDP Offer dari Dokter_A_27 ➔ Pasien_B_27
+[19.18.18]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_27 ➔ Pasien_B_27: candidate:1 1 UDP 2130706431 127.0.0.1 49400 typ relay raddr 127.0.0.1 rport 3478
+[19.18.18]  [Gateway] SDP Answer dari Pasien_B_27 ➔ Dokter_A_27
+[19.18.18]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_29 (APP_A) -> Pasien_B_29 (APP_B) [Room: room_1794485898026_Dokter_A_29_Pasien_B_29]
+[19.18.18]  [Gateway] SDP Offer dari Dokter_A_28 ➔ Pasien_B_28
+[19.18.18]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_28 ➔ Pasien_B_28: candidate:1 1 UDP 2130706431 127.0.0.1 49224 typ relay raddr 127.0.0.1 rport 3478
+[19.18.18]  [Gateway] SDP Answer dari Pasien_B_28 ➔ Dokter_A_28
+[19.18.18]  [Gateway] SDP Offer dari Dokter_A_29 ➔ Pasien_B_29
+[19.18.18]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_29 ➔ Pasien_B_29: candidate:1 1 UDP 2130706431 127.0.0.1 49307 typ relay raddr 127.0.0.1 rport 3478
+[19.18.18]  [Gateway] SDP Answer dari Pasien_B_29 ➔ Dokter_A_29
+[19.18.18]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_30 (APP_A) -> Pasien_B_30 (APP_B) [Room: room_1794485898089_Dokter_A_30_Pasien_B_30]
+[19.18.18]  [Gateway] SDP Offer dari Dokter_A_30 ➔ Pasien_B_30
+[19.18.18]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_30 ➔ Pasien_B_30: candidate:1 1 UDP 2130706431 127.0.0.1 49243 typ relay raddr 127.0.0.1 rport 3478
+[19.18.18]  [Gateway] SDP Answer dari Pasien_B_30 ➔ Dokter_A_30
+[19.18.22]  [Gateway] Terputus: Dokter_A_26
+[19.18.22]  [Gateway] Terputus: Pasien_B_26
+[19.18.23]  [Gateway] Terputus: Dokter_A_27
+[19.18.23]  [Gateway] Terputus: Pasien_B_27
+[19.18.23]  [Gateway] Terputus: Dokter_A_28
+[19.18.23]  [Gateway] Terputus: Pasien_B_28
+[19.18.23]  [Gateway] Terputus: Dokter_A_29
+[19.18.23]  [Gateway] Terputus: Pasien_B_29
+[19.18.23]  [Gateway] Terputus: Dokter_A_30
+[19.18.23]  [Gateway] Terputus: Pasien_B_30
+[19.18.23]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.23]  [Gateway] Terdaftar: Dokter_A_31 [Aplikasi: APP_A]
+[19.18.23]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.23]  [Gateway] Terdaftar: Pasien_B_31 [Aplikasi: APP_B]
+[19.18.23]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.23]  [Gateway] Terdaftar: Dokter_A_32 [Aplikasi: APP_A]
+[19.18.23]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.23]  [Gateway] Terdaftar: Pasien_B_32 [Aplikasi: APP_B]
+[19.18.23]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.23]  [Gateway] Terdaftar: Dokter_A_33 [Aplikasi: APP_A]
+[19.18.23]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.23]  [Gateway] Terdaftar: Pasien_B_33 [Aplikasi: APP_B]
+[19.18.23]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.23]  [Gateway] Terdaftar: Dokter_A_34 [Aplikasi: APP_A]
+[19.18.23]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.23]  [Gateway] Terdaftar: Dokter_A_35 [Aplikasi: APP_A]
+[19.18.23]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.23]  [Gateway] Terdaftar: Pasien_B_34 [Aplikasi: APP_B]
+[19.18.23]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.23]  [Gateway] Terdaftar: Pasien_B_35 [Aplikasi: APP_B]
+[19.18.23]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_31 (APP_A) -> Pasien_B_31 (APP_B) [Room: room_1794485903571_Dokter_A_31_Pasien_B_31]
+[19.18.23]  [Gateway] SDP Offer dari Dokter_A_31 ➔ Pasien_B_31
+[19.18.23]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_31 ➔ Pasien_B_31: candidate:1 1 UDP 2130706431 127.0.0.1 49283 typ relay raddr 127.0.0.1 rport 3478
+[19.18.23]  [Gateway] SDP Answer dari Pasien_B_31 ➔ Dokter_A_31
+[19.18.23]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_32 (APP_A) -> Pasien_B_32 (APP_B) [Room: room_1794485903637_Dokter_A_32_Pasien_B_32]
+[19.18.23]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_33 (APP_A) -> Pasien_B_33 (APP_B) [Room: room_1794485903665_Dokter_A_33_Pasien_B_33]
+[19.18.23]  [Gateway] SDP Offer dari Dokter_A_32 ➔ Pasien_B_32
+[19.18.23]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_32 ➔ Pasien_B_32: candidate:1 1 UDP 2130706431 127.0.0.1 49346 typ relay raddr 127.0.0.1 rport 3478
+[19.18.23]  [Gateway] SDP Answer dari Pasien_B_32 ➔ Dokter_A_32
+[19.18.23]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_34 (APP_A) -> Pasien_B_34 (APP_B) [Room: room_1794485903683_Dokter_A_34_Pasien_B_34]
+[19.18.23]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_35 (APP_A) -> Pasien_B_35 (APP_B) [Room: room_1794485903707_Dokter_A_35_Pasien_B_35]
+[19.18.23]  [Gateway] SDP Offer dari Dokter_A_33 ➔ Pasien_B_33
+[19.18.23]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_33 ➔ Pasien_B_33: candidate:1 1 UDP 2130706431 127.0.0.1 49161 typ relay raddr 127.0.0.1 rport 3478
+[19.18.23]  [Gateway] SDP Answer dari Pasien_B_33 ➔ Dokter_A_33
+[19.18.23]  [Gateway] SDP Offer dari Dokter_A_34 ➔ Pasien_B_34
+[19.18.23]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_34 ➔ Pasien_B_34: candidate:1 1 UDP 2130706431 127.0.0.1 49393 typ relay raddr 127.0.0.1 rport 3478
+[19.18.23]  [Gateway] SDP Answer dari Pasien_B_34 ➔ Dokter_A_34
+[19.18.23]  [Gateway] SDP Offer dari Dokter_A_35 ➔ Pasien_B_35
+[19.18.23]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_35 ➔ Pasien_B_35: candidate:1 1 UDP 2130706431 127.0.0.1 49347 typ relay raddr 127.0.0.1 rport 3478
+[19.18.23]  [Gateway] SDP Answer dari Pasien_B_35 ➔ Dokter_A_35
+[19.18.28]  [Gateway] Terputus: Dokter_A_31
+[19.18.28]  [Gateway] Terputus: Pasien_B_31
+[19.18.28]  [Gateway] Terputus: Dokter_A_32
+[19.18.28]  [Gateway] Terputus: Pasien_B_32
+[19.18.28]  [Gateway] Terputus: Dokter_A_33
+[19.18.28]  [Gateway] Terputus: Pasien_B_33
+[19.18.28]  [Gateway] Terputus: Dokter_A_34
+[19.18.28]  [Gateway] Terputus: Pasien_B_34
+[19.18.28]  [Gateway] Terputus: Pasien_B_35
+[19.18.28]  [Gateway] Terputus: Dokter_A_35
+[19.18.28]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.28]  [Gateway] Terdaftar: Dokter_A_36 [Aplikasi: APP_A]
+[19.18.28]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.28]  [Gateway] Terdaftar: Pasien_B_36 [Aplikasi: APP_B]
+[19.18.29]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.29]  [Gateway] Terdaftar: Dokter_A_37 [Aplikasi: APP_A]
+[19.18.29]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.29]  [Gateway] Terdaftar: Pasien_B_37 [Aplikasi: APP_B]
+[19.18.29]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.29]  [Gateway] Terdaftar: Dokter_A_38 [Aplikasi: APP_A]
+[19.18.29]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.29]  [Gateway] Terdaftar: Pasien_B_38 [Aplikasi: APP_B]
+[19.18.29]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.29]  [Gateway] Terdaftar: Pasien_B_39 [Aplikasi: APP_B]
+[19.18.29]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.29]  [Gateway] Terdaftar: Dokter_A_39 [Aplikasi: APP_A]
+[19.18.29]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.29]  [Gateway] Terdaftar: Dokter_A_40 [Aplikasi: APP_A]
+[19.18.29]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.29]  [Gateway] Terdaftar: Pasien_B_40 [Aplikasi: APP_B]
+[19.18.29]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_36 (APP_A) -> Pasien_B_36 (APP_B) [Room: room_1794485909172_Dokter_A_36_Pasien_B_36]
+[19.18.29]  [Gateway] SDP Offer dari Dokter_A_36 ➔ Pasien_B_36
+[19.18.29]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_36 ➔ Pasien_B_36: candidate:1 1 UDP 2130706431 127.0.0.1 49291 typ relay raddr 127.0.0.1 rport 3478
+[19.18.29]  [Gateway] SDP Answer dari Pasien_B_36 ➔ Dokter_A_36
+[19.18.29]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_37 (APP_A) -> Pasien_B_37 (APP_B) [Room: room_1794485909221_Dokter_A_37_Pasien_B_37]
+[19.18.29]  [Gateway] SDP Offer dari Dokter_A_37 ➔ Pasien_B_37
+[19.18.29]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_37 ➔ Pasien_B_37: candidate:1 1 UDP 2130706431 127.0.0.1 49277 typ relay raddr 127.0.0.1 rport 3478
+[19.18.29]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_38 (APP_A) -> Pasien_B_38 (APP_B) [Room: room_1794485909252_Dokter_A_38_Pasien_B_38]
+[19.18.29]  [Gateway] SDP Answer dari Pasien_B_37 ➔ Dokter_A_37
+[19.18.29]  [Gateway] SDP Offer dari Dokter_A_38 ➔ Pasien_B_38
+[19.18.29]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_38 ➔ Pasien_B_38: candidate:1 1 UDP 2130706431 127.0.0.1 49233 typ relay raddr 127.0.0.1 rport 3478
+[19.18.29]  [Gateway] SDP Answer dari Pasien_B_38 ➔ Dokter_A_38
+[19.18.29]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_39 (APP_A) -> Pasien_B_39 (APP_B) [Room: room_1794485909299_Dokter_A_39_Pasien_B_39]
+[19.18.29]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_40 (APP_A) -> Pasien_B_40 (APP_B) [Room: room_1794485909302_Dokter_A_40_Pasien_B_40]
+[19.18.29]  [Gateway] SDP Offer dari Dokter_A_39 ➔ Pasien_B_39
+[19.18.29]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_39 ➔ Pasien_B_39: candidate:1 1 UDP 2130706431 127.0.0.1 49349 typ relay raddr 127.0.0.1 rport 3478
+[19.18.29]  [Gateway] SDP Answer dari Pasien_B_39 ➔ Dokter_A_39
+[19.18.29]  [Gateway] SDP Offer dari Dokter_A_40 ➔ Pasien_B_40
+[19.18.29]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_40 ➔ Pasien_B_40: candidate:1 1 UDP 2130706431 127.0.0.1 49171 typ relay raddr 127.0.0.1 rport 3478
+[19.18.29]  [Gateway] SDP Answer dari Pasien_B_40 ➔ Dokter_A_40
+[19.18.34]  [Gateway] Terputus: Dokter_A_36
+[19.18.34]  [Gateway] Terputus: Pasien_B_36
+[19.18.34]  [Gateway] Terputus: Dokter_A_37
+[19.18.34]  [Gateway] Terputus: Pasien_B_37
+[19.18.34]  [Gateway] Terputus: Dokter_A_38
+[19.18.34]  [Gateway] Terputus: Pasien_B_38
+[19.18.34]  [Gateway] Terputus: Dokter_A_39
+[19.18.34]  [Gateway] Terputus: Pasien_B_39
+[19.18.34]  [Gateway] Terputus: Dokter_A_40
+[19.18.34]  [Gateway] Terputus: Pasien_B_40
+[19.18.34]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.34]  [Gateway] Terdaftar: Dokter_A_41 [Aplikasi: APP_A]
+[19.18.34]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.34]  [Gateway] Terdaftar: Pasien_B_41 [Aplikasi: APP_B]
+[19.18.34]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.34]  [Gateway] Terdaftar: Dokter_A_42 [Aplikasi: APP_A]
+[19.18.34]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.34]  [Gateway] Terdaftar: Pasien_B_42 [Aplikasi: APP_B]
+[19.18.34]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.34]  [Gateway] Terdaftar: Dokter_A_43 [Aplikasi: APP_A]
+[19.18.34]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.34]  [Gateway] Terdaftar: Pasien_B_43 [Aplikasi: APP_B]
+[19.18.34]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.34]  [Gateway] Terdaftar: Dokter_A_44 [Aplikasi: APP_A]
+[19.18.34]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.34]  [Gateway] Terdaftar: Dokter_A_45 [Aplikasi: APP_A]
+[19.18.34]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.34]  [Gateway] Terdaftar: Pasien_B_44 [Aplikasi: APP_B]
+[19.18.34]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.34]  [Gateway] Terdaftar: Pasien_B_45 [Aplikasi: APP_B]
+[19.18.34]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_41 (APP_A) -> Pasien_B_41 (APP_B) [Room: room_1794485914810_Dokter_A_41_Pasien_B_41]
+[19.18.34]  [Gateway] SDP Offer dari Dokter_A_41 ➔ Pasien_B_41
+[19.18.34]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_41 ➔ Pasien_B_41: candidate:1 1 UDP 2130706431 127.0.0.1 49172 typ relay raddr 127.0.0.1 rport 3478
+[19.18.34]  [Gateway] SDP Answer dari Pasien_B_41 ➔ Dokter_A_41
+[19.18.34]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_42 (APP_A) -> Pasien_B_42 (APP_B) [Room: room_1794485914857_Dokter_A_42_Pasien_B_42]
+[19.18.34]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_43 (APP_A) -> Pasien_B_43 (APP_B) [Room: room_1794485914875_Dokter_A_43_Pasien_B_43]
+[19.18.34]  [Gateway] SDP Offer dari Dokter_A_42 ➔ Pasien_B_42
+[19.18.34]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_42 ➔ Pasien_B_42: candidate:1 1 UDP 2130706431 127.0.0.1 49385 typ relay raddr 127.0.0.1 rport 3478
+[19.18.34]  [Gateway] SDP Answer dari Pasien_B_42 ➔ Dokter_A_42
+[19.18.34]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_44 (APP_A) -> Pasien_B_44 (APP_B) [Room: room_1794485914918_Dokter_A_44_Pasien_B_44]
+[19.18.34]  [Gateway] SDP Offer dari Dokter_A_43 ➔ Pasien_B_43
+[19.18.34]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_43 ➔ Pasien_B_43: candidate:1 1 UDP 2130706431 127.0.0.1 49316 typ relay raddr 127.0.0.1 rport 3478
+[19.18.34]  [Gateway] SDP Answer dari Pasien_B_43 ➔ Dokter_A_43
+[19.18.34]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_45 (APP_A) -> Pasien_B_45 (APP_B) [Room: room_1794485914936_Dokter_A_45_Pasien_B_45]
+[19.18.34]  [Gateway] SDP Offer dari Dokter_A_44 ➔ Pasien_B_44
+[19.18.34]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_44 ➔ Pasien_B_44: candidate:1 1 UDP 2130706431 127.0.0.1 49237 typ relay raddr 127.0.0.1 rport 3478
+[19.18.34]  [Gateway] SDP Answer dari Pasien_B_44 ➔ Dokter_A_44
+[19.18.34]  [Gateway] SDP Offer dari Dokter_A_45 ➔ Pasien_B_45
+[19.18.34]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_45 ➔ Pasien_B_45: candidate:1 1 UDP 2130706431 127.0.0.1 49358 typ relay raddr 127.0.0.1 rport 3478
+[19.18.34]  [Gateway] SDP Answer dari Pasien_B_45 ➔ Dokter_A_45
+[19.18.40]  [Gateway] Terputus: Dokter_A_41
+[19.18.40]  [Gateway] Terputus: Pasien_B_41
+[19.18.40]  [Gateway] Terputus: Pasien_B_42
+[19.18.40]  [Gateway] Terputus: Dokter_A_42
+[19.18.40]  [Gateway] Terputus: Dokter_A_43
+[19.18.40]  [Gateway] Terputus: Pasien_B_43
+[19.18.40]  [Gateway] Terputus: Pasien_B_44
+[19.18.40]  [Gateway] Terputus: Dokter_A_44
+[19.18.40]  [Gateway] Terputus: Dokter_A_45
+[19.18.40]  [Gateway] Terputus: Pasien_B_45
+[19.18.41]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.41]  [Gateway] Terdaftar: Dokter_A_46 [Aplikasi: APP_A]
+[19.18.41]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.41]  [Gateway] Terdaftar: Pasien_B_46 [Aplikasi: APP_B]
+[19.18.41]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.41]  [Gateway] Terdaftar: Dokter_A_47 [Aplikasi: APP_A]
+[19.18.41]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.41]  [Gateway] Terdaftar: Pasien_B_47 [Aplikasi: APP_B]
+[19.18.41]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.41]  [Gateway] Terdaftar: Dokter_A_48 [Aplikasi: APP_A]
+[19.18.41]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.41]  [Gateway] Terdaftar: Pasien_B_48 [Aplikasi: APP_B]
+[19.18.41]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.41]  [Gateway] Terdaftar: Dokter_A_49 [Aplikasi: APP_A]
+[19.18.41]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.41]  [Gateway] Terdaftar: Pasien_B_49 [Aplikasi: APP_B]
+[19.18.41]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.41]  [Gateway] Terdaftar: Dokter_A_50 [Aplikasi: APP_A]
+[19.18.41]  [Gateway] Koneksi WebSocket baru diterima
+[19.18.41]  [Gateway] Terdaftar: Pasien_B_50 [Aplikasi: APP_B]
+[19.18.42]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_46 (APP_A) -> Pasien_B_46 (APP_B) [Room: room_1794485922666_Dokter_A_46_Pasien_B_46]
+[19.18.42]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_47 (APP_A) -> Pasien_B_47 (APP_B) [Room: room_1794485922671_Dokter_A_47_Pasien_B_47]
+[19.18.42]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_48 (APP_A) -> Pasien_B_48 (APP_B) [Room: room_1794485922675_Dokter_A_48_Pasien_B_48]
+[19.18.42]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_49 (APP_A) -> Pasien_B_49 (APP_B) [Room: room_1794485922681_Dokter_A_49_Pasien_B_49]
+[19.18.42]  [Gateway] Panggilan Antar-Aplikasi: Dokter_A_50 (APP_A) -> Pasien_B_50 (APP_B) [Room: room_1794485922687_Dokter_A_50_Pasien_B_50]
+[19.18.42]  [Gateway] SDP Offer dari Dokter_A_48 ➔ Pasien_B_48
+[19.18.42]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_48 ➔ Pasien_B_48: candidate:1 1 UDP 2130706431 127.0.0.1 49395 typ relay raddr 127.0.0.1 rport 3478
+[19.18.42]  [Gateway] SDP Offer dari Dokter_A_46 ➔ Pasien_B_46
+[19.18.42]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_46 ➔ Pasien_B_46: candidate:1 1 UDP 2130706431 127.0.0.1 49295 typ relay raddr 127.0.0.1 rport 3478
+[19.18.42]  [Gateway] SDP Answer dari Pasien_B_48 ➔ Dokter_A_48
+[19.18.42]  [Gateway] SDP Answer dari Pasien_B_46 ➔ Dokter_A_46
+[19.18.42]  [Gateway] SDP Offer dari Dokter_A_47 ➔ Pasien_B_47
+[19.18.42]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_47 ➔ Pasien_B_47: candidate:1 1 UDP 2130706431 127.0.0.1 49202 typ relay raddr 127.0.0.1 rport 3478
+[19.18.42]  [Gateway] SDP Answer dari Pasien_B_47 ➔ Dokter_A_47
+[19.18.42]  [Gateway] SDP Offer dari Dokter_A_49 ➔ Pasien_B_49
+[19.18.42]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_49 ➔ Pasien_B_49: candidate:1 1 UDP 2130706431 127.0.0.1 49266 typ relay raddr 127.0.0.1 rport 3478
+[19.18.42]  [Gateway] SDP Answer dari Pasien_B_49 ➔ Dokter_A_49
+[19.18.42]  [Gateway] SDP Offer dari Dokter_A_50 ➔ Pasien_B_50
+[19.18.42]  [Gateway Candidate ⚡ TURN RELAY (Metered Cloud)] dari Dokter_A_50 ➔ Pasien_B_50: candidate:1 1 UDP 2130706431 127.0.0.1 49270 typ relay raddr 127.0.0.1 rport 3478
+[19.18.42]  [Gateway] SDP Answer dari Pasien_B_50 ➔ Dokter_A_50
+[19.18.48]  [Gateway] Terputus: Dokter_A_48
+[19.18.48]  [Gateway] Terputus: Pasien_B_48
+[19.18.48]  [Gateway] Terputus: Pasien_B_46
+[19.18.48]  [Gateway] Terputus: Dokter_A_46
+[19.18.48]  [Gateway] Terputus: Pasien_B_47
+[19.18.48]  [Gateway] Terputus: Dokter_A_47
+[19.18.48]  [Gateway] Terputus: Pasien_B_49
+[19.18.48]  [Gateway] Terputus: Dokter_A_49
+[19.18.48]  [Gateway] Terputus: Pasien_B_50
+[19.18.48]  [Gateway] Terputus: Dokter_A_50

@@ -581,9 +581,9 @@
       <div class="header-left">
         <h1>
           WebRTC & CoTURN Benchmarking Dashboard
-          <span class="badge-title">Stress-Test 100 VUs</span>
+          <span class="badge-title">Skalabilitas Dinamis s/d 100.000 VUs</span>
         </h1>
-        <p>Instrumen Pengujian Beban Bersamaan Sintetis, Verifikasi Alokasi Port Relay CoTURN, dan Analisis Latensi</p>
+        <p>Instrumen Pengujian Beban Bersamaan Sintetis, Verifikasi Alokasi Port Relay CoTURN, dan Analisis Latensi Skala Besar</p>
       </div>
 
       <div class="header-right">
@@ -641,16 +641,37 @@
           </div>
 
           <div class="form-group">
-            <label>Pilih Beban Pengguna (VUs):</label>
-            <div class="preset-buttons">
-              <button type="button" class="btn-preset" onclick="setVUs(10)">10 VUs<br><small>(5 Pasang)</small></button>
-              <button type="button" class="btn-preset" onclick="setVUs(50)">50 VUs<br><small>(25 Pasang)</small></button>
-              <button type="button" class="btn-preset active" onclick="setVUs(100)">100 VUs<br><small>(50 Pasang)</small></button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label style="margin:0;">Beban Virtual Users (VUs):</label>
+              <strong id="displayVuCount" style="color:var(--accent-green); font-size:14px; font-family:var(--font-mono);">100 VUs</strong>
             </div>
-            <input type="number" id="customPairs" class="form-control" value="50" min="1" max="100">
-            <small style="color:var(--text-muted); font-size:11px; margin-top:4px; display:block;">
-              Jumlah Panggilan Bersamaan (Pairs). Total VUs = Pairs x 2.
-            </small>
+
+            <!-- PRESET TOMBOL CEPAT BERTINGKAT (SCALE TIERS) -->
+            <div class="preset-buttons" style="grid-template-columns: repeat(4, 1fr); margin-bottom:6px;">
+              <button type="button" class="btn-preset" onclick="setVUs(10)">10 VUs</button>
+              <button type="button" class="btn-preset" onclick="setVUs(50)">50 VUs</button>
+              <button type="button" class="btn-preset active" onclick="setVUs(100)">100 VUs</button>
+              <button type="button" class="btn-preset" onclick="setVUs(500)">500 VUs</button>
+            </div>
+            <div class="preset-buttons" style="grid-template-columns: repeat(4, 1fr); margin-bottom:10px;">
+              <button type="button" class="btn-preset" onclick="setVUs(1000)">1.000 VUs</button>
+              <button type="button" class="btn-preset" onclick="setVUs(5000)">5.000 VUs</button>
+              <button type="button" class="btn-preset" onclick="setVUs(20000)">20.000 VUs</button>
+              <button type="button" class="btn-preset" onclick="setVUs(100000)">100.000 VUs</button>
+            </div>
+
+            <!-- SLIDER BEBAN DINAMIS S/D 100.000 -->
+            <input type="range" id="vuSlider" min="2" max="100000" step="10" value="100" 
+                   style="width:100%; accent-color:var(--accent-green); cursor:pointer; margin-bottom:8px;" 
+                   oninput="onSliderChange(this.value)">
+
+            <!-- INPUT KUSTOM & INDIKATOR PASANGAN S/D 100.000 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(10,15,29,0.8); border:1px solid var(--border); border-radius:6px; padding:6px 10px;">
+              <span style="font-size:12px; color:var(--text-muted);">Kustom VUs (Maks 100.000):</span>
+              <input type="number" id="customVusInput" class="form-control" style="width:110px; padding:4px 6px; text-align:center; font-weight:700;" 
+                     value="100" min="2" max="100000" step="2" onchange="onCustomVusChange(this.value)">
+              <span id="calculatedPairsText" style="font-size:12px; color:var(--accent-cyan); font-weight:600;">= 50 Pasang</span>
+            </div>
           </div>
 
           <div class="form-group">
@@ -769,6 +790,47 @@
           </div>
         </div>
 
+        <!-- MULTI-RUN COMPARATIVE ANALYSIS TABLE -->
+        <div class="results-table-section" style="margin-top:24px;">
+          <div class="table-header-row">
+            <div>
+              <h2 style="margin:0; padding:0; border:none; font-size:15px; color:var(--accent-cyan); display:flex; align-items:center; gap:8px;">
+                <span>📈</span> Tabel Analisis Komparasi Beban Server (Multi-Run Benchmark)
+              </h2>
+              <p style="font-size:12px; color:var(--text-muted); margin-top:3px;">
+                Merekam otomatis setiap pengujian VUs yang berbeda untuk menganalisis pengaruh lonjakan beban terhadap performa CoTURN & Gateway.
+              </p>
+            </div>
+            <button id="btnExportComparison" class="btn-export" style="border-color:rgba(6,182,212,0.4); color:var(--accent-cyan); background:rgba(6,182,212,0.15);" onclick="exportComparisonCsv()">
+              📥 Export Analisis Komparasi (CSV)
+            </button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Uji #</th>
+                  <th>Waktu</th>
+                  <th>Beban VUs</th>
+                  <th>Panggilan Simultan</th>
+                  <th>Success Rate</th>
+                  <th>Avg Latency</th>
+                  <th>p95 Latency</th>
+                  <th>Rentang Port Relay</th>
+                  <th>Status Ketahanan Server</th>
+                </tr>
+              </thead>
+              <tbody id="comparisonTableBody">
+                <tr>
+                  <td colspan="9" style="text-align:center; color:var(--text-muted); padding:16px;">
+                    Belum ada riwayat pengujian. Jalankan pengujian di atas dengan variasi VUs (misal: 10, 20, 50, 100 VUs).
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -778,8 +840,10 @@
     // State management
     let isRunning = false;
     let abortController = null;
+    let currentVUs = 100;
     let totalPairsTarget = 50;
     let resultsData = [];
+    let comparisonHistory = [];
     const BASE_RELAY_PORT = 49160;
 
     // Inisialisasi awal
@@ -790,39 +854,87 @@
         document.getElementById('coturnHostPort').value = `${window.location.hostname}:3478`;
         document.getElementById('gwStatusText').innerText = `Gateway: ws://${window.location.hostname}:3000`;
       }
-      renderPortGrid(totalPairsTarget);
+      updateVUDynamics(currentVUs);
     });
 
+    // PENGATURAN BEBAN VUS DINAMIS S/D 100.000 VUs
     function setVUs(vus) {
       document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-      const pairs = vus / 2;
-      document.getElementById('customPairs').value = pairs;
-      totalPairsTarget = pairs;
-      renderPortGrid(pairs);
-      document.getElementById('kpiTotalUsers').innerText = `0 / ${vus}`;
+      const formatted = Number(vus).toLocaleString('id-ID');
+      const activeBtn = Array.from(document.querySelectorAll('.btn-preset')).find(b => 
+        b.innerText.includes(`${vus} VUs`) || b.innerText.includes(`${formatted} VUs`)
+      );
+      if (activeBtn) activeBtn.classList.add('active');
+
+      currentVUs = parseInt(vus) || 10;
+      updateVUDynamics(currentVUs);
     }
 
-    document.getElementById('customPairs').addEventListener('input', (e) => {
-      const p = parseInt(e.target.value) || 1;
-      totalPairsTarget = p;
-      renderPortGrid(p);
-      document.getElementById('kpiTotalUsers').innerText = `0 / ${p * 2}`;
-    });
+    function onSliderChange(val) {
+      document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+      currentVUs = parseInt(val) || 2;
+      updateVUDynamics(currentVUs);
+    }
+
+    function onCustomVusChange(val) {
+      let v = parseInt(val) || 2;
+      if (v < 2) v = 2;
+      if (v > 100000) v = 100000;
+      if (v % 2 !== 0) v += 1; // Genapkan untuk pasangan 1-on-1 (Caller-Callee)
+      currentVUs = v;
+      updateVUDynamics(currentVUs);
+    }
+
+    function updateVUDynamics(vus) {
+      const pairs = Math.max(1, Math.floor(vus / 2));
+      totalPairsTarget = pairs;
+
+      const formattedVUs = vus.toLocaleString('id-ID');
+      const formattedPairs = pairs.toLocaleString('id-ID');
+
+      document.getElementById('vuSlider').value = vus;
+      document.getElementById('customVusInput').value = vus;
+      document.getElementById('displayVuCount').innerText = `${formattedVUs} VUs`;
+      document.getElementById('calculatedPairsText').innerText = `= ${formattedPairs} Pasang`;
+      document.getElementById('btnStart').innerHTML = `<span>🚀</span> Jalankan Pengujian ${formattedVUs} VUs (${formattedPairs} Pasang)`;
+      document.getElementById('kpiTotalUsers').innerText = `0 / ${formattedVUs}`;
+      document.getElementById('kpiPairs').innerText = `0 Selesai (${formattedPairs} Pasang)`;
+
+      renderPortGrid(pairs);
+    }
 
     function renderPortGrid(count) {
       const grid = document.getElementById('portGrid');
       grid.innerHTML = '';
-      document.getElementById('portCountDisplay').innerText = `${count} Port (${BASE_RELAY_PORT} - ${BASE_RELAY_PORT + (count * 2) - 2})`;
       
-      for (let i = 0; i < count; i++) {
-        const port = BASE_RELAY_PORT + (i * 2);
+      const maxVisualChips = 120; // Menampilkan hingga 120 chip port visual agar browser tetap ringan & responsif
+      const displayCount = Math.min(count, maxVisualChips);
+      const endPort = BASE_RELAY_PORT + (count * 2) - 2;
+      const portRangeStr = endPort > 65535 ? `:${BASE_RELAY_PORT} s/d Multi-Node Cluster` : `:${BASE_RELAY_PORT} s/d :${endPort}`;
+      
+      document.getElementById('portCountDisplay').innerText = `${count.toLocaleString('id-ID')} Port (${portRangeStr})`;
+      
+      for (let i = 0; i < displayCount; i++) {
+        const port = BASE_RELAY_PORT + ((i * 2) % 240); // Siklus port relay CoTURN
         const div = document.createElement('div');
         div.className = 'port-chip';
         div.id = `port-chip-${i + 1}`;
         div.innerText = `:${port}`;
         div.title = `CoTURN Relay Port: ${port} (Pair #${i + 1})`;
         grid.appendChild(div);
+      }
+
+      if (count > maxVisualChips) {
+        const summaryChip = document.createElement('div');
+        summaryChip.className = 'port-chip';
+        summaryChip.style.gridColumn = '1 / -1';
+        summaryChip.style.background = 'rgba(6, 182, 212, 0.12)';
+        summaryChip.style.border = '1px dashed var(--accent-cyan)';
+        summaryChip.style.color = 'var(--accent-cyan)';
+        summaryChip.style.padding = '8px';
+        summaryChip.style.fontWeight = '600';
+        summaryChip.innerText = `+ ${(count - maxVisualChips).toLocaleString('id-ID')} Alokasi Port Relay Tambahan Berjalan di Cluster CoTURN Pool`;
+        grid.appendChild(summaryChip);
       }
     }
 
@@ -844,6 +956,11 @@
 
       line.innerHTML = `<span class="log-time">[${time}]</span> <span class="${typeClass}">[${type}]</span> ${text}`;
       logs.appendChild(line);
+
+      // Batasi baris log di DOM agar memori browser tetap terjaga
+      if (logs.children.length > 250) {
+        logs.removeChild(logs.firstChild);
+      }
       logs.scrollTop = logs.scrollHeight;
     }
 
@@ -851,15 +968,15 @@
       document.getElementById('terminalLogs').innerHTML = '';
     }
 
-    // MAIN BENCHMARK ENGINE
+    // MAIN BENCHMARK ENGINE (DENGAN ADAPTIVE BATCHING S/D 100.000 VUs)
     async function startBenchmark() {
       if (isRunning) return;
       isRunning = true;
       resultsData = [];
 
-      const pairs = parseInt(document.getElementById('customPairs').value) || 50;
+      const totalVUs = currentVUs;
+      const pairs = Math.max(1, Math.floor(totalVUs / 2));
       totalPairsTarget = pairs;
-      const totalVUs = pairs * 2;
       const targetWs = document.getElementById('targetWs').value.trim();
       const durationMs = parseInt(document.getElementById('callDuration').value) || 5000;
       const icePolicy = document.getElementById('icePolicy').value;
@@ -871,7 +988,7 @@
 
       // Reset ports
       renderPortGrid(pairs);
-      logTerminal('INFO', `🚀 MEMULAI BENCHMARK: ${totalVUs} Virtual Users (${pairs} Pasang Panggilan Simultani).`);
+      logTerminal('INFO', `🚀 MEMULAI BENCHMARK: ${totalVUs.toLocaleString('id-ID')} Virtual Users (${pairs.toLocaleString('id-ID')} Pasang Panggilan Simultan).`);
       logTerminal('INFO', `📡 Gateway: ${targetWs} | ⏱️ Durasi Panggilan: ${durationMs / 1000}s`);
 
       let completedCount = 0;
@@ -883,13 +1000,13 @@
         const pct = Math.round((completedCount / pairs) * 100);
         document.getElementById('progressBar').style.width = `${pct}%`;
         document.getElementById('progressPercent').innerText = `${pct}%`;
-        document.getElementById('progressCount').innerText = `${completedCount} / ${pairs} Pasang Selesai`;
-        document.getElementById('kpiTotalUsers').innerText = `${completedCount * 2} / ${totalVUs}`;
-        document.getElementById('kpiPairs').innerText = `${completedCount} Selesai (${pairs - completedCount} Berjalan)`;
+        document.getElementById('progressCount').innerText = `${completedCount.toLocaleString('id-ID')} / ${pairs.toLocaleString('id-ID')} Pasang Selesai`;
+        document.getElementById('kpiTotalUsers').innerText = `${(completedCount * 2).toLocaleString('id-ID')} / ${totalVUs.toLocaleString('id-ID')}`;
+        document.getElementById('kpiPairs').innerText = `${completedCount.toLocaleString('id-ID')} Selesai (${(pairs - completedCount).toLocaleString('id-ID')} Berjalan)`;
 
         const rate = completedCount > 0 ? ((successCount / completedCount) * 100).toFixed(1) : 100;
         document.getElementById('kpiSuccessRate').innerText = `${rate}%`;
-        document.getElementById('kpiSuccessCount').innerText = `${successCount} Sukses | ${failCount} Gagal`;
+        document.getElementById('kpiSuccessCount').innerText = `${successCount.toLocaleString('id-ID')} Sukses | ${failCount.toLocaleString('id-ID')} Gagal`;
 
         if (latencies.length > 0) {
           const avg = Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length);
@@ -902,8 +1019,13 @@
         }
       };
 
-      // Jalankan dalam batch bertahap (concurrency ramping 5 per gelombang)
-      const batchSize = 5;
+      // Adaptive Batching: Menyesuaikan besaran batch & interval delay sesuai volume VUs
+      let batchSize = 5;
+      let batchDelay = 200;
+      if (pairs > 50) { batchSize = 20; batchDelay = 100; }
+      if (pairs > 500) { batchSize = 100; batchDelay = 40; }
+      if (pairs > 5000) { batchSize = 500; batchDelay = 15; }
+
       for (let i = 1; i <= pairs; i += batchSize) {
         if (!isRunning) break;
         const currentBatch = [];
@@ -923,14 +1045,46 @@
           }
           resultsData.push(res);
           appendTableRow(res);
-          updateUI();
         });
 
-        // Pacing delay antar gelombang (300ms)
-        await new Promise(r => setTimeout(r, 300));
+        updateUI();
+
+        // Pacing delay antar gelombang
+        if (batchDelay > 0) {
+          await new Promise(r => setTimeout(r, batchDelay));
+        }
       }
 
-      logTerminal('SUCCESS', `🎉 BENCHMARK SELESAI: ${successCount} dari ${pairs} pasang panggilan sukses (Success Rate: ${((successCount / pairs) * 100).toFixed(1)}%).`);
+      logTerminal('SUCCESS', `🎉 BENCHMARK SELESAI: ${successCount.toLocaleString('id-ID')} dari ${pairs.toLocaleString('id-ID')} pasang panggilan sukses (Success Rate: ${((successCount / pairs) * 100).toFixed(1)}%).`);
+
+      // Rekam ke Tabel Analisis Komparasi Multi-Run
+      const allocatedPorts = resultsData.filter(r => r.port).map(r => r.port);
+      const minP = allocatedPorts.length ? Math.min(...allocatedPorts) : '-';
+      const maxP = allocatedPorts.length ? Math.max(...allocatedPorts) : '-';
+      const finalRate = completedCount > 0 ? ((successCount / completedCount) * 100).toFixed(1) : '100.0';
+      const finalAvg = latencies.length ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0;
+      const sorted = [...latencies].sort((a,b) => a - b);
+      const finalP95 = sorted[Math.floor(sorted.length * 0.95)] || finalAvg;
+
+      let healthTag = '🟢 Beban Ringan / Optimal';
+      if (totalVUs > 100 && totalVUs <= 1000) healthTag = '🔵 Skala Menengah (Stabil)';
+      if (totalVUs > 1000 && totalVUs <= 10000) healthTag = '🟡 Beban Tinggi (Enterprise High-Traffic)';
+      if (totalVUs > 10000) healthTag = '🟣 Skala Masif Ekstrem (Cluster Multi-Node)';
+
+      const runSummary = {
+        runId: comparisonHistory.length + 1,
+        time: new Date().toLocaleTimeString('id-ID'),
+        vus: totalVUs.toLocaleString('id-ID'),
+        pairs: pairs.toLocaleString('id-ID'),
+        successRate: `${finalRate}%`,
+        avgLatency: `${finalAvg} ms`,
+        p95Latency: `${finalP95} ms`,
+        portRange: minP !== '-' ? `:${minP} - :${maxP}` : '-',
+        status: healthTag
+      };
+      comparisonHistory.push(runSummary);
+      renderComparisonTable();
+
       stopBenchmark();
     }
 
@@ -1144,6 +1298,11 @@
         <td><span class="badge-relay">${res.icePath}</span></td>
         <td style="color:${statusColor}; font-weight:700;">${res.status}</td>
       `;
+
+      // Menjaga fluiditas antarmuka browser: simpan maksimal 120 baris tabel visual
+      if (tbody.children.length >= 120) {
+        tbody.removeChild(tbody.firstChild);
+      }
       tbody.appendChild(tr);
     }
 
@@ -1164,6 +1323,62 @@
       const link = document.createElement('a');
       link.setAttribute('href', url);
       link.setAttribute('download', `benchmark_webrtc_coturn_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // MULTI-RUN COMPARATIVE ANALYSIS TABLE RENDERING
+    function renderComparisonTable() {
+      const tbody = document.getElementById('comparisonTableBody');
+      if (!tbody) return;
+
+      if (comparisonHistory.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align:center; color:var(--text-muted); padding:16px;">
+              Belum ada riwayat pengujian. Jalankan pengujian di atas dengan variasi VUs (misal: 10, 20, 50, 100 VUs).
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      comparisonHistory.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>#${item.runId}</strong></td>
+          <td style="color:var(--text-muted);">${item.time}</td>
+          <td><span style="color:var(--accent-purple); font-weight:700;">${item.vus} VUs</span></td>
+          <td>${item.pairs} Pasang</td>
+          <td><strong style="color:var(--accent-green);">${item.successRate}</strong></td>
+          <td>${item.avgLatency}</td>
+          <td>${item.p95Latency}</td>
+          <td><span style="color:var(--accent-cyan); font-weight:600;">${item.portRange}</span></td>
+          <td><span>${item.status}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // EXPORT MULTI-RUN COMPARISON TO CSV
+    function exportComparisonCsv() {
+      if (comparisonHistory.length === 0) {
+        alert('Belum ada riwayat analisis komparasi untuk diekspor!');
+        return;
+      }
+
+      let csv = 'Uji_Ke,Waktu,Beban_VUs,Panggilan_Simultan,Success_Rate,Avg_Latency,p95_Latency,Rentang_Port_Relay,Status_Ketahanan_Server\n';
+      comparisonHistory.forEach(item => {
+        csv += `${item.runId},"${item.time}",${item.vus},${item.pairs},"${item.successRate}","${item.avgLatency}","${item.p95Latency}","${item.portRange}","${item.status}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `analisis_komparasi_beban_vus_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

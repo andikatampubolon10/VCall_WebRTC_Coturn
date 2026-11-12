@@ -25,14 +25,17 @@ const COTURN_PORT = parseInt(process.env.COTURN_PORT || '3478');
 const COTURN_USER = process.env.COTURN_USER || 'simulasi';
 const COTURN_PASS = process.env.COTURN_PASS || 'password123';
 
-const TOTAL_PAIRS = 50; // 50 pasang = 100 Pengguna Berbarengan
-const CALL_DURATION_MS = 5000; // Tiap panggilan bertahan 5 detik
+// Konfigurasi Dinamis Virtual Users (VUs)
+const inputVUs = parseInt(process.argv[2]) || parseInt(process.env.VUS) || 100;
+const TOTAL_PAIRS = Math.max(1, Math.floor(inputVUs / 2));
+const TOTAL_VUS = TOTAL_PAIRS * 2;
+const CALL_DURATION_MS = parseInt(process.argv[3]) || parseInt(process.env.DURATION_MS) || 5000;
 
 console.log('======================================================================');
-console.log('🚀 PENGUJIAN BEBAN SEJATI: 100 CONCURRENT WEBRTC & COTURN USERS');
+console.log(`🚀 PENGUJIAN BEBAN SEJATI: ${TOTAL_VUS} CONCURRENT WEBRTC & COTURN USERS`);
 console.log(`📡 Target Gateway   : ${TARGET_URL}`);
 console.log(`🛡️ Target CoTURN    : udp://${COTURN_HOST}:${COTURN_PORT} (User: ${COTURN_USER})`);
-console.log(`👥 Total Users      : ${TOTAL_PAIRS * 2} Virtual Users (${TOTAL_PAIRS} Panggilan Paralel)`);
+console.log(`👥 Total Users      : ${TOTAL_VUS} Virtual Users (${TOTAL_PAIRS} Panggilan Paralel)`);
 console.log(`⏱️ Durasi Panggilan : ${CALL_DURATION_MS / 1000} detik per sesi`);
 console.log('⚡ Engine Protokol  : Real RFC 5766 STUN/TURN Binary Handshake & UDP Relay Stream');
 console.log('======================================================================\n');
@@ -341,16 +344,19 @@ function runCallPair(pairId) {
 
 async function runBenchmark() {
   const benchmarkStart = Date.now();
-  console.log('⏳ Memulai pengujian 50 pasang panggilan simultan dengan alokasi TURN UDP nyata...\n');
+  console.log(`⏳ Memulai pengujian ${TOTAL_PAIRS} pasang panggilan simultan (${TOTAL_VUS} VUs) dengan alokasi TURN UDP nyata...\n`);
 
+  const rampDelay = TOTAL_PAIRS > 1000 ? Math.max(1, Math.floor(5000 / TOTAL_PAIRS)) : 60;
   const promises = [];
   for (let i = 1; i <= TOTAL_PAIRS; i++) {
     promises.push(runCallPair(i));
-    await wait(60); // Staggered arrival
-    process.stdout.write(`\r[RAMP-UP] Membuka Pasang #${i} / ${TOTAL_PAIRS} (Aktif: ${i * 2} Users)...`);
+    if (rampDelay > 0) await wait(rampDelay);
+    if (i % (TOTAL_PAIRS > 500 ? 50 : 5) === 0 || i === TOTAL_PAIRS) {
+      process.stdout.write(`\r[RAMP-UP] Membuka Pasang #${i} / ${TOTAL_PAIRS} (Aktif: ${i * 2} Users)...`);
+    }
   }
 
-  console.log('\n\n🔥 SEMUA 100 PENGGUNA SEDANG MENGALIRKAN PAKET UDP KE SERVER COTURN...');
+  console.log(`\n\n🔥 SEMUA ${TOTAL_VUS} PENGGUNA SEDANG MENGALIRKAN PAKET UDP KE SERVER COTURN...`);
   console.log('Mempertahankan sesi panggilan media...');
 
   const results = await Promise.all(promises);
@@ -367,10 +373,10 @@ async function runBenchmark() {
   const maxLatency = stats.latencies.length > 0 ? Math.max(...stats.latencies) : 0;
 
   console.log('\n======================================================================');
-  console.log('📊 HASIL PENGUJIAN BEBAN SEJATI: 100 CONCURRENT USERS COTURN');
+  console.log(`📊 HASIL PENGUJIAN BEBAN SEJATI: ${TOTAL_VUS} CONCURRENT USERS COTURN`);
   console.log('======================================================================');
   console.log(`⏱️ Total Waktu Pengujian      : ${totalDuration} detik`);
-  console.log(`👥 Total Virtual Users        : ${TOTAL_PAIRS * 2} Pengguna (50 Pasang Panggilan)`);
+  console.log(`👥 Total Virtual Users        : ${TOTAL_VUS} Pengguna (${TOTAL_PAIRS} Pasang Panggilan)`);
   console.log(`📞 Panggilan Dimulai          : ${stats.totalInitiated} panggilan`);
   console.log(`✅ Panggilan Berhasil (Relay) : ${stats.totalCompleted} panggilan`);
   console.log(`❌ Panggilan Gagal            : ${TOTAL_PAIRS - successCount} panggilan`);
@@ -383,7 +389,9 @@ async function runBenchmark() {
   console.log(`   - Tercepat (Min)           : ${minLatency} ms`);
   console.log(`   - Terlambat (Max)          : ${maxLatency} ms`);
   console.log('----------------------------------------------------------------------');
-  console.log(`🌐 RENTANG PORT RELAY AKTIF  : Port ${Math.min(...stats.allocatedRelayPorts)} s/d ${Math.max(...stats.allocatedRelayPorts)}`);
+  const minRelay = stats.allocatedRelayPorts.length ? Math.min(...stats.allocatedRelayPorts) : '-';
+  const maxRelay = stats.allocatedRelayPorts.length ? Math.max(...stats.allocatedRelayPorts) : '-';
+  console.log(`🌐 RENTANG PORT RELAY AKTIF  : Port ${minRelay} s/d ${maxRelay}`);
   console.log('🗄️ BUKTI LOG DOCKER           : Cek perintah "docker logs coturn-simulasi --tail 30"');
   console.log('======================================================================\n');
 }

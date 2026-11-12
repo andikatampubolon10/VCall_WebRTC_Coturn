@@ -149,7 +149,7 @@ INFO realm <localhost> user <simulasi>: incoming packet ALLOCATE processed, succ
 
 ## 6. Tiga Bukti Ilmiah Keaslian Pengujian
 
-Jika dosen penguji bertanya: *"Bagaimana membuktikan bahwa ini bukan sekadar dummy script atau angka rekayasa?"*
+Jika terdapat pertanyaan evaluasi proyek: *"Bagaimana membuktikan bahwa ini bukan sekadar dummy script atau angka rekayasa?"*
 
 Tunjukkan 3 pembuktian tak terbantahkan ini:
 
