@@ -17,23 +17,155 @@ function crc32(buf) {
   return (crc ^ 0xFFFFFFFF) >>> 0;
 }
 
+function requestRealStunBinding(host = '127.0.0.1', port = 3478) {
+  return new Promise((resolve) => {
+    const socket = dgram.createSocket('udp4');
+    const startMs = Date.now();
+    let resolved = false;
+
+    const cleanup = (mappedPort, err) => {
+      if (resolved) return;
+      resolved = true;
+      try { socket.close(); } catch(e){}
+      if (mappedPort) {
+        resolve({ success: true, relayPort: mappedPort, turnRttMs: Date.now() - startMs, mode: 'STUN-SRFLX' });
+      } else {
+        resolve({ success: false, error: err || 'STUN Binding Timeout' });
+      }
+    };
+
+    const timer = setTimeout(() => cleanup(null, 'STUN Binding timeout 3000ms'), 3000);
+    const txId = crypto.randomBytes(12);
+    const header = Buffer.alloc(20);
+    header.writeUInt16BE(0x0001, 0); // STUN Binding Request
+    header.writeUInt16BE(0, 2);
+    header.writeUInt32BE(0x2112A442, 4);
+    txId.copy(header, 8);
+
+    socket.on('message', (msg) => {
+      if (msg.length < 20) return;
+      const type = msg.readUInt16BE(0);
+      if (type === 0x0101) { // Binding Success Response
+        clearTimeout(timer);
+        let offset = 20;
+        let mappedPort = null;
+        while (offset < msg.length) {
+          const aType = msg.readUInt16BE(offset);
+          const aLen = msg.readUInt16BE(offset + 2);
+          if (aType === 0x0020) { // XOR-MAPPED-ADDRESS
+            mappedPort = msg.readUInt16BE(offset + 6) ^ 0x2112;
+            break;
+          }
+          offset += 4 + aLen + ((4 - (aLen % 4)) % 4);
+        }
+        cleanup(mappedPort || port);
+      }
+    });
+
+    socket.on('error', (e) => cleanup(null, e.message));
+    socket.send(header, port, host, (err) => {
+      if (err) cleanup(null, err.message);
+    });
+  });
+}
+
+const activeTurnAllocations = new Map();
+
+function sendTurnRefreshZero(session) {
+  if (!session || !session.socket) return;
+  try {
+    const { socket, host, port, username, realm, nonce, key } = session;
+    const tx = crypto.randomBytes(12);
+    const header = Buffer.alloc(20);
+    header.writeUInt16BE(0x0004, 0); // Refresh Request
+    header.writeUInt32BE(0x2112A442, 4);
+    tx.copy(header, 8);
+
+    const parts = [];
+    // LIFETIME = 0 (0x000D, len 4, value 0) -> Bebaskan port seketika
+    parts.push(Buffer.from([0x00, 0x0d, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00]));
+
+    const uBuf = Buffer.from(username);
+    const uAttr = Buffer.alloc(4 + uBuf.length + ((4 - (uBuf.length % 4)) % 4));
+    uAttr.writeUInt16BE(0x0006, 0);
+    uAttr.writeUInt16BE(uBuf.length, 2);
+    uBuf.copy(uAttr, 4);
+    parts.push(uAttr);
+
+    const rBuf = Buffer.from(realm);
+    const rAttr = Buffer.alloc(4 + rBuf.length + ((4 - (rBuf.length % 4)) % 4));
+    rAttr.writeUInt16BE(0x0014, 0);
+    rAttr.writeUInt16BE(rBuf.length, 2);
+    rBuf.copy(rAttr, 4);
+    parts.push(rAttr);
+
+    const nBuf = Buffer.from(nonce);
+    const nAttr = Buffer.alloc(4 + nBuf.length + ((4 - (nBuf.length % 4)) % 4));
+    nAttr.writeUInt16BE(0x0015, 0);
+    nAttr.writeUInt16BE(nBuf.length, 2);
+    nBuf.copy(nAttr, 4);
+    parts.push(nAttr);
+
+    const bodyBeforeMi = Buffer.concat(parts);
+    const totalLenWithMi = bodyBeforeMi.length + 24;
+    header.writeUInt16BE(totalLenWithMi, 2);
+
+    const hmac = crypto.createHmac('sha1', key);
+    hmac.update(Buffer.concat([header, bodyBeforeMi]));
+    const miHash = hmac.digest();
+
+    const miAttr = Buffer.alloc(24);
+    miAttr.writeUInt16BE(0x0008, 0);
+    miAttr.writeUInt16BE(20, 2);
+    miHash.copy(miAttr, 4);
+
+    const totalLenWithFp = totalLenWithMi + 8;
+    header.writeUInt16BE(totalLenWithFp, 2);
+
+    const fullWithoutFp = Buffer.concat([header, bodyBeforeMi, miAttr]);
+    const fpCrc = (crc32(fullWithoutFp) ^ 0x5354554e) >>> 0;
+    const fpAttr = Buffer.alloc(8);
+    fpAttr.writeUInt16BE(0x8028, 0);
+    fpAttr.writeUInt16BE(4, 2);
+    fpAttr.writeUInt32BE(fpCrc, 4);
+
+    socket.send(Buffer.concat([header, bodyBeforeMi, miAttr, fpAttr]), port, host, () => {
+      setTimeout(() => { try { socket.close(); } catch(e){} }, 50);
+    });
+  } catch (e) {
+    try { session.socket.close(); } catch(e2){}
+  }
+}
+
 function requestRealTurnAllocation(host = '127.0.0.1', port = 3478, username = 'simulasi', password = 'password123') {
   return new Promise((resolve) => {
     const socket = dgram.createSocket('udp4');
+    const startMs = Date.now();
     let resolved = false;
+    let authAttempted = false;
+    let authContext = null;
 
     const cleanup = (relayPort, err) => {
       if (resolved) return;
       resolved = true;
-      try { socket.close(); } catch(e){}
-      if (relayPort) {
-        resolve({ success: true, relayPort });
+      if (relayPort && authContext) {
+        const allocId = crypto.randomBytes(8).toString('hex');
+        const safetyTimer = setTimeout(() => {
+          const s = activeTurnAllocations.get(allocId);
+          if (s) {
+            activeTurnAllocations.delete(allocId);
+            sendTurnRefreshZero(s);
+          }
+        }, 60000);
+        activeTurnAllocations.set(allocId, { socket, host, port, ...authContext, safetyTimer });
+        resolve({ success: true, relayPort, allocId, turnRttMs: Date.now() - startMs, mode: 'COTURN-RELAY' });
       } else {
-        resolve({ success: false, error: err || 'Timeout' });
+        try { socket.close(); } catch(e){}
+        resolve({ success: false, error: err || 'TURN Allocate Timeout' });
       }
     };
 
-    const timer = setTimeout(() => cleanup(null, 'TURN allocate timeout 3000ms'), 3000);
+    const timer = setTimeout(() => cleanup(null, 'TURN allocate timeout 3000ms (CoTURN Tidak Merespons)'), 3000);
 
     const txId = crypto.randomBytes(12);
     const header = Buffer.alloc(20);
@@ -49,14 +181,26 @@ function requestRealTurnAllocation(host = '127.0.0.1', port = 3478, username = '
 
       if (type === 0x0113) {
         let offset = 20;
-        let realm = '', nonce = '';
+        let realm = '', nonce = '', errorCode = 0, errorReason = '';
         while (offset < msg.length) {
           const aType = msg.readUInt16BE(offset);
           const aLen = msg.readUInt16BE(offset + 2);
           if (aType === 0x0014) realm = msg.toString('utf8', offset + 4, offset + 4 + aLen);
           if (aType === 0x0015) nonce = msg.toString('utf8', offset + 4, offset + 4 + aLen);
+          if (aType === 0x0009 && aLen >= 4) {
+            const errClass = msg.readUInt8(offset + 6) & 0x07;
+            const errNum = msg.readUInt8(offset + 7);
+            errorCode = errClass * 100 + errNum;
+            errorReason = msg.toString('utf8', offset + 8, offset + 4 + aLen);
+          }
           offset += 4 + aLen + ((4 - (aLen % 4)) % 4);
         }
+
+        if (authAttempted) {
+          clearTimeout(timer);
+          return cleanup(null, `CoTURN Error ${errorCode || 'Rejected'}: ${errorReason || 'Auth/Quota Failed'}`);
+        }
+        authAttempted = true;
 
         const newTx = crypto.randomBytes(12);
         const authHeader = Buffer.alloc(20);
@@ -93,6 +237,7 @@ function requestRealTurnAllocation(host = '127.0.0.1', port = 3478, username = '
         authHeader.writeUInt16BE(totalLenWithMi, 2);
 
         const key = crypto.createHash('md5').update(`${username}:${realm}:${password}`).digest();
+        authContext = { username, realm, nonce, key };
         const hmac = crypto.createHmac('sha1', key);
         hmac.update(Buffer.concat([authHeader, bodyBeforeMi]));
         const miHash = hmac.digest();
@@ -126,7 +271,14 @@ function requestRealTurnAllocation(host = '127.0.0.1', port = 3478, username = '
           }
           offset += 4 + aLen + ((4 - (aLen % 4)) % 4);
         }
-        cleanup(relayPort);
+        if (relayPort) {
+          // Kirim 3 paket UDP probe nyata ke Port Relay yang dialokasikan CoTURN
+          const probeBuf = Buffer.alloc(128, 0x80);
+          for (let p = 0; p < 3; p++) {
+            try { socket.send(probeBuf, relayPort, host); } catch(e){}
+          }
+        }
+        cleanup(relayPort, relayPort ? null : 'XOR-RELAYED-ADDRESS tidak ditemukan');
       }
     });
 
@@ -173,21 +325,42 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  // API Alokasi Turn Asli via Protokol UDP RFC 5766 ke CoTURN Port 3478
+  // API Alokasi STUN/TURN Asli via Protokol UDP RFC 5389/5766 ke Target CoTURN Host & Port
   if (req.url.startsWith('/api/benchmark/allocate')) {
-    const coturnHost = process.env.COTURN_HOST || '127.0.0.1';
-    const coturnPort = parseInt(process.env.COTURN_PORT || '3478');
+    const reqUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    let coturnHost = reqUrl.searchParams.get('host') || process.env.COTURN_HOST || '127.0.0.1';
+    if (coturnHost === 'localhost') coturnHost = '127.0.0.1';
+    const coturnPort = parseInt(reqUrl.searchParams.get('port') || process.env.COTURN_PORT || '3478');
+    const mode = reqUrl.searchParams.get('mode') || 'relay';
     const coturnUser = process.env.COTURN_USER || 'simulasi';
     const coturnPass = process.env.COTURN_PASS || 'password123';
 
     try {
-      const allocResult = await requestRealTurnAllocation(coturnHost, coturnPort, coturnUser, coturnPass);
+      const allocResult = mode === 'all'
+        ? await requestRealStunBinding(coturnHost, coturnPort)
+        : await requestRealTurnAllocation(coturnHost, coturnPort, coturnUser, coturnPass);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify(allocResult));
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: false, error: err.message }));
     }
+  }
+
+  // API Pelepasan Port CoTURN Instan (TURN Refresh Lifetime=0 RFC 5766)
+  if (req.url.startsWith('/api/benchmark/deallocate')) {
+    const reqUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    const allocId = reqUrl.searchParams.get('id');
+    if (allocId && activeTurnAllocations.has(allocId)) {
+      const session = activeTurnAllocations.get(allocId);
+      activeTurnAllocations.delete(allocId);
+      if (session.safetyTimer) clearTimeout(session.safetyTimer);
+      sendTurnRefreshZero(session);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true, released: true }));
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true, released: false }));
   }
 
   // Halaman Utama: Langsung Tampilkan Dashboard Pengujian Beban di http://localhost:3000

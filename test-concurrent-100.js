@@ -74,19 +74,69 @@ function requestRealTurnAllocation(host, port, username, password) {
   return new Promise((resolve) => {
     const socket = dgram.createSocket('udp4');
     let resolved = false;
+    let authContext = null;
+
+    const sendRefreshZero = () => {
+      if (!authContext) {
+        try { socket.close(); } catch(e){}
+        return;
+      }
+      try {
+        const { realm, nonce, key } = authContext;
+        const tx = crypto.randomBytes(12);
+        const h = Buffer.alloc(20);
+        h.writeUInt16BE(0x0004, 0); // Refresh Request
+        h.writeUInt32BE(0x2112A442, 4);
+        tx.copy(h, 8);
+
+        const parts = [Buffer.from([0x00, 0x0d, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00])]; // LIFETIME = 0
+        const uBuf = Buffer.from(username);
+        const uAttr = Buffer.alloc(4 + uBuf.length + ((4 - (uBuf.length % 4)) % 4));
+        uAttr.writeUInt16BE(0x0006, 0); uAttr.writeUInt16BE(uBuf.length, 2); uBuf.copy(uAttr, 4); parts.push(uAttr);
+
+        const rBuf = Buffer.from(realm);
+        const rAttr = Buffer.alloc(4 + rBuf.length + ((4 - (rBuf.length % 4)) % 4));
+        rAttr.writeUInt16BE(0x0014, 0); rAttr.writeUInt16BE(rBuf.length, 2); rBuf.copy(rAttr, 4); parts.push(rAttr);
+
+        const nBuf = Buffer.from(nonce);
+        const nAttr = Buffer.alloc(4 + nBuf.length + ((4 - (nBuf.length % 4)) % 4));
+        nAttr.writeUInt16BE(0x0015, 0); nAttr.writeUInt16BE(nBuf.length, 2); nBuf.copy(nAttr, 4); parts.push(nAttr);
+
+        const body = Buffer.concat(parts);
+        h.writeUInt16BE(body.length + 24, 2);
+        const hmac = crypto.createHmac('sha1', key);
+        hmac.update(Buffer.concat([h, body]));
+        const miHash = hmac.digest();
+        const miAttr = Buffer.alloc(24);
+        miAttr.writeUInt16BE(0x0008, 0); miAttr.writeUInt16BE(20, 2); miHash.copy(miAttr, 4);
+
+        h.writeUInt16BE(body.length + 32, 2);
+        const noFp = Buffer.concat([h, body, miAttr]);
+        const fpCrc = (crc32(noFp) ^ 0x5354554e) >>> 0;
+        const fpAttr = Buffer.alloc(8);
+        fpAttr.writeUInt16BE(0x8028, 0); fpAttr.writeUInt16BE(4, 2); fpAttr.writeUInt32BE(fpCrc, 4);
+
+        socket.send(Buffer.concat([noFp, fpAttr]), port, host, () => {
+          setTimeout(() => { try { socket.close(); } catch(e){} }, 50);
+        });
+      } catch(e) {
+        try { socket.close(); } catch(e2){}
+      }
+    };
 
     const cleanup = (relayPort, err) => {
       if (resolved) return;
       resolved = true;
-      try { socket.close(); } catch(e){}
       if (relayPort) {
-        resolve({ success: true, relayPort });
+        resolve({ success: true, relayPort, deallocate: sendRefreshZero });
       } else {
+        try { socket.close(); } catch(e){}
         resolve({ success: false, error: err || 'Timeout' });
       }
     };
 
     const timer = setTimeout(() => cleanup(null, 'TURN allocate timeout 4000ms'), 4000);
+    let authAttempted = false;
 
     // Initial allocate (triggers 401 challenge)
     const txId = crypto.randomBytes(12);
@@ -104,14 +154,26 @@ function requestRealTurnAllocation(host, port, username, password) {
       if (type === 0x0113) {
         // 401 Unauthorized -> Extract realm & nonce
         let offset = 20;
-        let realm = '', nonce = '';
+        let realm = '', nonce = '', errorCode = 0, errorReason = '';
         while (offset < msg.length) {
           const aType = msg.readUInt16BE(offset);
           const aLen = msg.readUInt16BE(offset + 2);
           if (aType === 0x0014) realm = msg.toString('utf8', offset + 4, offset + 4 + aLen);
           if (aType === 0x0015) nonce = msg.toString('utf8', offset + 4, offset + 4 + aLen);
+          if (aType === 0x0009 && aLen >= 4) {
+            const errClass = msg.readUInt8(offset + 6) & 0x07;
+            const errNum = msg.readUInt8(offset + 7);
+            errorCode = errClass * 100 + errNum;
+            errorReason = msg.toString('utf8', offset + 8, offset + 4 + aLen);
+          }
           offset += 4 + aLen + ((4 - (aLen % 4)) % 4);
         }
+
+        if (authAttempted) {
+          clearTimeout(timer);
+          return cleanup(null, `CoTURN Error ${errorCode}: ${errorReason}`);
+        }
+        authAttempted = true;
 
         // Send authenticated allocate
         const newTx = crypto.randomBytes(12);
@@ -152,6 +214,7 @@ function requestRealTurnAllocation(host, port, username, password) {
         authHeader.writeUInt16BE(totalLenWithMi, 2);
 
         const key = crypto.createHash('md5').update(`${username}:${realm}:${password}`).digest();
+        authContext = { realm, nonce, key };
         const hmac = crypto.createHmac('sha1', key);
         hmac.update(Buffer.concat([authHeader, bodyBeforeMi]));
         const miHash = hmac.digest();
@@ -270,10 +333,21 @@ function runCallPair(pairId) {
           stats.latencies.push(handshakeLatency);
           stats.totalConnected++;
 
-          // 1. LAKUKAN HANDSHAKE TURN NYATA KE COTURN VIA UDP
+          // 1. LAKUKAN HANDSHAKE TURN NYATA KE COTURN VIA UDP (TANPA DUMMY FALLBACK)
           const turnResult = await requestRealTurnAllocation(COTURN_HOST, COTURN_PORT, COTURN_USER, COTURN_PASS);
-          const realRelayPort = turnResult.success ? turnResult.relayPort : (49160 + (pairId % 200));
-
+          if (!turnResult.success || !turnResult.relayPort) {
+            pairSuccess = true;
+            clearTimeout(timeout);
+            stats.totalFailed++;
+            try { wsA.close(); wsB.close(); } catch(e){}
+            return resolve({
+              pairId,
+              success: false,
+              reason: turnResult.error || 'CoTURN Relay Allocation Failed',
+              isRealTurn: false
+            });
+          }
+          const realRelayPort = turnResult.relayPort;
           stats.allocatedRelayPorts.push(realRelayPort);
 
           // 2. Kirim SDP Offer
@@ -305,9 +379,10 @@ function runCallPair(pairId) {
           // Panggilan berlangsung selama durasi yang ditentukan
           await wait(CALL_DURATION_MS);
 
-          // Hentikan aliran media UDP
+          // Hentikan aliran media UDP & bebaskan port CoTURN seketika (Refresh Lifetime=0)
           if (mediaInterval) clearInterval(mediaInterval);
           try { mediaSocket.close(); } catch(e){}
+          if (turnResult.deallocate) turnResult.deallocate();
 
           // Akhiri panggilan & rekam ke database
           wsA.send(JSON.stringify({

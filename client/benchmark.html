@@ -435,6 +435,13 @@
       color: var(--accent-cyan);
     }
 
+    .port-chip.failed {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: var(--accent-red);
+      color: #fca5a5;
+      font-weight: 700;
+    }
+
     /* TERMINAL LOG STREAM */
     .terminal-card {
       background: #080d1a;
@@ -666,11 +673,17 @@
                    oninput="onSliderChange(this.value)">
 
             <!-- INPUT KUSTOM & INDIKATOR PASANGAN S/D 100.000 -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(10,15,29,0.8); border:1px solid var(--border); border-radius:6px; padding:6px 10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(10,15,29,0.8); border:1px solid var(--border); border-radius:6px; padding:6px 10px; margin-bottom:8px;">
               <span style="font-size:12px; color:var(--text-muted);">Kustom VUs (Maks 100.000):</span>
               <input type="number" id="customVusInput" class="form-control" style="width:110px; padding:4px 6px; text-align:center; font-weight:700;" 
                      value="100" min="2" max="100000" step="2" onchange="onCustomVusChange(this.value)">
               <span id="calculatedPairsText" style="font-size:12px; color:var(--accent-cyan); font-weight:600;">= 50 Pasang</span>
+            </div>
+
+            <!-- KALKULATOR RENTANG PORT COTURN SESUAI VUs -->
+            <div id="portRequirementInfo" style="font-size:11px; color:var(--text-muted); background:rgba(6,182,212,0.08); border:1px solid rgba(6,182,212,0.25); border-radius:6px; padding:7px 10px; line-height:1.5;">
+              🔌 Kebutuhan CoTURN: <strong>50 Port</strong> (Rekomendasi: <code style="color:var(--accent-cyan);">49152–49212</code>)<br>
+              💻 Command VPS: <code style="color:var(--accent-green);">sudo ./set-coturn-ports.sh 100</code>
             </div>
           </div>
 
@@ -900,6 +913,20 @@
       document.getElementById('kpiTotalUsers').innerText = `0 / ${formattedVUs}`;
       document.getElementById('kpiPairs').innerText = `0 Selesai (${formattedPairs} Pasang)`;
 
+      // Kalkulasi rentang port CoTURN sesuai beban VUs (termasuk buffer 10%)
+      const neededPorts = pairs + Math.floor(pairs / 10) + 10;
+      let recMin = 49152;
+      let recMax = 65535;
+      if (neededPorts <= 16384) {
+        recMax = Math.min(65535, recMin + neededPorts - 1);
+      } else {
+        recMin = Math.max(10000, recMax - neededPorts + 1);
+      }
+      const reqInfoEl = document.getElementById('portRequirementInfo');
+      if (reqInfoEl) {
+        reqInfoEl.innerHTML = `🔌 Kebutuhan CoTURN: <strong>${formattedPairs} Port</strong> (Rekomendasi VPS: <code style="color:var(--accent-cyan);">${recMin}–${recMax}</code>)<br>💻 Command VPS: <code style="color:var(--accent-green);">sudo ./set-coturn-ports.sh ${vus}</code>`;
+      }
+
       renderPortGrid(pairs);
     }
 
@@ -909,18 +936,15 @@
       
       const maxVisualChips = 120; // Menampilkan hingga 120 chip port visual agar browser tetap ringan & responsif
       const displayCount = Math.min(count, maxVisualChips);
-      const endPort = BASE_RELAY_PORT + (count * 2) - 2;
-      const portRangeStr = endPort > 65535 ? `:${BASE_RELAY_PORT} s/d Multi-Node Cluster` : `:${BASE_RELAY_PORT} s/d :${endPort}`;
       
-      document.getElementById('portCountDisplay').innerText = `${count.toLocaleString('id-ID')} Port (${portRangeStr})`;
+      document.getElementById('portCountDisplay').innerText = `${count.toLocaleString('id-ID')} Sesi (Menunggu Alokasi CoTURN Nyata)`;
       
       for (let i = 0; i < displayCount; i++) {
-        const port = BASE_RELAY_PORT + ((i * 2) % 240); // Siklus port relay CoTURN
         const div = document.createElement('div');
         div.className = 'port-chip';
         div.id = `port-chip-${i + 1}`;
-        div.innerText = `:${port}`;
-        div.title = `CoTURN Relay Port: ${port} (Pair #${i + 1})`;
+        div.innerText = `#${i + 1}`;
+        div.title = `Slot Pasang #${i + 1} — Port akan diisi otomatis dari respons CoTURN`;
         grid.appendChild(div);
       }
 
@@ -933,7 +957,7 @@
         summaryChip.style.color = 'var(--accent-cyan)';
         summaryChip.style.padding = '8px';
         summaryChip.style.fontWeight = '600';
-        summaryChip.innerText = `+ ${(count - maxVisualChips).toLocaleString('id-ID')} Alokasi Port Relay Tambahan Berjalan di Cluster CoTURN Pool`;
+        summaryChip.innerText = `+ ${(count - maxVisualChips).toLocaleString('id-ID')} Slot Sesi Tambahan`;
         grid.appendChild(summaryChip);
       }
     }
@@ -968,18 +992,29 @@
       document.getElementById('terminalLogs').innerHTML = '';
     }
 
-    // MAIN BENCHMARK ENGINE (DENGAN ADAPTIVE BATCHING S/D 100.000 VUs)
+    // MAIN BENCHMARK ENGINE (DENGAN ADAPTIVE BATCHING & 100% REAL SERVER PROTOCOL)
     async function startBenchmark() {
       if (isRunning) return;
+
+      const targetWs = document.getElementById('targetWs').value.trim();
+      const coturnHostPort = document.getElementById('coturnHostPort').value.trim();
+      if (!targetWs || !coturnHostPort) {
+        alert('Target WebSocket Gateway dan Target CoTURN Host & Port wajib diisi (tidak boleh kosong)!');
+        return;
+      }
+
       isRunning = true;
       resultsData = [];
 
       const totalVUs = currentVUs;
       const pairs = Math.max(1, Math.floor(totalVUs / 2));
       totalPairsTarget = pairs;
-      const targetWs = document.getElementById('targetWs').value.trim();
       const durationMs = parseInt(document.getElementById('callDuration').value) || 5000;
       const icePolicy = document.getElementById('icePolicy').value;
+
+      const [cHostRaw, cPortRaw] = coturnHostPort.split(':');
+      const coturnHost = (cHostRaw || '127.0.0.1').trim();
+      const coturnPort = parseInt(cPortRaw || '3478');
 
       document.getElementById('btnStart').disabled = true;
       document.getElementById('btnStart').style.display = 'none';
@@ -988,8 +1023,8 @@
 
       // Reset ports
       renderPortGrid(pairs);
-      logTerminal('INFO', `🚀 MEMULAI BENCHMARK: ${totalVUs.toLocaleString('id-ID')} Virtual Users (${pairs.toLocaleString('id-ID')} Pasang Panggilan Simultan).`);
-      logTerminal('INFO', `📡 Gateway: ${targetWs} | ⏱️ Durasi Panggilan: ${durationMs / 1000}s`);
+      logTerminal('INFO', `🚀 MEMULAI BENCHMARK 100% REAL: ${totalVUs.toLocaleString('id-ID')} Virtual Users (${pairs.toLocaleString('id-ID')} Pasang Panggilan Simultan).`);
+      logTerminal('INFO', `📡 Gateway: ${targetWs} | 🛡️ CoTURN Target: ${coturnHost}:${coturnPort} | ⏱️ Durasi: ${durationMs / 1000}s`);
 
       let completedCount = 0;
       let successCount = 0;
@@ -1031,7 +1066,7 @@
         const currentBatch = [];
 
         for (let j = i; j < i + batchSize && j <= pairs; j++) {
-          currentBatch.push(runVirtualCallPair(j, targetWs, durationMs, icePolicy));
+          currentBatch.push(runVirtualCallPair(j, targetWs, coturnHost, coturnPort, durationMs, icePolicy));
         }
 
         const batchResults = await Promise.all(currentBatch);
@@ -1055,21 +1090,25 @@
         }
       }
 
-      logTerminal('SUCCESS', `🎉 BENCHMARK SELESAI: ${successCount.toLocaleString('id-ID')} dari ${pairs.toLocaleString('id-ID')} pasang panggilan sukses (Success Rate: ${((successCount / pairs) * 100).toFixed(1)}%).`);
+      logTerminal(successCount === pairs ? 'SUCCESS' : 'WARN', `🏁 BENCHMARK SELESAI: ${successCount.toLocaleString('id-ID')} dari ${pairs.toLocaleString('id-ID')} pasang panggilan sukses (Success Rate: ${((successCount / pairs) * 100).toFixed(1)}%).`);
 
       // Rekam ke Tabel Analisis Komparasi Multi-Run
-      const allocatedPorts = resultsData.filter(r => r.port).map(r => r.port);
+      const allocatedPorts = resultsData.filter(r => r.success && typeof r.port === 'number').map(r => r.port);
       const minP = allocatedPorts.length ? Math.min(...allocatedPorts) : '-';
       const maxP = allocatedPorts.length ? Math.max(...allocatedPorts) : '-';
-      const finalRate = completedCount > 0 ? ((successCount / completedCount) * 100).toFixed(1) : '100.0';
+      const finalRate = completedCount > 0 ? ((successCount / completedCount) * 100).toFixed(1) : '0.0';
       const finalAvg = latencies.length ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0;
       const sorted = [...latencies].sort((a,b) => a - b);
       const finalP95 = sorted[Math.floor(sorted.length * 0.95)] || finalAvg;
 
       let healthTag = '🟢 Beban Ringan / Optimal';
-      if (totalVUs > 100 && totalVUs <= 1000) healthTag = '🔵 Skala Menengah (Stabil)';
-      if (totalVUs > 1000 && totalVUs <= 10000) healthTag = '🟡 Beban Tinggi (Enterprise High-Traffic)';
-      if (totalVUs > 10000) healthTag = '🟣 Skala Masif Ekstrem (Cluster Multi-Node)';
+      if (parseFloat(finalRate) < 90) {
+        healthTag = '🔴 Overload / Terjadi Kegagalan';
+      } else {
+        if (totalVUs > 100 && totalVUs <= 1000) healthTag = '🔵 Skala Menengah (Stabil)';
+        if (totalVUs > 1000 && totalVUs <= 10000) healthTag = '🟡 Beban Tinggi (Enterprise High-Traffic)';
+        if (totalVUs > 10000) healthTag = '🟣 Skala Masif Ekstrem (Cluster Multi-Node)';
+      }
 
       const runSummary = {
         runId: comparisonHistory.length + 1,
@@ -1079,7 +1118,7 @@
         successRate: `${finalRate}%`,
         avgLatency: `${finalAvg} ms`,
         p95Latency: `${finalP95} ms`,
-        portRange: minP !== '-' ? `:${minP} - :${maxP}` : '-',
+        portRange: minP !== '-' ? `:${minP} - :${maxP}` : 'Gagal',
         status: healthTag
       };
       comparisonHistory.push(runSummary);
@@ -1095,13 +1134,13 @@
       document.getElementById('btnStop').style.display = 'none';
     }
 
-    // SIMULASI 1 PASANG PANGGILAN SINTETIS DARI BROWSER
-    function runVirtualCallPair(pairId, targetWs, durationMs, icePolicy) {
+    // SIMULASI 1 PASANG PANGGILAN NYATA KE GATEWAY & COTURN (TANPA DUMMY FALLBACK)
+    function runVirtualCallPair(pairId, targetWs, coturnHost, coturnPort, durationMs, icePolicy) {
       return new Promise((resolve) => {
         const callerId = `Dokter_A_${pairId}`;
         const calleeId = `Pasien_B_${pairId}`;
-        const relayPort = BASE_RELAY_PORT + ((pairId - 1) * 2);
         const portChip = document.getElementById(`port-chip-${pairId}`);
+        const httpBase = targetWs.replace(/^ws:/, 'http:').replace(/^wss:/, 'https:').replace(/\/$/, '');
 
         let startTime = 0;
         let pairFinished = false;
@@ -1111,12 +1150,13 @@
           wsA = new WebSocket(targetWs);
           wsB = new WebSocket(targetWs);
         } catch (e) {
+          if (portChip) { portChip.className = 'port-chip failed'; portChip.innerText = 'ERR'; }
           return resolve({
             pairId,
             caller: callerId,
             callee: calleeId,
             latency: 0,
-            port: relayPort,
+            port: '-',
             icePath: 'FAILED',
             status: 'Failed (WS Connect Error)',
             success: false
@@ -1128,13 +1168,14 @@
           if (!pairFinished) {
             pairFinished = true;
             try { wsA.close(); wsB.close(); } catch(e){}
-            logTerminal('ERROR', `[Pair #${pairId}] Timeout panggilan (15s).`);
+            if (portChip) { portChip.className = 'port-chip failed'; portChip.innerText = 'TMO'; }
+            logTerminal('ERROR', `[Pair #${pairId}] Timeout panggilan (15s) - Server tidak merespons.`);
             resolve({
               pairId,
               caller: callerId,
               callee: calleeId,
               latency: 0,
-              port: relayPort,
+              port: '-',
               icePath: 'TIMEOUT',
               status: 'Timeout',
               success: false
@@ -1158,7 +1199,7 @@
               wsB.send(JSON.stringify({
                 type: 'answer',
                 to: callerId,
-                sdp: { type: 'answer', sdp: 'v=0\r\no=- 654321 2 IN IP4 127.0.0.1\r\n' }
+                sdp: { type: 'answer', sdp: `v=0\r\no=- ${Date.now()}${pairId} 2 IN IP4 ${coturnHost}\r\ns=-\r\nt=0 0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\n` }
               }));
             }
           } catch(e){}
@@ -1184,49 +1225,71 @@
               const latency = Date.now() - startTime;
               logTerminal('SIGNAL', `[Pair #${pairId}] 🤝 Sinyal Terhubung! Handshake Gateway selesai dalam ${latency}ms`);
 
-              // 1. Dapatkan Alokasi Port Relay Nyata dari CoTURN via Backend UDP Handshake
+              // 1. Dapatkan Alokasi Port NYATA dari CoTURN via Protokol UDP Biner (TANPA DUMMY FALLBACK)
               (async () => {
-                logTerminal('STUN', `[Pair #${pairId}] 🌐 Menjalankan STUN Binding Request ke udp://127.0.0.1:3478`);
-                logTerminal('TURN', `[Pair #${pairId}] 🔐 Mengirim TURN Allocate Request (RFC 5766) ke CoTURN Server...`);
+                if (icePolicy === 'all') {
+                  logTerminal('STUN', `[Pair #${pairId}] 🌐 Menjalankan RFC 5389 STUN Binding Request ke udp://${coturnHost}:${coturnPort}...`);
+                } else {
+                  logTerminal('TURN', `[Pair #${pairId}] 🔐 Mengirim RFC 5766 TURN Allocate Request ke udp://${coturnHost}:${coturnPort}...`);
+                }
 
-                let realPort = relayPort;
-                let isReal = false;
+                let allocRes = null;
                 try {
-                  const allocRes = await fetch('/api/benchmark/allocate').then(r => r.json());
-                  if (allocRes && allocRes.success && allocRes.relayPort) {
-                    realPort = allocRes.relayPort;
-                    isReal = true;
+                  const endpoint = `${httpBase}/api/benchmark/allocate?host=${encodeURIComponent(coturnHost)}&port=${encodeURIComponent(coturnPort)}&mode=${encodeURIComponent(icePolicy)}`;
+                  allocRes = await fetch(endpoint).then(r => r.json());
+                } catch(e) {
+                  allocRes = { success: false, error: 'Gagal menghubungi Gateway/CoTURN API: ' + e.message };
+                }
+
+                if (!allocRes || !allocRes.success || !allocRes.relayPort) {
+                  pairFinished = true;
+                  clearTimeout(timer);
+                  if (portChip) {
+                    portChip.className = 'port-chip failed';
+                    portChip.innerText = 'ERR';
                   }
-                } catch(e){}
+                  const errMsg = allocRes?.error || 'CoTURN Tidak Merespons / Port Penuh';
+                  logTerminal('ERROR', `[Pair #${pairId}] ❌ GAGAL ALOKASI COTURN: ${errMsg}`);
+                  try { wsA.close(); wsB.close(); } catch(e){}
+                  return resolve({
+                    pairId,
+                    caller: callerId,
+                    callee: calleeId,
+                    latency,
+                    port: '-',
+                    icePath: 'COTURN-FAILED',
+                    status: `Failed (${errMsg})`,
+                    success: false
+                  });
+                }
+
+                const realPort = allocRes.relayPort;
+                const actualIcePath = allocRes.mode || (icePolicy === 'all' ? 'STUN-SRFLX' : 'COTURN-RELAY');
 
                 if (portChip) {
                   portChip.className = 'port-chip active';
                   portChip.innerText = `:${realPort}`;
                 }
 
-                if (isReal) {
-                  logTerminal('TURN', `[Pair #${pairId}] ⚡ CoTURN Sukses! Mengalokasikan Port Relay Nyata :${realPort} (Challenge 401 & HMAC-SHA1 Verified)`);
-                } else {
-                  logTerminal('TURN', `[Pair #${pairId}] ⚡ Menggunakan Port Relay CoTURN :${realPort}`);
-                }
+                logTerminal('TURN', `[Pair #${pairId}] ⚡ ${actualIcePath} Sukses! Port Nyata :${realPort} (RTT: ${allocRes.turnRttMs || 0}ms, Challenge 401 & HMAC-SHA1 Verified)`);
 
                 // Kirim SDP Offer
                 wsA.send(JSON.stringify({
                   type: 'offer',
                   to: calleeId,
-                  sdp: { type: 'offer', sdp: 'v=0\r\no=- 123456 2 IN IP4 127.0.0.1\r\n' }
+                  sdp: { type: 'offer', sdp: `v=0\r\no=- ${Date.now()}${pairId} 2 IN IP4 ${coturnHost}\r\ns=-\r\nt=0 0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\n` }
                 }));
 
-                // Kirim Candidate CoTURN Relay Nyata
+                // Kirim Candidate CoTURN Relay / STUN Nyata
                 wsA.send(JSON.stringify({
                   type: 'candidate',
                   to: calleeId,
                   candidate: {
-                    candidate: `candidate:1 1 UDP 2130706431 127.0.0.1 ${realPort} typ relay raddr 127.0.0.1 rport 3478`
+                    candidate: `candidate:1 1 UDP 2130706431 ${coturnHost} ${realPort} typ ${icePolicy === 'all' ? 'srflx' : 'relay'} raddr ${coturnHost} rport ${coturnPort}`
                   }
                 }));
 
-                logTerminal('MEDIA', `[Pair #${pairId}] 📹 Aliran Media Audio/Video aktif dialirkan melewati CoTURN Relay Port :${realPort} (Durasi ${durationMs/1000}s)`);
+                logTerminal('MEDIA', `[Pair #${pairId}] 📹 Aliran Paket UDP Probe Terkirim ke ${coturnHost}:${realPort} (Durasi Sesi ${durationMs/1000}s)`);
 
                 // Pertahankan panggilan sesuai durasi
                 setTimeout(() => {
@@ -1236,13 +1299,18 @@
 
                   if (portChip) portChip.className = 'port-chip completed';
 
-                  logTerminal('SUCCESS', `[Pair #${pairId}] ✅ Sesi Panggilan Selesai! Port Relay :${realPort} berhasil dibebaskan.`);
+                  // Bebaskan Port CoTURN secara instan via TURN Refresh (Lifetime=0)
+                  if (allocRes.allocId) {
+                    fetch(`${httpBase}/api/benchmark/deallocate?id=${encodeURIComponent(allocRes.allocId)}`).catch(() => {});
+                  }
+
+                  logTerminal('SUCCESS', `[Pair #${pairId}] ✅ Sesi Panggilan Selesai! Port :${realPort} dilepas (Lifetime=0).`);
 
                   wsA.send(JSON.stringify({
                     type: 'hangup',
                     to: calleeId,
                     duration: durationMs / 1000,
-                    icePath: 'COTURN-RELAY',
+                    icePath: actualIcePath,
                     relayPort: realPort
                   }));
 
@@ -1254,7 +1322,7 @@
                     callee: calleeId,
                     latency,
                     port: realPort,
-                    icePath: 'COTURN-RELAY',
+                    icePath: actualIcePath,
                     status: 'SUCCESS',
                     success: true
                   });
@@ -1268,14 +1336,15 @@
           if (!pairFinished) {
             pairFinished = true;
             clearTimeout(timer);
+            if (portChip) { portChip.className = 'port-chip failed'; portChip.innerText = 'ERR'; }
             resolve({
               pairId,
               caller: callerId,
               callee: calleeId,
               latency: 0,
-              port: relayPort,
+              port: '-',
               icePath: 'FAILED',
-              status: 'WS Error',
+              status: 'WS Error (Gateway Unreachable)',
               success: false
             });
           }
@@ -1288,14 +1357,17 @@
       const tr = document.createElement('tr');
       const statusColor = res.success ? 'var(--accent-green)' : 'var(--accent-red)';
 
+      const portLabel = res.port && res.port !== '-' ? `:${res.port}` : '-';
+      const badgeStyle = res.success ? '' : 'style="background:rgba(239,68,68,0.15); color:var(--accent-red); border-color:rgba(239,68,68,0.4);"';
+
       tr.innerHTML = `
         <td>${res.pairId}</td>
         <td><strong style="color:var(--accent-purple);">Pasang #${res.pairId}</strong></td>
         <td>${res.caller}</td>
         <td>${res.callee}</td>
         <td><strong>${res.latency} ms</strong></td>
-        <td><span style="color:var(--accent-cyan); font-weight:600;">:${res.port}</span></td>
-        <td><span class="badge-relay">${res.icePath}</span></td>
+        <td><span style="color:var(--accent-cyan); font-weight:600;">${portLabel}</span></td>
+        <td><span class="badge-relay" ${badgeStyle}>${res.icePath}</span></td>
         <td style="color:${statusColor}; font-weight:700;">${res.status}</td>
       `;
 

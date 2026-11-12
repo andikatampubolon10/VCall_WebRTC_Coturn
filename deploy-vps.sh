@@ -45,17 +45,28 @@ lt-cred-mech
 realm=$PUBLIC_IP
 user=simulasi:password123
 
-min-port=49160
-max-port=49200
+min-port=10000
+max-port=65535
 
 no-cli
 verbose
 log-file=/var/log/turnserver.log
 EOF
 
+# Naikkan batas File Descriptor (Open Files) untuk Systemd CoTURN & Kernel
+sudo mkdir -p /etc/systemd/system/coturn.service.d
+cat <<EOF | sudo tee /etc/systemd/system/coturn.service.d/limits.conf > /dev/null
+[Service]
+LimitNOFILE=1048576
+EOF
+sudo sysctl -w fs.file-max=2097152 >/dev/null 2>&1 || true
+sudo sysctl -w net.core.rmem_max=26214400 >/dev/null 2>&1 || true
+sudo sysctl -w net.core.wmem_max=26214400 >/dev/null 2>&1 || true
+sudo systemctl daemon-reload
+
 sudo systemctl restart coturn
 sudo systemctl enable coturn
-echo "Service Coturn berhasil diaktifkan!"
+echo "Service Coturn berhasil diaktifkan (Port 10000-65535 untuk hingga 100.000+ VUs)!"
 
 # 4. Install Dependensi Node.js untuk Setiap Modul
 echo "[4/6] Menginstall package dependencies aplikasi..."
@@ -79,7 +90,7 @@ sudo ufw allow 3478/tcp || true
 sudo ufw allow 3478/udp || true
 sudo ufw allow 5349/tcp || true
 sudo ufw allow 5349/udp || true
-sudo ufw allow 49160:49200/udp || true
+sudo ufw allow 10000:65535/udp || true
 sudo ufw --force enable || true
 
 # 6. Menjalankan Semua Service dengan PM2
