@@ -12,7 +12,11 @@ echo "======================================================================"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
-# 1. Pull update terbaru dari GitHub
+# 1. Bersihkan perubahan file log lokal agar tidak bentrok
+git checkout -- gateway/gateway.log 2>/dev/null || true
+git stash -u 2>/dev/null || true
+
+# 2. Pull update terbaru dari GitHub
 git pull origin main
 
 # 2. Update dependensi jika ada package baru
@@ -31,3 +35,4 @@ echo "🎉 PEMBARUAN BERHASIL DITERAPKAN DI SERVER!"
 echo "Status Service Terkini:"
 pm2 status
 echo "======================================================================"
+
