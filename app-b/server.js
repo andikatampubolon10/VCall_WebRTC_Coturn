@@ -53,10 +53,13 @@ if (DATABASE_URL) {
 app.get('/api/config', (req, res) => {
   const reqHost = req.hostname;
   const isNgrok = reqHost.includes('ngrok');
-  const isHttps = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https';
-  
+  const proto = String(req.headers['x-forwarded-proto'] || req.protocol || 'http').split(',')[0].trim();
+  const isHttps = proto === 'https';
+
   let gwUrl;
-  if (isNgrok) {
+  // Di belakang reverse proxy HTTPS (Caddy/ngrok): halaman https wajib memakai wss:// (mixed content),
+  // dan gateway diakses lewat path /gateway-ws pada host yang sama.
+  if (isNgrok || isHttps) {
     gwUrl = `${isHttps ? 'wss' : 'ws'}://${req.get('host')}/gateway-ws`;
   } else if (reqHost !== 'localhost' && reqHost !== '127.0.0.1') {
     gwUrl = `ws://${reqHost}:3000`;

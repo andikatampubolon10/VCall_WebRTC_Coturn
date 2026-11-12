@@ -1,0 +1,371 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Laporan Uji Kapasitas CoTURN</title>
+<style>
+@page { size: A4 landscape; margin: 11mm 12mm; }
+:root { --surface:#fcfcfb; --text:#0b0b0b; --text2:#52514e; --muted:#7a7974; --line:#e4e3df; --head:#f3f2ef; --accent:#2a78d6; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--surface); color:var(--text); font: 10.5pt/1.45 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+h1 { font-size: 20pt; margin: 0 0 2mm; letter-spacing: -0.01em; }
+h2 { font-size: 13.5pt; margin: 7mm 0 3mm; padding-bottom: 1.5mm; border-bottom: 2px solid var(--accent); break-after: avoid; }
+h3 { font-size: 11pt; margin: 4mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 2.5mm; }
+.sub { color: var(--text2); font-size: 8.5pt; }
+.note { background:#fff6e0; border-left: 3px solid #fab219; padding: 2mm 3mm; font-size: 9pt; }
+code { font: 8.8pt Consolas, monospace; background:#f0efec; padding: 0 3px; border-radius: 3px; }
+.cover { border-bottom: 1px solid var(--line); padding-bottom: 4mm; margin-bottom: 4mm; }
+.meta { color: var(--text2); font-size: 9pt; }
+.heroes { display:grid; grid-template-columns: repeat(3, 1fr); gap: 3mm 4mm; margin: 4mm 0; }
+.hero { border:1px solid var(--line); border-radius: 6px; padding: 3mm 4mm; }
+.hero .k { font-size: 8.5pt; color: var(--text2); text-transform: uppercase; letter-spacing: .04em; }
+.hero .v { font-size: 17pt; font-weight: 700; margin: 1mm 0; white-space: nowrap; }
+.hero .s { font-size: 8.5pt; color: var(--text2); }
+table { width:100%; border-collapse: collapse; font-size: 7.9pt; margin-bottom: 3mm; break-inside: auto; }
+th { background: var(--head); text-align: left; font-weight: 600; padding: 1.4mm 1.4mm; border-bottom: 1px solid #cfcdc7; vertical-align: bottom; font-size: 7.6pt; line-height: 1.25; }
+th.num { white-space: normal; }
+td { padding: 1.2mm 1.4mm; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr { break-inside: avoid; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.num { white-space: normal; }
+td.b { font-weight: 700; }
+table.kv { width: auto; min-width: 50%; }
+.badge { display:inline-block; font-weight: 700; font-size: 8pt; padding: 0.4mm 2mm; border-radius: 10px; color: var(--text); background: color-mix(in srgb, var(--c) 18%, white); border: 1px solid var(--c); white-space: nowrap; }
+.grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 3mm 8mm; }
+.charts { display:grid; grid-template-columns: 1fr 1fr; gap: 4mm 8mm; }
+.chart { margin:0; break-inside: avoid; }
+.chart figcaption { font-size: 9.5pt; margin-bottom: 1mm; }
+.chart .unit { color: var(--text2); font-weight: 400; }
+.legend { display:flex; gap: 4mm; font-size: 8.5pt; color: var(--text2); margin-bottom: 1mm; }
+.legend i { display:inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 1.5mm; vertical-align: -1px; }
+svg .tick { font-size: 9px; fill: #6b6a65; }
+svg .axlabel { font-size: 9.5px; fill: #52514e; }
+svg .ref { font-size: 9px; fill: #b0302f; }
+svg .dlabel { font-size: 9.5px; fill: #0b0b0b; font-weight: 600; }
+ol.flow { margin: 0 0 2mm 5mm; padding: 0; font-size: 9.5pt; }
+ol.flow li { margin-bottom: 0.8mm; }
+ul { margin: 0 0 2mm 5mm; padding: 0; }
+li { margin-bottom: 1mm; }
+.pb { break-before: page; }
+.legendrow { font-size: 8.5pt; color: var(--text2); margin-bottom: 2mm; }
+</style></head><body>
+
+<div class="cover">
+  <h1>Laporan Uji Kapasitas Server CoTURN &amp; Signaling Gateway</h1>
+  <div class="meta">Video Call WebRTC — pengujian beban bertahap dengan alur panggilan User A → User B yang nyata<br>
+  Tanggal uji: <b>Jumat, 13 November 2026 pukul 00.53</b> · ID run: <code>2026-11-12-17-53-51</code> · Target: <code>34.50.75.236</code> (WS :3000, TURN UDP :3478) · Uji kapasitas - profil video 574 kbps, paket video ~1250 B
+  </div>
+</div>
+
+<h2>1. Ringkasan Eksekutif</h2>
+<div class="heroes">
+  <div class="hero"><div class="k">Kapasitas server (CoTURN/media)</div><div class="v">350 user</div><div class="s">175 video call simultan; kualitas media, CPU &amp; RAM memenuhi SLA; generator di server yang sama</div></div>
+  <div class="hero"><div class="k">Titik jenuh server</div><div class="v">> 350 user</div><div class="s">belum tercapai pada tahap tertinggi yang diuji</div></div>
+  <div class="hero"><div class="k">Batas signaling gateway</div><div class="v">300 user</div><div class="s">setup panggilan p95 &gt; 3.000 ms mulai 350 user (batas desain gateway, bukan CoTURN)</div></div>
+  <div class="hero"><div class="k">Spesifikasi server</div><div class="v">4 vCPU · 16 GB</div><div class="s">e2-standard-4</div></div>
+  <div class="hero"><div class="k">Rata-rata durasi video call</div><div class="v">1 mnt 43 dtk</div><div class="s">475 panggilan selesai normal · min 1 mnt 35 dtk, maks 1 mnt 54 dtk</div></div>
+  <div class="hero"><div class="k">Profil media per user</div><div class="v">572 kbps</div><div class="s">per arah (audio Opus + video), lewat relay TURN</div></div>
+</div>
+
+<h3>Temuan utama</h3><ul><li><b>Server/media</b>: sampai <b>350 user</b> tidak ada kriteria server (panggilan tersambung, loss, jitter, latensi, CPU, RAM) yang dilanggar.</li><li><b>Signaling gateway</b>: kriteria signaling mulai dilanggar pada <b>350 user</b>: Waktu setup panggilan p95 = <b>6.121,21 ms</b> (batas 3.000). Ini batas aplikasi gateway saat ini, bukan batas CoTURN.</li><li>Waktu setup panggilan melambat terutama di fase <b>Offer/Answer + ICE candidate</b> (p95 <b>4.195 ms</b>), yang ditangani oleh <b>signaling gateway</b>. Saat ramp-up tahap ini CPU server memuncak <b>95,8%</b> dan CPU gateway <b>81,4%</b> dari satu core, sedangkan setelah panggilan tersambung kualitas media tetap baik (loss 0%). Panggilan yang sudah berjalan tidak terganggu karena media mengalir langsung lewat CoTURN.</li><li>Beban gateway bersifat <b>lonjakan saat banyak user masuk/memanggil</b>: setiap register/call/accept/hangup memicu pengiriman daftar seluruh user ke semua client, sehingga antrean pesan signaling (offer/answer/ICE) tertahan di belakang broadcast tersebut. Saat panggilan sudah berjalan, CPU gateway kembali rendah (0,6%).</li><li>Selama tahap 350 user, gateway mengirim <b>1.667,1 MB</b> pesan daftar user (<code>type:"users"</code>) dalam 123.410 pesan. Lalu lintas ini tumbuh kuadratik terhadap jumlah user.</li><li>Load generator dijalankan <b>di server yang sama</b>. CPU yang dipakai generator dicatat terpisah dan <b>dikeluarkan</b> dari penilaian SLA CPU (kolom “CPU tanpa generator”); kebutuhan CPU CoTURN dan gateway diukur per proses sehingga tidak tercampur.</li><li><b>Estimasi kapasitas bila server hanya menjalankan CoTURN + gateway</b> (tanpa generator): dari regresi CPU tanpa generator (≈0,107% CPU per user), batas 85% CPU tercapai pada sekitar <b>783 user</b>. Ini ekstrapolasi; untuk membuktikannya jalankan generator dari mesin terpisah.</li></ul>
+<h3>Rekomendasi</h3><ul><li>Hentikan <code>broadcastUserList()</code> ke <i>semua</i> client pada setiap register/call/accept/hangup (biaya O(N²)); kirim hanya perubahan (delta) atau hanya ke pihak terkait.</li><li>Ganti <code>fs.appendFileSync</code> di setiap log dengan logger asinkron (mis. stream/pino) atau matikan log per-pesan di produksi.</li><li>Jalankan gateway dalam mode cluster PM2 (mis. 4 instance) dengan sticky session atau broker (Redis pub/sub) agar memakai semua core.</li><li>CoTURN berjalan dengan opsi <code>verbose</code> dan menulis log ke file; di produksi matikan <code>verbose</code> agar CPU dan disk tidak terbebani log per-paket/per-alokasi.</li><li>Untuk angka kapasitas murni CoTURN, ulangi uji dengan load generator di VM terpisah dalam region yang sama (opsi <code>--monitor ssh</code>).</li></ul>
+
+<h2 class="pb">2. Skenario Stress Test Virtual User (VU)</h2>
+<div class="grid2">
+<div>
+<h3>Apa itu Virtual User (VU)?</h3>
+<p>Satu <b>VU</b> adalah satu pengguna aplikasi yang disimulasikan secara penuh oleh program uji, bukan sekadar request HTTP. Setiap VU memiliki:</p>
+<ul>
+<li>koneksi <b>WebSocket</b> sendiri ke signaling gateway (seperti browser yang membuka aplikasi),</li>
+<li><b>socket UDP</b> dan <b>alokasi relay TURN</b> sendiri di CoTURN (seperti ICE agent WebRTC),</li>
+<li>aliran media <b>dua arah</b> ±572 kbps per arah (audio Opus + video) yang benar-benar diteruskan oleh CoTURN.</li>
+</ul>
+<p>VU selalu berpasangan: <b>User A (dokter, APP_A)</b> yang menekan tombol panggil dan <b>User B (pasien, APP_B)</b> yang menerima. Jadi <i>N</i> VU = <i>N</i>/2 video call yang berlangsung <b>bersamaan</b>.</p>
+<h3>Siklus hidup satu pasangan VU</h3>
+<ol class="flow">
+<li><b>Masuk aplikasi</b> — A &amp; B connect WebSocket + <code>register</code>.</li>
+<li><b>Panggil</b> — A <code>call</code> → B <code>incoming</code> → B <code>accept</code>.</li>
+<li><b>Siapkan jalur media</b> — A &amp; B TURN Allocate, tukar <code>offer/answer</code> + kandidat <code>relay</code>, CreatePermission + ChannelBind.</li>
+<li><b>Bicara</b> — media video/audio mengalir dua arah lewat CoTURN selama sisa ramp-up + seluruh jendela pengukuran.</li>
+<li><b>Tutup</b> — A <code>hangup</code>, kedua VU melepas relay (Refresh lifetime 0) dan menutup koneksi.</li>
+</ol>
+</div>
+<div>
+<h3>Pola beban: step-load (tangga) sampai titik jenuh</h3>
+<ul>
+<li><b>Bertahap</b>: rencana 100 → 200 → 300 → 350 → 400 → 450 → 500 → 600 VU; dijalankan sampai <b>350 VU</b>. Tiap tahap dimulai dari nol agar hasil antar tahap tidak saling memengaruhi.</li>
+<li><b>Ramp-up</b>: panggilan dimulai merata sepanjang durasi ramp (kolom <i>laju kedatangan</i> = VU baru per detik), meniru pengguna yang masuk tidak serentak.</li>
+<li><b>Tahan (hold)</b>: setelah semua panggilan tersambung, beban ditahan 90 detik. Semua metrik kualitas dan sumber daya server di laporan ini diambil dari jendela ini (kondisi stabil/<i>steady-state</i>).</li>
+<li><b>Hangup &amp; cooldown</b> 30 detik, menunggu CoTURN melepas semua port relay sebelum tahap berikutnya.</li>
+<li><b>Dua penilaian per tahap</b>: <b>Server</b> (panggilan tersambung, kualitas media, CPU, RAM) menentukan kapasitas dan titik jenuh server; <b>Signaling</b> (waktu setup panggilan, CPU gateway) menilai gateway aplikasi secara terpisah.</li>
+<li>Kapasitas server = tahap tertinggi sebelum kriteria <b>Server</b> pertama kali dilanggar.</li>
+<li>VU dijalankan oleh beberapa proses <i>worker</i> paralel di <b>server yang sama</b> (CPU generator dipisahkan dari penilaian); total durasi pengujian 9 menit.</li>
+</ul>
+</div></div>
+<figure class="chart"><figcaption><b>Profil beban: Virtual User (VU) aktif selama pengujian</b> <span class="unit">(VU dalam panggilan aktif)</span><br><span class="sub">tangga naik per tahap: ramp-up → tahan (pengukuran) → hangup → cooldown</span></figcaption>
+<svg viewBox="0 0 1040 230" width="100%" role="img" aria-label="Profil beban: Virtual User (VU) aktif selama pengujian"><line x1="52" x2="944" y1="192" y2="192" stroke="#e4e3df" stroke-width="1"/><text x="46" y="195.5" text-anchor="end" class="tick">0</text><line x1="52" x2="944" y1="147.5" y2="147.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="151" text-anchor="end" class="tick">100</text><line x1="52" x2="944" y1="103" y2="103" stroke="#e4e3df" stroke-width="1"/><text x="46" y="106.5" text-anchor="end" class="tick">200</text><line x1="52" x2="944" y1="58.5" y2="58.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="62" text-anchor="end" class="tick">300</text><line x1="52" x2="944" y1="14" y2="14" stroke="#e4e3df" stroke-width="1"/><text x="46" y="17.5" text-anchor="end" class="tick">400</text><text x="52" y="208" text-anchor="middle" class="tick">0</text><text x="230.4" y="208" text-anchor="middle" class="tick">2</text><text x="408.8" y="208" text-anchor="middle" class="tick">4</text><text x="587.1999999999999" y="208" text-anchor="middle" class="tick">6</text><text x="765.6" y="208" text-anchor="middle" class="tick">8</text><text x="944" y="208" text-anchor="middle" class="tick">10</text><line x1="52" x2="944" y1="192" y2="192" stroke="#8a8984" stroke-width="1"/><text x="498" y="226" text-anchor="middle" class="axlabel">Menit sejak pengujian dimulai</text><polyline fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="52.0,192.0 53.5,187.6 55.0,183.1 56.5,178.7 58.0,174.2 59.4,169.8 60.9,165.3 62.4,160.8 63.9,156.4 65.4,151.9 66.9,147.5 72.8,147.5 74.3,147.5 75.8,147.5 77.3,147.5 78.8,147.5 80.3,147.5 81.8,147.5 83.2,147.5 84.7,147.5 86.2,147.5 87.7,147.5 89.2,147.5 90.7,147.5 92.2,147.5 93.6,147.5 95.1,147.5 96.6,147.5 98.1,147.5 99.6,147.5 101.1,147.5 102.6,147.5 104.1,147.5 105.5,147.5 107.0,147.5 108.5,147.5 110.0,147.5 111.5,147.5 113.0,147.5 114.5,147.5 116.0,147.5 117.4,147.5 118.9,147.5 120.4,147.5 121.9,147.5 123.4,147.5 124.9,147.5 126.4,147.5 127.9,147.5 129.3,147.5 130.8,147.5 132.3,147.5 133.8,147.5 135.3,147.5 136.8,147.5 138.3,147.5 139.8,147.5 141.3,147.5 142.7,147.5 144.2,147.5 145.7,147.5 147.2,147.5 148.7,147.5 150.2,147.5 151.7,147.5 153.2,147.5 154.6,147.5 156.1,147.5 157.6,147.5 159.1,147.5 160.6,147.5 162.1,147.5 163.6,147.5 165.0,147.5 166.5,147.5 168.0,147.5 169.5,147.5 171.0,147.5 172.5,147.5 174.0,147.5 175.5,147.5 176.9,147.5 178.4,147.5 179.9,147.5 181.4,147.5 182.9,147.5 184.4,147.5 185.9,147.5 187.4,147.5 188.8,147.5 190.3,147.5 191.8,147.5 193.3,147.5 194.8,147.5 196.3,147.5 197.8,147.5 199.3,147.5 200.7,147.5 202.2,147.5 203.7,147.5 205.2,147.5 207.7,192.0 207.8,192.0 253.9,192.0 255.4,183.1 256.9,174.2 258.4,165.3 259.8,156.4 261.3,147.5 262.8,138.6 264.3,129.7 265.8,120.8 267.3,111.9 268.8,103.9 270.3,103.0 276.2,103.0 277.7,103.0 279.2,103.0 280.7,103.0 282.2,103.0 283.7,103.0 285.1,103.0 286.6,103.0 288.1,103.0 289.6,103.0 291.1,103.0 292.6,103.0 294.1,103.0 295.6,103.0 297.1,103.0 298.5,103.0 300.0,103.0 301.5,103.0 303.0,103.0 304.5,103.0 306.0,103.0 307.5,103.0 309.0,103.0 310.4,103.0 311.9,103.0 313.4,103.0 314.9,103.0 316.4,103.0 317.9,103.0 319.4,103.0 320.9,103.0 322.4,103.0 323.8,103.0 325.3,103.0 326.8,103.0 328.3,103.0 329.8,103.0 331.3,103.0 332.8,103.0 334.3,103.0 335.7,103.0 337.2,103.0 338.7,103.0 340.2,103.0 341.7,103.0 343.2,103.0 344.7,103.0 346.2,103.0 347.7,103.0 349.1,103.0 350.6,103.0 352.1,103.0 353.6,103.0 355.1,103.0 356.6,103.0 358.1,103.0 359.6,103.0 361.1,103.0 362.5,103.0 364.0,103.0 365.5,103.0 367.0,103.0 368.5,103.0 370.0,103.0 371.5,103.0 373.0,103.0 374.5,103.0 375.9,103.0 377.4,103.0 378.9,103.0 380.4,103.0 381.9,103.0 383.4,103.0 384.9,103.0 386.4,103.0 387.8,103.0 389.3,103.0 390.8,103.0 392.3,103.0 393.8,103.0 395.3,103.0 396.8,103.0 398.3,103.0 399.8,103.0 401.2,103.0 402.7,103.0 404.2,103.0 405.7,103.0 407.2,103.0 408.7,103.0 411.4,192.0 411.4,192.0 457.5,192.0 459.0,180.4 460.5,169.8 462.0,159.1 463.5,147.5 465.0,136.8 466.5,125.3 468.0,114.6 469.4,103.9 470.9,92.3 472.4,82.5 473.9,72.7 475.4,63.8 476.9,58.5 482.8,58.5 484.3,58.5 485.8,58.5 487.3,58.5 488.8,58.5 490.3,58.5 491.8,58.5 493.3,58.5 494.7,58.5 496.2,58.5 497.7,58.5 499.2,58.5 500.7,58.5 502.2,58.5 503.7,58.5 505.2,58.5 506.6,58.5 508.1,58.5 509.6,58.5 511.1,58.5 512.6,58.5 514.1,58.5 515.6,58.5 517.1,58.5 518.6,58.5 520.0,58.5 521.5,58.5 523.0,58.5 524.5,58.5 526.0,58.5 527.5,58.5 529.0,58.5 530.5,58.5 531.9,58.5 533.4,58.5 534.9,58.5 536.4,58.5 537.9,58.5 539.4,58.5 540.9,58.5 542.4,58.5 543.9,58.5 545.3,58.5 546.8,58.5 548.3,58.5 549.8,58.5 551.3,58.5 552.8,58.5 554.3,58.5 555.8,58.5 557.2,58.5 558.7,58.5 560.2,58.5 561.7,58.5 563.2,58.5 564.7,58.5 566.2,58.5 567.7,58.5 569.1,58.5 570.6,58.5 572.1,58.5 573.6,58.5 575.1,58.5 576.6,58.5 578.1,58.5 579.6,58.5 581.1,58.5 582.5,58.5 584.0,58.5 585.5,58.5 587.0,58.5 588.5,58.5 590.0,58.5 591.5,58.5 593.0,58.5 594.4,58.5 595.9,58.5 597.4,58.5 598.9,58.5 600.4,58.5 601.9,58.5 603.4,58.5 604.9,58.5 606.4,58.5 607.8,58.5 609.3,58.5 610.8,58.5 612.3,58.5 613.8,58.5 615.3,58.5 617.8,192.0 617.9,192.0 664.0,192.0 665.5,180.4 667.0,169.8 668.5,158.2 670.0,147.5 671.5,136.8 672.9,126.1 674.4,114.6 675.9,103.9 677.4,95.0 678.9,85.2 680.4,78.1 681.9,77.2 683.4,74.5 684.9,72.7 686.4,67.4 687.8,57.6 689.3,46.9 690.8,36.3 696.8,36.3 698.3,36.3 699.7,36.3 701.2,36.3 702.7,36.3 704.2,36.3 705.7,36.3 707.2,36.3 708.7,36.3 710.2,36.3 711.7,36.3 713.1,36.3 714.6,36.3 716.1,36.3 717.6,36.3 719.1,36.3 720.6,36.3 722.1,36.3 723.6,36.3 725.0,36.3 726.5,36.3 728.0,36.3 729.5,36.3 731.0,36.3 732.5,36.3 734.0,36.3 735.5,36.3 737.0,36.3 738.4,36.3 739.9,36.3 741.4,36.3 742.9,36.3 744.4,36.3 745.9,36.3 747.4,36.3 748.9,36.3 750.3,36.3 751.8,36.3 753.3,36.3 754.8,36.3 756.3,36.3 757.8,36.3 759.3,36.3 760.8,36.3 762.2,36.3 763.7,36.3 765.2,36.3 766.7,36.3 768.2,36.3 769.7,36.3 771.2,36.3 772.7,36.3 774.2,36.3 775.7,36.3 777.1,36.3 778.6,36.3 780.1,36.3 781.6,36.3 783.1,36.3 784.6,36.3 786.1,36.3 787.6,36.3 789.0,36.3 790.5,36.3 792.0,36.3 793.5,36.3 795.0,36.3 796.5,36.3 798.0,36.3 799.5,36.3 801.0,36.3 802.5,36.3 803.9,36.3 805.4,36.3 806.9,36.3 808.4,36.3 809.9,36.3 811.4,36.3 812.9,36.3 814.4,36.3 815.8,36.3 817.3,36.3 818.8,36.3 820.3,36.3 821.8,36.3 823.3,36.3 824.8,36.3 826.3,36.3 827.8,36.3 829.2,36.3 832.7,192.0"/></svg></figure>
+<h3>Jadwal &amp; realisasi beban per tahap</h3>
+<table><thead><tr><th class="num">Tahap</th><th class="num">Target VU</th><th class="num">Video call bersamaan</th><th class="num">Durasi ramp-up</th><th class="num">Laju kedatangan (VU/dtk)</th><th class="num">Durasi tahan</th><th class="num">Puncak VU aktif</th><th class="num">Durasi call rata-rata</th><th class="num">Lama tahap</th><th class="num">Worker</th><th>Hasil</th></tr></thead><tbody><tr>
+    <td class="num b">1</td><td class="num b">100</td><td class="num">50</td>
+    <td class="num">10 dtk</td><td class="num">10</td>
+    <td class="num">90 dtk</td><td class="num">100</td>
+    <td class="num">1 mnt 41 dtk</td>
+    <td class="num">106 dtk</td><td class="num">1</td><td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span></td></tr><tr>
+    <td class="num b">2</td><td class="num b">200</td><td class="num">100</td>
+    <td class="num">10 dtk</td><td class="num">20</td>
+    <td class="num">90 dtk</td><td class="num">200</td>
+    <td class="num">1 mnt 42 dtk</td>
+    <td class="num">107 dtk</td><td class="num">1</td><td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span></td></tr><tr>
+    <td class="num b">3</td><td class="num b">300</td><td class="num">150</td>
+    <td class="num">12 dtk</td><td class="num">25</td>
+    <td class="num">90 dtk</td><td class="num">300</td>
+    <td class="num">1 mnt 43 dtk</td>
+    <td class="num">109 dtk</td><td class="num">2</td><td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span></td></tr><tr>
+    <td class="num b">4</td><td class="num b">350</td><td class="num">175</td>
+    <td class="num">14 dtk</td><td class="num">25</td>
+    <td class="num">90 dtk</td><td class="num">350</td>
+    <td class="num">1 mnt 46 dtk</td>
+    <td class="num">115 dtk</td><td class="num">2</td><td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#d03b3b">✖ GAGAL</span></td></tr></tbody></table>
+
+<h2 class="pb">3. Hasil Pengujian per Tahap</h2>
+<p class="legendrow">Setiap tahap punya dua status: <b>Server</b> (CoTURN, kualitas media, CPU, RAM) dan <b>Signaling</b> (waktu setup panggilan &amp; CPU gateway). <span class="badge" style="--c:#0ca30c">✔ LULUS</span> semua kriteria terpenuhi · <span class="badge" style="--c:#fab219">▲ WASPADA</span> ada metrik melewati batas waspada · <span class="badge" style="--c:#d03b3b">✖ GAGAL</span> minimal satu kriteria dilanggar. Nilai server adalah rata-rata/puncak selama <b>jendela pengukuran 90 detik</b> saat semua panggilan aktif (fase steady-state).</p>
+
+<h3>3a. Kualitas Layanan Panggilan</h3>
+<table><thead><tr><th class="num">User</th><th class="num">Panggilan tersambung</th><th class="num">Sukses</th><th class="num">Setup p50 / p95 (ms)</th><th class="num">Call→Accept p95 (ms)</th><th class="num">TURN Allocate p50 / p95 (ms)</th><th class="num">Packet loss</th><th class="num">Jitter p95 (ms)</th><th class="num">Latensi one-way p50 / p95 (ms)</th><th class="num">Durasi call rata-rata (dtk)</th><th class="num">Putus saat aktif</th><th>Status</th></tr></thead><tbody><tr>
+    <td class="num b">100</td><td class="num">50 / 50</td>
+    <td class="num">100%</td>
+    <td class="num">43 / 62</td>
+    <td class="num">12</td>
+    <td class="num">4 / 7</td>
+    <td class="num">0%</td>
+    <td class="num">0,6</td>
+    <td class="num">5 / 6</td>
+    <td class="num">101</td>
+    <td class="num">0</td>
+    <td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span></td></tr><tr>
+    <td class="num b">200</td><td class="num">100 / 100</td>
+    <td class="num">100%</td>
+    <td class="num">56 / 128</td>
+    <td class="num">35</td>
+    <td class="num">5 / 17</td>
+    <td class="num">0%</td>
+    <td class="num">0,6</td>
+    <td class="num">9 / 13</td>
+    <td class="num">102</td>
+    <td class="num">0</td>
+    <td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span></td></tr><tr>
+    <td class="num b">300</td><td class="num">150 / 150</td>
+    <td class="num">100%</td>
+    <td class="num">63 / 467</td>
+    <td class="num">76</td>
+    <td class="num">7 / 39</td>
+    <td class="num">0%</td>
+    <td class="num">1</td>
+    <td class="num">7 / 11</td>
+    <td class="num">103</td>
+    <td class="num">0</td>
+    <td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span></td></tr><tr>
+    <td class="num b">350</td><td class="num">175 / 175</td>
+    <td class="num">100%</td>
+    <td class="num">130 / 6.121</td>
+    <td class="num">847</td>
+    <td class="num">12 / 319</td>
+    <td class="num">0%</td>
+    <td class="num">1,9</td>
+    <td class="num">10 / 45</td>
+    <td class="num">106</td>
+    <td class="num">0</td>
+    <td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#d03b3b">✖ GAGAL</span></td></tr></tbody></table>
+
+<h3>3b. Sumber Daya Server</h3>
+<table><thead><tr><th class="num">User</th><th class="num">CPU total avg / max</th><th class="num">CPU tanpa generator (avg)</th><th class="num">CPU generator (% 1 core)</th><th class="num">Core tersibuk</th><th class="num">Load avg (1m)</th><th class="num">CPU CoTURN (% 1 core)</th><th class="num">CPU Gateway avg / max (% 1 core)</th><th class="num">RAM terpakai</th><th class="num">RAM CoTURN</th><th class="num">RAM Gateway</th><th class="num">softirq / steal</th><th>Status</th></tr></thead><tbody><tr>
+    <td class="num b">100</td>
+    <td class="num">20,3% / 23,9%</td>
+    <td class="num b">12,2%</td><td class="num">32,4%</td>
+    <td class="num">33,7%</td>
+    <td class="num">2,24</td>
+    <td class="num">39,9%</td>
+    <td class="num">0,3% / 1%</td>
+    <td class="num">1.510 MB (9,4%)</td>
+    <td class="num">43 MB</td>
+    <td class="num">778 MB</td>
+    <td class="num">4,5% / 0,2%</td>
+    <td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span></td></tr><tr>
+    <td class="num b">200</td>
+    <td class="num">37,3% / 46,6%</td>
+    <td class="num b">21,8%</td><td class="num">61,7%</td>
+    <td class="num">59,4%</td>
+    <td class="num">1,76</td>
+    <td class="num">78,7%</td>
+    <td class="num">0,4% / 2%</td>
+    <td class="num">1.422 MB (8,9%)</td>
+    <td class="num">43 MB</td>
+    <td class="num">665 MB</td>
+    <td class="num">8,1% / 0,2%</td>
+    <td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span></td></tr><tr>
+    <td class="num b">300</td>
+    <td class="num">57,2% / 63%</td>
+    <td class="num b">32,5%</td><td class="num">98,8%</td>
+    <td class="num">66,7%</td>
+    <td class="num">2,77</td>
+    <td class="num">116,8%</td>
+    <td class="num">0,5% / 2%</td>
+    <td class="num">1.492 MB (9,3%)</td>
+    <td class="num">43 MB</td>
+    <td class="num">686 MB</td>
+    <td class="num">12,4% / 0,4%</td>
+    <td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span></td></tr><tr>
+    <td class="num b">350</td>
+    <td class="num">74,6% / 92,6%</td>
+    <td class="num b">39,3%</td><td class="num">141,3%</td>
+    <td class="num">96,9%</td>
+    <td class="num">4,34</td>
+    <td class="num">143,1%</td>
+    <td class="num">0,6% / 2%</td>
+    <td class="num">1.627 MB (10,2%)</td>
+    <td class="num">43 MB</td>
+    <td class="num">777 MB</td>
+    <td class="num">14,9% / 3,2%</td>
+    <td><span class="sub">Server</span> <span class="badge" style="--c:#0ca30c">✔ LULUS</span><br><span class="sub">Signaling</span> <span class="badge" style="--c:#d03b3b">✖ GAGAL</span></td></tr></tbody></table>
+
+<h3>3c. Jaringan &amp; Sumber Daya Socket</h3>
+<table><thead><tr><th class="num">User</th><th class="num">Bandwidth masuk / keluar (Mbps)</th><th class="num">Paket/detik masuk / keluar</th><th class="num">UDP drop kernel: buffer penuh / total error (/s)</th><th class="num">NIC drop (/s)</th><th class="num">Port relay aktif</th><th class="num">File descriptor CoTURN</th><th class="num">Koneksi TCP (WS)</th><th class="num">Broadcast daftar user</th><th class="num">Retransmisi TURN</th></tr></thead><tbody><tr>
+    <td class="num b">100</td>
+    <td class="num">121,1 / 121,1</td>
+    <td class="num">20.000 / 20.001</td>
+    <td class="num">0 / 0</td>
+    <td class="num">0</td>
+    <td class="num">100</td>
+    <td class="num">149</td>
+    <td class="num">118</td>
+    <td class="num">39,1 MB</td>
+    <td class="num">0</td></tr><tr>
+    <td class="num b">200</td>
+    <td class="num">242,2 / 242,2</td>
+    <td class="num">40.000 / 40.001</td>
+    <td class="num">0 / 0</td>
+    <td class="num">0</td>
+    <td class="num">200</td>
+    <td class="num">249</td>
+    <td class="num">219</td>
+    <td class="num">308,9 MB</td>
+    <td class="num">0</td></tr><tr>
+    <td class="num b">300</td>
+    <td class="num">363,4 / 363,4</td>
+    <td class="num">60.002 / 60.003</td>
+    <td class="num">0 / 0</td>
+    <td class="num">0</td>
+    <td class="num">300</td>
+    <td class="num">349</td>
+    <td class="num">318</td>
+    <td class="num">1.041,4 MB</td>
+    <td class="num">0</td></tr><tr>
+    <td class="num b">350</td>
+    <td class="num">423,6 / 423,6</td>
+    <td class="num">69.943 / 69.944</td>
+    <td class="num">0 / 0</td>
+    <td class="num">0</td>
+    <td class="num">350</td>
+    <td class="num">399</td>
+    <td class="num">367</td>
+    <td class="num">1.667,1 MB</td>
+    <td class="num">0</td></tr></tbody></table>
+
+<h3>3d. Durasi Video Call</h3>
+<p class="sub">Durasi bicara = sejak media dua arah mulai mengalir sampai hangup. Durasi sesi = sejak User A menekan panggil sampai hangup. Panggilan yang dimulai di awal ramp-up berlangsung lebih lama daripada yang dimulai di akhir.</p>
+<table><thead><tr><th class="num">User</th><th class="num">Panggilan selesai normal</th><th class="num">Durasi bicara rata-rata</th><th class="num">Median</th><th class="num">Terpendek</th><th class="num">Terlama</th><th class="num">Durasi sesi rata-rata</th></tr></thead><tbody><tr>
+    <td class="num b">100</td><td class="num">50</td>
+    <td class="num b">1 mnt 41 dtk</td><td class="num">1 mnt 41 dtk</td>
+    <td class="num">1 mnt 36 dtk</td><td class="num">1 mnt 45 dtk</td>
+    <td class="num">1 mnt 41 dtk</td></tr><tr>
+    <td class="num b">200</td><td class="num">100</td>
+    <td class="num b">1 mnt 42 dtk</td><td class="num">1 mnt 42 dtk</td>
+    <td class="num">1 mnt 37 dtk</td><td class="num">1 mnt 47 dtk</td>
+    <td class="num">1 mnt 42 dtk</td></tr><tr>
+    <td class="num b">300</td><td class="num">150</td>
+    <td class="num b">1 mnt 43 dtk</td><td class="num">1 mnt 43 dtk</td>
+    <td class="num">1 mnt 36 dtk</td><td class="num">1 mnt 49 dtk</td>
+    <td class="num">1 mnt 43 dtk</td></tr><tr>
+    <td class="num b">350</td><td class="num">175</td>
+    <td class="num b">1 mnt 46 dtk</td><td class="num">1 mnt 47 dtk</td>
+    <td class="num">1 mnt 35 dtk</td><td class="num">1 mnt 54 dtk</td>
+    <td class="num">1 mnt 47 dtk</td></tr></tbody></table>
+
+<h3>3e. Rincian Waktu Setup Panggilan per Fase (p95, ms)</h3>
+<p class="sub">Menunjukkan komponen mana (signaling gateway atau CoTURN) yang memperlambat proses tersambungnya panggilan ketika jumlah user naik.</p>
+<table><thead><tr><th class="num">User</th><th class="num">Koneksi WebSocket<br><span class="sub">signaling gateway</span></th><th class="num">Register user<br><span class="sub">signaling gateway</span></th><th class="num">Call → Incoming → Accept<br><span class="sub">signaling gateway</span></th><th class="num">TURN Allocate<br><span class="sub">CoTURN</span></th><th class="num">Offer/Answer + ICE candidate<br><span class="sub">signaling gateway</span></th><th class="num">CreatePermission + ChannelBind<br><span class="sub">CoTURN</span></th><th class="num">Total setup p95</th></tr></thead><tbody><tr><td class="num b">100</td><td class="num">11</td><td class="num">11</td><td class="num">12</td><td class="num">7</td><td class="num">9</td><td class="num">4</td><td class="num b">62</td></tr><tr><td class="num b">200</td><td class="num">11</td><td class="num">20</td><td class="num">35</td><td class="num">17</td><td class="num">13</td><td class="num">8</td><td class="num b">128</td></tr><tr><td class="num b">300</td><td class="num">83</td><td class="num">42</td><td class="num">76</td><td class="num">39</td><td class="num">157</td><td class="num">37</td><td class="num b">467</td></tr><tr><td class="num b">350</td><td class="num">319</td><td class="num">239</td><td class="num">847</td><td class="num">319</td><td class="num">4.195</td><td class="num">346</td><td class="num b">6.121</td></tr></tbody></table>
+
+<h2 class="pb">4. Grafik Tren terhadap Jumlah User</h2>
+<div class="charts"><figure class="chart"><figcaption><b>CPU terpakai</b> <span class="unit">(% kapasitas seluruh server)</span></figcaption><div class="legend"><span><i style="background:#2a78d6"></i>Server tanpa generator</span><span><i style="background:#eb6834"></i>CoTURN</span><span><i style="background:#1baf7a"></i>Gateway</span><span><i style="background:#eda100"></i>Generator</span></div>
+<svg viewBox="0 0 520 250" width="100%" role="img" aria-label="CPU terpakai"><line x1="52" x2="424" y1="212" y2="212" stroke="#e4e3df" stroke-width="1"/><text x="46" y="215.5" text-anchor="end" class="tick">0</text><line x1="52" x2="424" y1="162.5" y2="162.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="166" text-anchor="end" class="tick">25</text><line x1="52" x2="424" y1="113" y2="113" stroke="#e4e3df" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" class="tick">50</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="67" text-anchor="end" class="tick">75</text><line x1="52" x2="424" y1="14" y2="14" stroke="#e4e3df" stroke-width="1"/><text x="46" y="17.5" text-anchor="end" class="tick">100</text><text x="52" y="228" text-anchor="middle" class="tick">0</text><text x="126.4" y="228" text-anchor="middle" class="tick">80</text><text x="200.8" y="228" text-anchor="middle" class="tick">160</text><text x="275.2" y="228" text-anchor="middle" class="tick">240</text><text x="349.6" y="228" text-anchor="middle" class="tick">320</text><text x="424" y="228" text-anchor="middle" class="tick">400</text><line x1="52" x2="424" y1="212" y2="212" stroke="#8a8984" stroke-width="1"/><text x="238" y="246" text-anchor="middle" class="axlabel">Jumlah user bersamaan</text><line x1="52" x2="424" y1="43.70000000000002" y2="43.70000000000002" stroke="#d03b3b" stroke-width="1" stroke-dasharray="4 3"/><text x="428" y="47.20000000000002" class="ref">batas 85%</text><polyline fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,187.9 238.0,168.8 331.0,147.7 377.5,134.2"/><circle cx="145.0" cy="187.9" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="168.8" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="147.7" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="134.2" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><text x="385.5" y="137.686" class="dlabel">Server tanpa generator</text><polyline fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,192.3 238.0,173.0 331.0,154.2 377.5,141.2"/><circle cx="145.0" cy="192.3" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="173.0" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="154.2" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="141.2" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><text x="385.5" y="149.686" class="dlabel">CoTURN</text><polyline fill="none" stroke="#1baf7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,211.8 238.0,211.8 331.0,211.8 377.5,211.7"/><circle cx="145.0" cy="211.8" r="4" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="211.8" r="4" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="211.8" r="4" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="211.7" r="4" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"/><text x="385.5" y="215.22775" class="dlabel">Gateway</text><polyline fill="none" stroke="#eda100" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,196.0 238.0,181.5 331.0,163.1 377.5,142.1"/><circle cx="145.0" cy="196.0" r="4" fill="#eda100" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="181.5" r="4" fill="#eda100" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="163.1" r="4" fill="#eda100" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="142.1" r="4" fill="#eda100" stroke="#fcfcfb" stroke-width="2"/><text x="385.5" y="161.686" class="dlabel">Generator</text></svg></figure><figure class="chart"><figcaption><b>CPU gateway Node.js</b> <span class="unit">(% dari 1 core)</span><br><span class="sub">Node.js satu thread: 100% = jenuh</span></figcaption>
+<svg viewBox="0 0 520 250" width="100%" role="img" aria-label="CPU gateway Node.js"><line x1="52" x2="424" y1="212" y2="212" stroke="#e4e3df" stroke-width="1"/><text x="46" y="215.5" text-anchor="end" class="tick">0</text><line x1="52" x2="424" y1="162.5" y2="162.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="166" text-anchor="end" class="tick">25</text><line x1="52" x2="424" y1="113" y2="113" stroke="#e4e3df" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" class="tick">50</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="67" text-anchor="end" class="tick">75</text><line x1="52" x2="424" y1="14" y2="14" stroke="#e4e3df" stroke-width="1"/><text x="46" y="17.5" text-anchor="end" class="tick">100</text><text x="52" y="228" text-anchor="middle" class="tick">0</text><text x="126.4" y="228" text-anchor="middle" class="tick">80</text><text x="200.8" y="228" text-anchor="middle" class="tick">160</text><text x="275.2" y="228" text-anchor="middle" class="tick">240</text><text x="349.6" y="228" text-anchor="middle" class="tick">320</text><text x="424" y="228" text-anchor="middle" class="tick">400</text><line x1="52" x2="424" y1="212" y2="212" stroke="#8a8984" stroke-width="1"/><text x="238" y="246" text-anchor="middle" class="axlabel">Jumlah user bersamaan</text><line x1="52" x2="424" y1="23.900000000000006" y2="23.900000000000006" stroke="#d03b3b" stroke-width="1" stroke-dasharray="4 3"/><text x="428" y="27.400000000000006" class="ref">batas 95%</text><polyline fill="none" stroke="#1baf7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,211.4 238.0,211.2 331.0,211.1 377.5,210.9"/><circle cx="145.0" cy="211.4" r="4" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="211.2" r="4" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="211.1" r="4" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="210.9" r="4" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"/></svg></figure><figure class="chart"><figcaption><b>RAM terpakai</b> <span class="unit">(MB)</span><br><span class="sub">Total RAM 15.997 MB</span></figcaption>
+<svg viewBox="0 0 520 250" width="100%" role="img" aria-label="RAM terpakai"><line x1="52" x2="424" y1="212" y2="212" stroke="#e4e3df" stroke-width="1"/><text x="46" y="215.5" text-anchor="end" class="tick">0</text><line x1="52" x2="424" y1="162.5" y2="162.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="166" text-anchor="end" class="tick">500</text><line x1="52" x2="424" y1="113" y2="113" stroke="#e4e3df" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" class="tick">1.000</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="67" text-anchor="end" class="tick">1.500</text><line x1="52" x2="424" y1="14" y2="14" stroke="#e4e3df" stroke-width="1"/><text x="46" y="17.5" text-anchor="end" class="tick">2.000</text><text x="52" y="228" text-anchor="middle" class="tick">0</text><text x="126.4" y="228" text-anchor="middle" class="tick">80</text><text x="200.8" y="228" text-anchor="middle" class="tick">160</text><text x="275.2" y="228" text-anchor="middle" class="tick">240</text><text x="349.6" y="228" text-anchor="middle" class="tick">320</text><text x="424" y="228" text-anchor="middle" class="tick">400</text><line x1="52" x2="424" y1="212" y2="212" stroke="#8a8984" stroke-width="1"/><text x="238" y="246" text-anchor="middle" class="axlabel">Jumlah user bersamaan</text><polyline fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,62.5 238.0,71.2 331.0,64.3 377.5,50.9"/><circle cx="145.0" cy="62.5" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="71.2" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="64.3" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="50.9" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/></svg></figure><figure class="chart"><figcaption><b>Throughput jaringan server</b> <span class="unit">(Mbps)</span></figcaption><div class="legend"><span><i style="background:#2a78d6"></i>Masuk</span><span><i style="background:#eb6834"></i>Keluar</span></div>
+<svg viewBox="0 0 520 250" width="100%" role="img" aria-label="Throughput jaringan server"><line x1="52" x2="424" y1="212" y2="212" stroke="#e4e3df" stroke-width="1"/><text x="46" y="215.5" text-anchor="end" class="tick">0</text><line x1="52" x2="424" y1="162.5" y2="162.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="166" text-anchor="end" class="tick">125</text><line x1="52" x2="424" y1="113" y2="113" stroke="#e4e3df" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" class="tick">250</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="67" text-anchor="end" class="tick">375</text><line x1="52" x2="424" y1="14" y2="14" stroke="#e4e3df" stroke-width="1"/><text x="46" y="17.5" text-anchor="end" class="tick">500</text><text x="52" y="228" text-anchor="middle" class="tick">0</text><text x="126.4" y="228" text-anchor="middle" class="tick">80</text><text x="200.8" y="228" text-anchor="middle" class="tick">160</text><text x="275.2" y="228" text-anchor="middle" class="tick">240</text><text x="349.6" y="228" text-anchor="middle" class="tick">320</text><text x="424" y="228" text-anchor="middle" class="tick">400</text><line x1="52" x2="424" y1="212" y2="212" stroke="#8a8984" stroke-width="1"/><text x="238" y="246" text-anchor="middle" class="axlabel">Jumlah user bersamaan</text><polyline fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,164.0 238.0,116.1 331.0,68.1 377.5,44.3"/><circle cx="145.0" cy="164.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="116.1" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="68.1" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="44.3" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><text x="385.5" y="47.766279999999995" class="dlabel">Masuk</text><polyline fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,164.0 238.0,116.1 331.0,68.1 377.5,44.3"/><circle cx="145.0" cy="164.0" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="116.1" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="68.1" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="44.3" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><text x="385.5" y="59.766279999999995" class="dlabel">Keluar</text></svg></figure><figure class="chart"><figcaption><b>Panggilan berhasil tersambung</b> <span class="unit">(%)</span></figcaption>
+<svg viewBox="0 0 520 250" width="100%" role="img" aria-label="Panggilan berhasil tersambung"><line x1="52" x2="424" y1="212" y2="212" stroke="#e4e3df" stroke-width="1"/><text x="46" y="215.5" text-anchor="end" class="tick">0</text><line x1="52" x2="424" y1="162.5" y2="162.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="166" text-anchor="end" class="tick">25</text><line x1="52" x2="424" y1="113" y2="113" stroke="#e4e3df" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" class="tick">50</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="67" text-anchor="end" class="tick">75</text><line x1="52" x2="424" y1="14" y2="14" stroke="#e4e3df" stroke-width="1"/><text x="46" y="17.5" text-anchor="end" class="tick">100</text><text x="52" y="228" text-anchor="middle" class="tick">0</text><text x="126.4" y="228" text-anchor="middle" class="tick">80</text><text x="200.8" y="228" text-anchor="middle" class="tick">160</text><text x="275.2" y="228" text-anchor="middle" class="tick">240</text><text x="349.6" y="228" text-anchor="middle" class="tick">320</text><text x="424" y="228" text-anchor="middle" class="tick">400</text><line x1="52" x2="424" y1="212" y2="212" stroke="#8a8984" stroke-width="1"/><text x="238" y="246" text-anchor="middle" class="axlabel">Jumlah user bersamaan</text><line x1="52" x2="424" y1="23.900000000000006" y2="23.900000000000006" stroke="#d03b3b" stroke-width="1" stroke-dasharray="4 3"/><text x="428" y="27.400000000000006" class="ref">SLA 95%</text><polyline fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,14.0 238.0,14.0 331.0,14.0 377.5,14.0"/><circle cx="145.0" cy="14.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="14.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="14.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="14.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/></svg></figure><figure class="chart"><figcaption><b>Packet loss media</b> <span class="unit">(%)</span></figcaption>
+<svg viewBox="0 0 520 250" width="100%" role="img" aria-label="Packet loss media"><line x1="52" x2="424" y1="212" y2="212" stroke="#e4e3df" stroke-width="1"/><text x="46" y="215.5" text-anchor="end" class="tick">0</text><line x1="52" x2="424" y1="162.5" y2="162.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="166" text-anchor="end" class="tick">1</text><line x1="52" x2="424" y1="113" y2="113" stroke="#e4e3df" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" class="tick">2</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="67" text-anchor="end" class="tick">3</text><line x1="52" x2="424" y1="14" y2="14" stroke="#e4e3df" stroke-width="1"/><text x="46" y="17.5" text-anchor="end" class="tick">4</text><text x="52" y="228" text-anchor="middle" class="tick">0</text><text x="126.4" y="228" text-anchor="middle" class="tick">80</text><text x="200.8" y="228" text-anchor="middle" class="tick">160</text><text x="275.2" y="228" text-anchor="middle" class="tick">240</text><text x="349.6" y="228" text-anchor="middle" class="tick">320</text><text x="424" y="228" text-anchor="middle" class="tick">400</text><line x1="52" x2="424" y1="212" y2="212" stroke="#8a8984" stroke-width="1"/><text x="238" y="246" text-anchor="middle" class="axlabel">Jumlah user bersamaan</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#d03b3b" stroke-width="1" stroke-dasharray="4 3"/><text x="428" y="67" class="ref">SLA 3%</text><polyline fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,212.0 238.0,212.0 331.0,212.0 377.5,212.0"/><circle cx="145.0" cy="212.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="212.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="212.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="212.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/></svg></figure><figure class="chart"><figcaption><b>Waktu setup panggilan p95</b> <span class="unit">(ms)</span><br><span class="sub">register → media dua arah mengalir</span></figcaption>
+<svg viewBox="0 0 520 250" width="100%" role="img" aria-label="Waktu setup panggilan p95"><line x1="52" x2="424" y1="212" y2="212" stroke="#e4e3df" stroke-width="1"/><text x="46" y="215.5" text-anchor="end" class="tick">0</text><line x1="52" x2="424" y1="162.5" y2="162.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="166" text-anchor="end" class="tick">2.000</text><line x1="52" x2="424" y1="113" y2="113" stroke="#e4e3df" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" class="tick">4.000</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="67" text-anchor="end" class="tick">6.000</text><line x1="52" x2="424" y1="14" y2="14" stroke="#e4e3df" stroke-width="1"/><text x="46" y="17.5" text-anchor="end" class="tick">8.000</text><text x="52" y="228" text-anchor="middle" class="tick">0</text><text x="126.4" y="228" text-anchor="middle" class="tick">80</text><text x="200.8" y="228" text-anchor="middle" class="tick">160</text><text x="275.2" y="228" text-anchor="middle" class="tick">240</text><text x="349.6" y="228" text-anchor="middle" class="tick">320</text><text x="424" y="228" text-anchor="middle" class="tick">400</text><line x1="52" x2="424" y1="212" y2="212" stroke="#8a8984" stroke-width="1"/><text x="238" y="246" text-anchor="middle" class="axlabel">Jumlah user bersamaan</text><line x1="52" x2="424" y1="137.75" y2="137.75" stroke="#d03b3b" stroke-width="1" stroke-dasharray="4 3"/><text x="428" y="141.25" class="ref">SLA 3000 ms</text><polyline fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,210.5 238.0,208.8 331.0,200.4 377.5,60.5"/><circle cx="145.0" cy="210.5" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="208.8" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="200.4" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="60.5" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/></svg></figure><figure class="chart"><figcaption><b>Latensi media one-way &amp; jitter</b> <span class="unit">(ms, p95)</span></figcaption><div class="legend"><span><i style="background:#2a78d6"></i>Latensi</span><span><i style="background:#eb6834"></i>Jitter</span></div>
+<svg viewBox="0 0 520 250" width="100%" role="img" aria-label="Latensi media one-way &amp; jitter"><line x1="52" x2="424" y1="212" y2="212" stroke="#e4e3df" stroke-width="1"/><text x="46" y="215.5" text-anchor="end" class="tick">0</text><line x1="52" x2="424" y1="162.5" y2="162.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="166" text-anchor="end" class="tick">50</text><line x1="52" x2="424" y1="113" y2="113" stroke="#e4e3df" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" class="tick">100</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="67" text-anchor="end" class="tick">150</text><line x1="52" x2="424" y1="14" y2="14" stroke="#e4e3df" stroke-width="1"/><text x="46" y="17.5" text-anchor="end" class="tick">200</text><text x="52" y="228" text-anchor="middle" class="tick">0</text><text x="126.4" y="228" text-anchor="middle" class="tick">80</text><text x="200.8" y="228" text-anchor="middle" class="tick">160</text><text x="275.2" y="228" text-anchor="middle" class="tick">240</text><text x="349.6" y="228" text-anchor="middle" class="tick">320</text><text x="424" y="228" text-anchor="middle" class="tick">400</text><line x1="52" x2="424" y1="212" y2="212" stroke="#8a8984" stroke-width="1"/><text x="238" y="246" text-anchor="middle" class="axlabel">Jumlah user bersamaan</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#d03b3b" stroke-width="1" stroke-dasharray="4 3"/><text x="428" y="67" class="ref">SLA 150 ms</text><polyline fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,205.9 238.0,199.0 331.0,200.8 377.5,167.1"/><circle cx="145.0" cy="205.9" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="199.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="200.8" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="167.1" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><text x="385.5" y="170.5639" class="dlabel">Latensi</text><polyline fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,211.4 238.0,211.4 331.0,211.0 377.5,210.2"/><circle cx="145.0" cy="211.4" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="211.4" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="211.0" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="210.2" r="4" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/><text x="385.5" y="213.6586" class="dlabel">Jitter</text></svg></figure><figure class="chart"><figcaption><b>Durasi video call rata-rata</b> <span class="unit">(detik)</span><br><span class="sub">media mengalir → hangup</span></figcaption>
+<svg viewBox="0 0 520 250" width="100%" role="img" aria-label="Durasi video call rata-rata"><line x1="52" x2="424" y1="212" y2="212" stroke="#e4e3df" stroke-width="1"/><text x="46" y="215.5" text-anchor="end" class="tick">0</text><line x1="52" x2="424" y1="162.5" y2="162.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="166" text-anchor="end" class="tick">30</text><line x1="52" x2="424" y1="113" y2="113" stroke="#e4e3df" stroke-width="1"/><text x="46" y="116.5" text-anchor="end" class="tick">60</text><line x1="52" x2="424" y1="63.5" y2="63.5" stroke="#e4e3df" stroke-width="1"/><text x="46" y="67" text-anchor="end" class="tick">90</text><line x1="52" x2="424" y1="14" y2="14" stroke="#e4e3df" stroke-width="1"/><text x="46" y="17.5" text-anchor="end" class="tick">120</text><text x="52" y="228" text-anchor="middle" class="tick">0</text><text x="126.4" y="228" text-anchor="middle" class="tick">80</text><text x="200.8" y="228" text-anchor="middle" class="tick">160</text><text x="275.2" y="228" text-anchor="middle" class="tick">240</text><text x="349.6" y="228" text-anchor="middle" class="tick">320</text><text x="424" y="228" text-anchor="middle" class="tick">400</text><line x1="52" x2="424" y1="212" y2="212" stroke="#8a8984" stroke-width="1"/><text x="238" y="246" text-anchor="middle" class="axlabel">Jumlah user bersamaan</text><polyline fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="145.0,46.0 238.0,44.3 331.0,42.8 377.5,37.8"/><circle cx="145.0" cy="46.0" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="238.0" cy="44.3" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="331.0" cy="42.8" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><circle cx="377.5" cy="37.8" r="4" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/></svg></figure></div>
+
+<h2 class="pb">5. Lingkungan Pengujian</h2>
+<div class="grid2">
+<div><h3>Server yang diuji</h3><table class="kv">
+<tr><td>Host</td><td>temp-stress-test (asia-southeast2-b)</td></tr>
+<tr><td>Tipe mesin</td><td>e2-standard-4</td></tr>
+<tr><td>CPU</td><td>4 vCPU — Intel(R) Xeon(R) CPU @ 2.20GHz</td></tr>
+<tr><td>RAM</td><td>15.997 MB</td></tr>
+<tr><td>OS / kernel</td><td>Debian GNU/Linux 13 (trixie) / 6.12.116+deb13-cloud-amd64</td></tr>
+<tr><td>Interface</td><td>ens4</td></tr>
+<tr><td>CoTURN</td><td>coturn 4.6.1-2</td></tr>
+<tr><td>Rentang port relay</td><td>10000–65535 (55.536 port)</td></tr>
+<tr><td>Sysctl rmem_max / backlog</td><td>26.214.400 B / 1.000</td></tr>
+<tr><td>Kondisi idle (sebelum uji)</td><td>CPU 0,5%, RAM 1.499 MB</td></tr>
+</table></div>
+<div><h3>Konfigurasi CoTURN (turnserver.conf)</h3><table class="kv"><tr><td><code>listening-port</code></td><td>3478</td></tr><tr><td><code>listening-ip</code></td><td>0.0.0.0</td></tr><tr><td><code>external-ip</code></td><td>34.50.75.236/10.184.0.23</td></tr><tr><td><code>min-port</code></td><td>10000</td></tr><tr><td><code>max-port</code></td><td>65535</td></tr><tr><td><code>realm</code></td><td>34.50.75.236</td></tr><tr><td><code>lt-cred-mech</code></td><td>aktif</td></tr><tr><td><code>fingerprint</code></td><td>aktif</td></tr><tr><td><code>verbose</code></td><td>aktif</td></tr><tr><td><code>log-file</code></td><td>/var/log/turnserver.log</td></tr></table>
+<h3>Mesin load generator</h3><table class="kv">
+<tr><td>Lokasi</td><td>Server yang sama (34.50.75.236, e2-standard-4)</td></tr>
+<tr><td>Host</td><td>temp-stress-test — Linux 6.12.116+deb13-cloud-amd64</td></tr>
+<tr><td>CPU / RAM</td><td>4 core Intel(R) Xeon(R) CPU @ 2.20GHz / 15.997 MB</td></tr>
+<tr><td>Node.js</td><td>v20.20.2</td></tr></table></div>
+</div>
+
+<h2>6. Metodologi &amp; Kriteria</h2>
+<div class="grid2">
+<div>
+<h3>Skenario per pasangan panggilan</h3>
+<p>Setiap tahap membuat <i>N</i>/2 pasangan. User A (aplikasi dokter) memanggil User B (aplikasi pasien) dengan protokol yang sama seperti aplikasi asli:</p>
+<ol class="flow">
+<li>A dan B membuka WebSocket ke gateway lalu mengirim <code>register</code>.</li>
+<li>A mengirim <code>call</code> (mode video), B menerima <code>incoming</code> lalu mengirim <code>accept</code>.</li>
+<li>A dan B masing-masing melakukan <b>TURN Allocate</b> ke CoTURN (tantangan 401 → kredensial long-term, RFC 5766).</li>
+<li>Pertukaran SDP <code>offer</code>/<code>answer</code> dan ICE <code>candidate</code> bertipe <code>relay</code> lewat gateway.</li>
+<li>A dan B melakukan <b>CreatePermission</b> + <b>ChannelBind</b> ke alamat relay lawan.</li>
+<li>Media dua arah mengalir sebagai <b>ChannelData</b>: A → CoTURN → relay A → relay B → CoTURN → B (dan sebaliknya).</li>
+<li>Setelah jendela pengukuran: A mengirim <code>hangup</code>, keduanya melepas alokasi (Refresh lifetime 0).</li>
+</ol>
+<p class="sub">Panggilan dihitung <b>berhasil</b> hanya jika media benar-benar diterima di kedua arah melalui relay CoTURN.</p>
+</div>
+<div>
+<h3>Profil beban &amp; tahapan</h3>
+<ul>
+<li>Profil media: paket setiap 20 ms — audio 172 B + video 1250 B ≈ <b>572 kbps</b> dan 100 paket/detik per arah per user.</li>
+<li>Tahapan: 100 → 200 → 300 → 350 user (rencana: 100, 200, 300, 350, 400, 450, 500, 600).</li>
+<li>Setiap tahap: <i>ramp-up</i> bertahap (panggilan dimulai merata), lalu <b>90 detik jendela pengukuran</b> dengan semua panggilan aktif, kemudian teardown dan cooldown 30 detik sampai port relay CoTURN kembali dilepas.</li>
+<li>Pengujian otomatis berhenti pada tahap pertama yang melanggar SLA (breaking point).</li>
+<li>Telemetri server dicatat setiap 1 detik oleh agen di server (/proc): CPU per core &amp; per proses, RAM, jaringan, statistik UDP kernel, port relay, file descriptor.</li>
+<li>Latensi one-way dan jitter diukur dari timestamp di setiap paket; pengirim dan penerima berada di proses yang sama sehingga jamnya identik.</li>
+</ul>
+<h3>Kriteria SLA</h3>
+<table class="kv"><thead><tr><th>Lingkup</th><th>Metrik</th><th class="num">Lulus</th><th class="num">Gagal bila</th></tr></thead><tbody><tr><td>Server</td><td>Panggilan berhasil tersambung (media 2 arah)</td><td class="num">≥ 99%</td><td class="num">< 95%</td></tr><tr><td>Server</td><td>Packet loss media</td><td class="num">≤ 1%</td><td class="num">> 3%</td></tr><tr><td>Server</td><td>Jitter p95 (RFC 3550)</td><td class="num">≤ 20 ms</td><td class="num">> 30 ms</td></tr><tr><td>Server</td><td>Latensi one-way p95 (ITU-T G.114)</td><td class="num">≤ 100 ms</td><td class="num">> 150 ms</td></tr><tr><td>Server</td><td>CPU server rata-rata (tanpa generator)</td><td class="num">≤ 70%</td><td class="num">> 85%</td></tr><tr><td>Server</td><td>RAM server</td><td class="num">≤ 80%</td><td class="num">> 90%</td></tr><tr><td>Signaling</td><td>Waktu setup panggilan p95</td><td class="num">≤ 1500 ms</td><td class="num">> 3000 ms</td></tr><tr><td>Signaling</td><td>CPU gateway Node.js (1 core)</td><td class="num">≤ 70%</td><td class="num">> 95%</td></tr></tbody></table>
+<p class="sub"><b>Server</b> = kapasitas server &amp; relay media CoTURN; menentukan kapasitas dan titik jenuh server. <b>Signaling</b> = kinerja gateway aplikasi saat panggilan dibuat; dilaporkan terpisah dan tidak menghentikan uji kapasitas server.</p>
+</div></div>
+
+<h2 class="pb">7. Lampiran</h2>
+<h3>Biaya sumber daya per user</h3><table class="kv"><tr><td>CPU server per user</td><td class="num">≈ 0,107%</td></tr>
+    <tr><td>RAM per user</td><td class="num">≈ 0,43 MB</td></tr>
+    <tr><td>Bandwidth keluar per user</td><td class="num">≈ 1,21 Mbps</td></tr>
+    <tr><td>Estimasi user saat CPU 85% (ekstrapolasi linear)</td><td class="num">≈ 783</td></tr></table>
+    <p class="sub">Dihitung dengan regresi linear dari tahap-tahap yang memenuhi SLA. Ekstrapolasi hanya perkiraan; pembatas non-CPU (gateway, jaringan) bisa muncul lebih dulu.</p>
+<h3>Rincian penyebab kegagalan panggilan</h3>
+<table><thead><tr><th class="num" style="width:12%">User</th><th>Fase: penyebab ×jumlah</th></tr></thead><tbody><tr><td colspan="2">Tidak ada kegagalan panggilan.</td></tr></tbody></table>
+<h3>Kesehatan load generator (validitas data)</h3>
+<p class="sub">Jika event-loop generator &gt; 100 ms atau CPU-nya &gt; 90%, angka di tahap tersebut bisa dibatasi oleh generator, bukan oleh server.</p>
+<table><thead><tr><th class="num">User</th><th class="num">Worker</th><th class="num">Event loop p99</th><th class="num">CPU worker maks</th><th class="num">Media dikirim</th><th>Kondisi</th></tr></thead><tbody><tr><td class="num b">100</td><td class="num">1</td><td class="num">14,8 ms</td><td class="num">32,3%</td><td class="num">56,9 Mbps</td><td>normal</td></tr><tr><td class="num b">200</td><td class="num">1</td><td class="num">23,9 ms</td><td class="num">61,5%</td><td class="num">113,8 Mbps</td><td>normal</td></tr><tr><td class="num b">300</td><td class="num">2</td><td class="num">19,9 ms</td><td class="num">49,9%</td><td class="num">170,6 Mbps</td><td>normal</td></tr><tr><td class="num b">350</td><td class="num">2</td><td class="num">45,3 ms</td><td class="num">72,2%</td><td class="num">198,9 Mbps</td><td>normal</td></tr></tbody></table>
+</body></html>

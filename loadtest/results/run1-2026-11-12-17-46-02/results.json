@@ -1,0 +1,4766 @@
+{
+  "runId": "2026-11-12-17-46-02",
+  "label": "Uji kapasitas penuh - profil video 574 kbps",
+  "startedAt": "2026-11-12T17:46:09.311Z",
+  "config": {
+    "target": "34.50.75.236",
+    "wsUrl": "ws://34.50.75.236:3000",
+    "httpBase": "http://34.50.75.236:3000",
+    "turnHost": "34.50.75.236",
+    "turnPort": 3478,
+    "turnUser": "simulasi",
+    "turnPass": "<redacted>",
+    "tiers": [
+      100,
+      250,
+      500,
+      750,
+      1000,
+      1500,
+      2000,
+      2500,
+      3000,
+      4000,
+      5000
+    ],
+    "holdSec": 90,
+    "rampSec": "auto",
+    "cooldownSec": 30,
+    "profile": {
+      "tickMs": 20,
+      "packetsPerTick": [
+        {
+          "kind": 0,
+          "size": 172
+        },
+        {
+          "kind": 1,
+          "size": 625
+        },
+        {
+          "kind": 1,
+          "size": 625
+        }
+      ],
+      "kbpsPerDir": 573.6,
+      "ppsPerDir": 150
+    },
+    "videoKbps": 500,
+    "maxWorkers": 3,
+    "phaseTimeoutMs": 15000,
+    "monitor": "local-sudo",
+    "sshHost": "34.50.75.236",
+    "sshUser": "joim",
+    "sshKey": "<set>",
+    "stopOnFail": true,
+    "outDir": "/home/joim/VCall_WebRTC_Coturn/loadtest/results",
+    "generatorLocation": "Server yang sama (34.50.75.236, e2-standard-4)",
+    "label": "Uji kapasitas penuh - profil video 574 kbps",
+    "pdf": false,
+    "thresholds": {
+      "successPct": {
+        "warn": 99,
+        "fail": 95
+      },
+      "lossPct": {
+        "warn": 1,
+        "fail": 3
+      },
+      "jitterP95": {
+        "warn": 20,
+        "fail": 30
+      },
+      "latencyP95": {
+        "warn": 100,
+        "fail": 150
+      },
+      "setupP95": {
+        "warn": 1500,
+        "fail": 3000
+      },
+      "cpuAvg": {
+        "warn": 70,
+        "fail": 85
+      },
+      "memPct": {
+        "warn": 80,
+        "fail": 90
+      },
+      "gatewayCpu": {
+        "warn": 70,
+        "fail": 95
+      }
+    }
+  },
+  "generator": {
+    "hostname": "temp-stress-test",
+    "platform": "Linux 6.12.116+deb13-cloud-amd64",
+    "cores": 4,
+    "cpuModel": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "memMB": 15997,
+    "node": "v20.20.2",
+    "location": "Server yang sama (34.50.75.236, e2-standard-4)"
+  },
+  "serverInfo": {
+    "kind": "info",
+    "ts": 1794505562162,
+    "hostname": "temp-stress-test",
+    "kernel": "6.12.116+deb13-cloud-amd64",
+    "os": "Debian GNU/Linux 13 (trixie)",
+    "cpuModel": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+    "cores": 4,
+    "memTotalMB": 15996.7734375,
+    "iface": "ens4",
+    "ifaceSpeedMbps": -1,
+    "gcpMachineType": "e2-standard-4",
+    "gcpZone": "asia-southeast2-b",
+    "nodeVersion": "v20.20.2",
+    "coturnVersion": "coturn 4.6.1-2",
+    "turnConfFile": "/etc/turnserver.conf",
+    "turnConf": {
+      "listening-port": "3478",
+      "tls-listening-port": "5349",
+      "listening-ip": "0.0.0.0",
+      "external-ip": "34.50.75.236/10.184.0.23",
+      "fingerprint": true,
+      "lt-cred-mech": true,
+      "realm": "34.50.75.236",
+      "user": "<redacted>",
+      "min-port": "10000",
+      "max-port": "65535",
+      "no-cli": true,
+      "verbose": true,
+      "log-file": "/var/log/turnserver.log"
+    },
+    "relayPortRange": [
+      10000,
+      65535
+    ],
+    "sysctl": {
+      "rmem_max": 26214400,
+      "wmem_max": 26214400,
+      "netdev_max_backlog": 1000,
+      "file_max": 2097152,
+      "conntrack_max": 262144
+    },
+    "processes": [
+      {
+        "pid": 10728,
+        "role": "coturn",
+        "cmd": "/usr/bin/turnserver -c /etc/turnserver.conf --pidfile=",
+        "maxOpenFiles": {
+          "soft": "1048576",
+          "hard": "1048576"
+        }
+      },
+      {
+        "pid": 23380,
+        "role": "gateway",
+        "cmd": "node /home/joim/VCall_WebRTC_Coturn/gateway/index.js",
+        "maxOpenFiles": {
+          "soft": "524288",
+          "hard": "524288"
+        }
+      },
+      {
+        "pid": 23381,
+        "role": "app",
+        "cmd": "node /home/joim/VCall_WebRTC_Coturn/app-a/server.js",
+        "maxOpenFiles": {
+          "soft": "524288",
+          "hard": "524288"
+        }
+      },
+      {
+        "pid": 23395,
+        "role": "app",
+        "cmd": "node /home/joim/VCall_WebRTC_Coturn/app-b/server.js",
+        "maxOpenFiles": {
+          "soft": "524288",
+          "hard": "524288"
+        }
+      },
+      {
+        "pid": 42819,
+        "role": "loadgen",
+        "cmd": "node run-capacity-test.js --target 34.50.75.236 --tiers 100,250,500,750,1000,1500,2000,2500,3000,4000,5000 --profile video --hold 90 --cooldown 30 --monitor loc",
+        "maxOpenFiles": {
+          "soft": "200000",
+          "hard": "200000"
+        }
+      }
+    ]
+  },
+  "idle": {
+    "n": 5,
+    "cpu": {
+      "avg": 0.46,
+      "max": 1.27
+    },
+    "cpuExclGen": {
+      "avg": 0.46,
+      "max": 1.27
+    },
+    "cpuMaxCore": {
+      "avg": 1.43,
+      "max": 3.16
+    },
+    "cpuSoftirq": {
+      "avg": 0,
+      "max": 0
+    },
+    "cpuSteal": {
+      "avg": 0.05,
+      "max": 0.25
+    },
+    "load1": {
+      "avg": 0.21,
+      "max": 0.22
+    },
+    "memUsedMB": {
+      "avg": 780.14,
+      "max": 782.75
+    },
+    "memPct": {
+      "avg": 4.88,
+      "max": 4.89
+    },
+    "rxMbps": {
+      "avg": 0,
+      "max": 0
+    },
+    "txMbps": {
+      "avg": 0,
+      "max": 0
+    },
+    "rxPps": {
+      "avg": 1.4,
+      "max": 3
+    },
+    "txPps": {
+      "avg": 1.4,
+      "max": 3
+    },
+    "nicDropPs": {
+      "avg": 0,
+      "max": 0
+    },
+    "udpInPs": {
+      "avg": 0,
+      "max": 0
+    },
+    "udpOutPs": {
+      "avg": 0,
+      "max": 0
+    },
+    "udpErrPs": {
+      "avg": 0,
+      "max": 0
+    },
+    "udpRcvbufErrPs": {
+      "avg": 0,
+      "max": 0
+    },
+    "relayPorts": {
+      "avg": 0,
+      "max": 0
+    },
+    "tcpInuse": {
+      "avg": 16,
+      "max": 16
+    },
+    "udpInuse": {
+      "avg": 8,
+      "max": 8
+    },
+    "conntrack": {
+      "avg": 318.2,
+      "max": 324
+    },
+    "coturnCpu": {
+      "avg": 0,
+      "max": 0
+    },
+    "coturnRss": {
+      "avg": 42.74,
+      "max": 42.74
+    },
+    "coturnThreads": {
+      "avg": 9,
+      "max": 9
+    },
+    "coturnFds": {
+      "avg": 49,
+      "max": 49
+    },
+    "gatewayCpu": {
+      "avg": 0.2,
+      "max": 1
+    },
+    "gatewayRss": {
+      "avg": 78.35,
+      "max": 79.03
+    },
+    "gatewayFds": {
+      "avg": 20,
+      "max": 20
+    },
+    "loadgenCpu": {
+      "avg": 0,
+      "max": 0
+    }
+  },
+  "stages": [
+    {
+      "stage": 1,
+      "users": 100,
+      "pairs": 50,
+      "rampSec": 10,
+      "holdSec": 90,
+      "workers": 1,
+      "calls": {
+        "attempted": 50,
+        "established": 50,
+        "failed": 0,
+        "successPct": 100,
+        "droppedDuringHold": 0,
+        "mediaDeadStreams": 0
+      },
+      "latency": {
+        "wsOpen": {
+          "n": 100,
+          "min": 2.41,
+          "avg": 5.36,
+          "p50": 3.92,
+          "p95": 10.26,
+          "p99": 38.43,
+          "max": 40.88
+        },
+        "register": {
+          "n": 50,
+          "min": 2.29,
+          "avg": 4.94,
+          "p50": 4.15,
+          "p95": 10.74,
+          "p99": 13.35,
+          "max": 13.35
+        },
+        "callToAccept": {
+          "n": 50,
+          "min": 2.93,
+          "avg": 7.03,
+          "p50": 5.37,
+          "p95": 16.63,
+          "p99": 17.31,
+          "max": 17.31
+        },
+        "allocate": {
+          "n": 100,
+          "min": 1.49,
+          "avg": 4.05,
+          "p50": 3.33,
+          "p95": 7.96,
+          "p99": 10.19,
+          "max": 10.28
+        },
+        "sdpExchange": {
+          "n": 50,
+          "min": 4.43,
+          "avg": 6.65,
+          "p50": 6.32,
+          "p95": 9.8,
+          "p99": 11.98,
+          "max": 11.98
+        },
+        "bind": {
+          "n": 50,
+          "min": 1.74,
+          "avg": 3.24,
+          "p50": 2.61,
+          "p95": 6.4,
+          "p99": 8.46,
+          "max": 8.46
+        },
+        "setup": {
+          "n": 50,
+          "min": 25.19,
+          "avg": 46.96,
+          "p50": 46.43,
+          "p95": 64.55,
+          "p99": 76.46,
+          "max": 76.46
+        },
+        "mediaOneWay": {
+          "n": 20000,
+          "min": 3.74,
+          "avg": 6.6,
+          "p50": 6.27,
+          "p95": 10.08,
+          "p99": 13.4,
+          "max": 19.59
+        }
+      },
+      "media": {
+        "sentPkts": 1350300,
+        "recvPkts": 1350293,
+        "lossPct": 0.001,
+        "jitter": {
+          "n": 100,
+          "min": 0.63,
+          "avg": 0.75,
+          "p50": 0.74,
+          "p95": 0.85,
+          "p99": 0.9,
+          "max": 0.9
+        },
+        "oneWay": {
+          "n": 20000,
+          "min": 3.74,
+          "avg": 6.6,
+          "p50": 6.27,
+          "p95": 10.08,
+          "p99": 13.4,
+          "max": 19.59
+        },
+        "generatorTxMbps": 56.87
+      },
+      "turn": {
+        "retransmits": 0
+      },
+      "signaling": {
+        "usersBroadcastMB": 39.08,
+        "usersBroadcastMsgs": 10150,
+        "otherMsgs": 450
+      },
+      "failures": [],
+      "generator": {
+        "eventLoopP99Ms": 17.47,
+        "cpuPctMax": 44.11,
+        "rssMBTotal": 67.8,
+        "saturated": false
+      },
+      "server": {
+        "hold": {
+          "n": 90,
+          "cpu": {
+            "avg": 26.58,
+            "max": 30.83
+          },
+          "cpuExclGen": {
+            "avg": 15.52,
+            "max": 19.19
+          },
+          "cpuMaxCore": {
+            "avg": 33.98,
+            "max": 42.57
+          },
+          "cpuSoftirq": {
+            "avg": 5.7,
+            "max": 7.96
+          },
+          "cpuSteal": {
+            "avg": 0.21,
+            "max": 0.51
+          },
+          "load1": {
+            "avg": 0.47,
+            "max": 0.75
+          },
+          "memUsedMB": {
+            "avg": 801.29,
+            "max": 805.66
+          },
+          "memPct": {
+            "avg": 5.01,
+            "max": 5.04
+          },
+          "rxMbps": {
+            "avg": 124.82,
+            "max": 127.35
+          },
+          "txMbps": {
+            "avg": 124.82,
+            "max": 127.35
+          },
+          "rxPps": {
+            "avg": 30006.14,
+            "max": 30612.61
+          },
+          "txPps": {
+            "avg": 30006.25,
+            "max": 30612.61
+          },
+          "nicDropPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "udpInPs": {
+            "avg": 45000.62,
+            "max": 45879
+          },
+          "udpOutPs": {
+            "avg": 45007.38,
+            "max": 45942.94
+          },
+          "udpErrPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "udpRcvbufErrPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "relayPorts": {
+            "avg": 100,
+            "max": 100
+          },
+          "tcpInuse": {
+            "avg": 116.26,
+            "max": 118
+          },
+          "udpInuse": {
+            "avg": 208,
+            "max": 208
+          },
+          "conntrack": {
+            "avg": 730.66,
+            "max": 762
+          },
+          "coturnCpu": {
+            "avg": 54.62,
+            "max": 56.77
+          },
+          "coturnRss": {
+            "avg": 42.74,
+            "max": 42.74
+          },
+          "coturnThreads": {
+            "avg": 9,
+            "max": 9
+          },
+          "coturnFds": {
+            "avg": 149,
+            "max": 149
+          },
+          "gatewayCpu": {
+            "avg": 0.34,
+            "max": 2
+          },
+          "gatewayRss": {
+            "avg": 79.37,
+            "max": 82.8
+          },
+          "gatewayFds": {
+            "avg": 120,
+            "max": 120
+          },
+          "loadgenCpu": {
+            "avg": 44.25,
+            "max": 48.1
+          }
+        },
+        "wholeStage": {
+          "n": 105,
+          "cpu": {
+            "avg": 26.15,
+            "max": 32.16
+          },
+          "cpuExclGen": {
+            "avg": 15.48,
+            "max": 19.69
+          },
+          "cpuMaxCore": {
+            "avg": 33.4,
+            "max": 42.57
+          },
+          "cpuSoftirq": {
+            "avg": 5.58,
+            "max": 7.96
+          },
+          "cpuSteal": {
+            "avg": 0.22,
+            "max": 0.75
+          },
+          "load1": {
+            "avg": 0.43,
+            "max": 0.75
+          },
+          "memUsedMB": {
+            "avg": 800.77,
+            "max": 805.66
+          },
+          "memPct": {
+            "avg": 5.01,
+            "max": 5.04
+          },
+          "rxMbps": {
+            "avg": 121.95,
+            "max": 203.38
+          },
+          "txMbps": {
+            "avg": 121.95,
+            "max": 203.21
+          },
+          "rxPps": {
+            "avg": 28760.27,
+            "max": 32135.73
+          },
+          "txPps": {
+            "avg": 28748.64,
+            "max": 31823.35
+          },
+          "nicDropPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "udpInPs": {
+            "avg": 42803.74,
+            "max": 45879
+          },
+          "udpOutPs": {
+            "avg": 42805.89,
+            "max": 45942.94
+          },
+          "udpErrPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "udpRcvbufErrPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "relayPorts": {
+            "avg": 95.52,
+            "max": 100
+          },
+          "tcpInuse": {
+            "avg": 111.75,
+            "max": 118
+          },
+          "udpInuse": {
+            "avg": 199.05,
+            "max": 208
+          },
+          "conntrack": {
+            "avg": 713.01,
+            "max": 762
+          },
+          "coturnCpu": {
+            "avg": 52.05,
+            "max": 56.77
+          },
+          "coturnRss": {
+            "avg": 42.74,
+            "max": 42.74
+          },
+          "coturnThreads": {
+            "avg": 9,
+            "max": 9
+          },
+          "coturnFds": {
+            "avg": 144.52,
+            "max": 149
+          },
+          "gatewayCpu": {
+            "avg": 1.15,
+            "max": 11.99
+          },
+          "gatewayRss": {
+            "avg": 79.59,
+            "max": 82.8
+          },
+          "gatewayFds": {
+            "avg": 115.54,
+            "max": 120
+          },
+          "loadgenCpu": {
+            "avg": 42.69,
+            "max": 49.9
+          }
+        }
+      },
+      "times": {
+        "tStage": 1794505569318,
+        "tRampEnd": 1794505580324,
+        "tHold0": 1794505583323,
+        "tHold1": 1794505673364,
+        "tEnd": 1794505675066
+      },
+      "series": [
+        {
+          "ts": 1794505570319,
+          "active": 0,
+          "failed": 0
+        },
+        {
+          "ts": 1794505571319,
+          "active": 5,
+          "failed": 0
+        },
+        {
+          "ts": 1794505572319,
+          "active": 10,
+          "failed": 0
+        },
+        {
+          "ts": 1794505573320,
+          "active": 15,
+          "failed": 0
+        },
+        {
+          "ts": 1794505574321,
+          "active": 20,
+          "failed": 0
+        },
+        {
+          "ts": 1794505575321,
+          "active": 25,
+          "failed": 0
+        },
+        {
+          "ts": 1794505576322,
+          "active": 30,
+          "failed": 0
+        },
+        {
+          "ts": 1794505577322,
+          "active": 35,
+          "failed": 0
+        },
+        {
+          "ts": 1794505578323,
+          "active": 40,
+          "failed": 0
+        },
+        {
+          "ts": 1794505579323,
+          "active": 45,
+          "failed": 0
+        },
+        {
+          "ts": 1794505580323,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505584324,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505585324,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505586325,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505587326,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505588327,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505589327,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505590328,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505591327,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505592328,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505593329,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505594328,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505595328,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505596329,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505597330,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505598330,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505599331,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505600331,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505601332,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505602334,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505603334,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505604334,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505605335,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505606336,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505607337,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505608337,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505609338,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505610338,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505611339,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505612339,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505613339,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505614340,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505615340,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505616341,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505617342,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505618341,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505619341,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505620341,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505621342,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505622342,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505623342,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505624343,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505625343,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505626344,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505627345,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505628346,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505629347,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505630348,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505631349,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505632349,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505633349,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505634349,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505635350,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505636351,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505637352,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505638353,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505639352,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505640352,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505641353,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505642354,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505643354,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505644354,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505645355,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505646355,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505647355,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505648355,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505649356,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505650357,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505651357,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505652357,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505653357,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505654357,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505655358,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505656359,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505657360,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505658360,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505659360,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505660360,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505661360,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505662361,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505663361,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505664362,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505665362,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505666362,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505667363,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505668362,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505669362,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505670363,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505671364,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505672364,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505673364,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505675066,
+          "active": 0,
+          "failed": 0
+        }
+      ],
+      "evaluation": {
+        "level": "PASS",
+        "checks": [
+          {
+            "name": "Panggilan berhasil",
+            "value": 100,
+            "unit": "%",
+            "level": "OK",
+            "warn": 99,
+            "fail": 95
+          },
+          {
+            "name": "Packet loss media",
+            "value": 0.001,
+            "unit": "%",
+            "level": "OK",
+            "warn": 1,
+            "fail": 3
+          },
+          {
+            "name": "Jitter p95",
+            "value": 0.85,
+            "unit": "ms",
+            "level": "OK",
+            "warn": 20,
+            "fail": 30
+          },
+          {
+            "name": "Latensi one-way p95",
+            "value": 10.08,
+            "unit": "ms",
+            "level": "OK",
+            "warn": 100,
+            "fail": 150
+          },
+          {
+            "name": "Waktu setup panggilan p95",
+            "value": 64.55,
+            "unit": "ms",
+            "level": "OK",
+            "warn": 1500,
+            "fail": 3000
+          },
+          {
+            "name": "CPU server tanpa generator (rata-rata)",
+            "value": 15.52,
+            "unit": "%",
+            "level": "OK",
+            "warn": 70,
+            "fail": 85
+          },
+          {
+            "name": "RAM server",
+            "value": 5.04,
+            "unit": "%",
+            "level": "OK",
+            "warn": 80,
+            "fail": 90
+          },
+          {
+            "name": "CPU gateway Node.js",
+            "value": 0.34,
+            "unit": "% 1 core",
+            "level": "OK",
+            "warn": 70,
+            "fail": 95
+          }
+        ],
+        "generatorSaturated": false
+      },
+      "callDuration": {
+        "talkSec": {
+          "n": 50,
+          "min": 95.68,
+          "avg": 100.59,
+          "p50": 100.49,
+          "p95": 105.09,
+          "p99": 105.47,
+          "max": 105.47
+        },
+        "sessionSec": {
+          "n": 50,
+          "min": 95.73,
+          "avg": 100.63,
+          "p50": 100.53,
+          "p95": 105.13,
+          "p99": 105.51,
+          "max": 105.51
+        }
+      },
+      "vu": {
+        "target": 100,
+        "pairs": 50,
+        "rampSec": 10,
+        "arrivalVuPerSec": 10,
+        "peakActiveVu": 100,
+        "holdSec": 90,
+        "stageSec": 105.7,
+        "workers": 1
+      }
+    },
+    {
+      "stage": 2,
+      "users": 250,
+      "pairs": 125,
+      "rampSec": 10,
+      "holdSec": 90.1,
+      "workers": 2,
+      "calls": {
+        "attempted": 125,
+        "established": 125,
+        "failed": 0,
+        "successPct": 100,
+        "droppedDuringHold": 0,
+        "mediaDeadStreams": 0
+      },
+      "latency": {
+        "wsOpen": {
+          "n": 250,
+          "min": 2.16,
+          "avg": 12.51,
+          "p50": 4.41,
+          "p95": 56.72,
+          "p99": 93.35,
+          "max": 102.61
+        },
+        "register": {
+          "n": 125,
+          "min": 2.79,
+          "avg": 14.72,
+          "p50": 8.66,
+          "p95": 46.8,
+          "p99": 86.86,
+          "max": 109.71
+        },
+        "callToAccept": {
+          "n": 125,
+          "min": 2.78,
+          "avg": 21.78,
+          "p50": 13.4,
+          "p95": 78.53,
+          "p99": 108.34,
+          "max": 115.44
+        },
+        "allocate": {
+          "n": 250,
+          "min": 2.07,
+          "avg": 14.37,
+          "p50": 6.41,
+          "p95": 54.82,
+          "p99": 103.47,
+          "max": 153.22
+        },
+        "sdpExchange": {
+          "n": 125,
+          "min": 4.31,
+          "avg": 21.13,
+          "p50": 7.08,
+          "p95": 105.26,
+          "p99": 152.13,
+          "max": 155.63
+        },
+        "bind": {
+          "n": 125,
+          "min": 1.94,
+          "avg": 10.54,
+          "p50": 3.61,
+          "p95": 51.3,
+          "p99": 99.49,
+          "max": 127.18
+        },
+        "setup": {
+          "n": 125,
+          "min": 28.17,
+          "avg": 116.92,
+          "p50": 64.53,
+          "p95": 472.41,
+          "p99": 630.77,
+          "max": 649.4
+        },
+        "mediaOneWay": {
+          "n": 40000,
+          "min": 4.28,
+          "avg": 8.6,
+          "p50": 8.06,
+          "p95": 12.88,
+          "p99": 19.4,
+          "max": 69.11
+        }
+      },
+      "media": {
+        "sentPkts": 3378372,
+        "recvPkts": 3378372,
+        "lossPct": 0,
+        "jitter": {
+          "n": 250,
+          "min": 0.34,
+          "avg": 0.61,
+          "p50": 0.59,
+          "p95": 0.95,
+          "p99": 1.09,
+          "max": 1.2
+        },
+        "oneWay": {
+          "n": 40000,
+          "min": 4.28,
+          "avg": 8.6,
+          "p50": 8.06,
+          "p95": 12.88,
+          "p99": 19.4,
+          "max": 69.11
+        },
+        "generatorTxMbps": 142.17
+      },
+      "turn": {
+        "retransmits": 0
+      },
+      "signaling": {
+        "usersBroadcastMB": 602.85,
+        "usersBroadcastMsgs": 62891,
+        "otherMsgs": 1125
+      },
+      "failures": [],
+      "generator": {
+        "eventLoopP99Ms": 23.1,
+        "cpuPctMax": 57.41,
+        "rssMBTotal": 165.98,
+        "saturated": false
+      },
+      "server": {
+        "hold": {
+          "n": 90,
+          "cpu": {
+            "avg": 64.44,
+            "max": 72.54
+          },
+          "cpuExclGen": {
+            "avg": 35.92,
+            "max": 40.61
+          },
+          "cpuMaxCore": {
+            "avg": 69.02,
+            "max": 76.29
+          },
+          "cpuSoftirq": {
+            "avg": 13,
+            "max": 15.31
+          },
+          "cpuSteal": {
+            "avg": 0.35,
+            "max": 2.27
+          },
+          "load1": {
+            "avg": 2.06,
+            "max": 2.81
+          },
+          "memUsedMB": {
+            "avg": 864.01,
+            "max": 876.7
+          },
+          "memPct": {
+            "avg": 5.4,
+            "max": 5.48
+          },
+          "rxMbps": {
+            "avg": 312.01,
+            "max": 317.45
+          },
+          "txMbps": {
+            "avg": 312.01,
+            "max": 317.44
+          },
+          "rxPps": {
+            "avg": 75003.09,
+            "max": 76310.38
+          },
+          "txPps": {
+            "avg": 75003.08,
+            "max": 76308.38
+          },
+          "nicDropPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "udpInPs": {
+            "avg": 112502.8,
+            "max": 114122.75
+          },
+          "udpOutPs": {
+            "avg": 112501.87,
+            "max": 114493.01
+          },
+          "udpErrPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "udpRcvbufErrPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "relayPorts": {
+            "avg": 250,
+            "max": 250
+          },
+          "tcpInuse": {
+            "avg": 266.73,
+            "max": 268
+          },
+          "udpInuse": {
+            "avg": 508,
+            "max": 508
+          },
+          "conntrack": {
+            "avg": 1434.3,
+            "max": 1442
+          },
+          "coturnCpu": {
+            "avg": 131.01,
+            "max": 137.72
+          },
+          "coturnRss": {
+            "avg": 42.74,
+            "max": 42.74
+          },
+          "coturnThreads": {
+            "avg": 9,
+            "max": 9
+          },
+          "coturnFds": {
+            "avg": 299,
+            "max": 299
+          },
+          "gatewayCpu": {
+            "avg": 0.44,
+            "max": 1
+          },
+          "gatewayRss": {
+            "avg": 82.49,
+            "max": 89.64
+          },
+          "gatewayFds": {
+            "avg": 270,
+            "max": 270
+          },
+          "loadgenCpu": {
+            "avg": 114.08,
+            "max": 127.74
+          }
+        },
+        "wholeStage": {
+          "n": 107,
+          "cpu": {
+            "avg": 63.65,
+            "max": 92.44
+          },
+          "cpuExclGen": {
+            "avg": 36.82,
+            "max": 74.87
+          },
+          "cpuMaxCore": {
+            "avg": 68.11,
+            "max": 94.06
+          },
+          "cpuSoftirq": {
+            "avg": 12.8,
+            "max": 19.7
+          },
+          "cpuSteal": {
+            "avg": 0.36,
+            "max": 2.27
+          },
+          "load1": {
+            "avg": 1.85,
+            "max": 2.81
+          },
+          "memUsedMB": {
+            "avg": 861.74,
+            "max": 887.86
+          },
+          "memPct": {
+            "avg": 5.39,
+            "max": 5.55
+          },
+          "rxMbps": {
+            "avg": 342.75,
+            "max": 1510.83
+          },
+          "txMbps": {
+            "avg": 342.69,
+            "max": 1509.47
+          },
+          "rxPps": {
+            "avg": 72230.52,
+            "max": 93446.22
+          },
+          "txPps": {
+            "avg": 72115.58,
+            "max": 90815.74
+          },
+          "nicDropPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "udpInPs": {
+            "avg": 106304,
+            "max": 116373.88
+          },
+          "udpOutPs": {
+            "avg": 106306.29,
+            "max": 114654.04
+          },
+          "udpErrPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "udpRcvbufErrPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "relayPorts": {
+            "avg": 237.48,
+            "max": 250
+          },
+          "tcpInuse": {
+            "avg": 254.25,
+            "max": 268
+          },
+          "udpInuse": {
+            "avg": 482.99,
+            "max": 508
+          },
+          "conntrack": {
+            "avg": 1378.34,
+            "max": 1442
+          },
+          "coturnCpu": {
+            "avg": 124.02,
+            "max": 137.72
+          },
+          "coturnRss": {
+            "avg": 42.74,
+            "max": 42.74
+          },
+          "coturnThreads": {
+            "avg": 9,
+            "max": 9
+          },
+          "coturnFds": {
+            "avg": 286.48,
+            "max": 299
+          },
+          "gatewayCpu": {
+            "avg": 4.09,
+            "max": 60.82
+          },
+          "gatewayRss": {
+            "avg": 82.96,
+            "max": 89.64
+          },
+          "gatewayFds": {
+            "avg": 257.61,
+            "max": 270
+          },
+          "loadgenCpu": {
+            "avg": 107.33,
+            "max": 168.33
+          }
+        }
+      },
+      "times": {
+        "tStage": 1794505705120,
+        "tRampEnd": 1794505717144,
+        "tHold0": 1794505720145,
+        "tHold1": 1794505810253,
+        "tEnd": 1794505812056
+      },
+      "series": [
+        {
+          "ts": 1794505706121,
+          "active": 0,
+          "failed": 0
+        },
+        {
+          "ts": 1794505707122,
+          "active": 13,
+          "failed": 0
+        },
+        {
+          "ts": 1794505708126,
+          "active": 25,
+          "failed": 0
+        },
+        {
+          "ts": 1794505709127,
+          "active": 37,
+          "failed": 0
+        },
+        {
+          "ts": 1794505710129,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505711131,
+          "active": 62,
+          "failed": 0
+        },
+        {
+          "ts": 1794505712136,
+          "active": 75,
+          "failed": 0
+        },
+        {
+          "ts": 1794505713139,
+          "active": 87,
+          "failed": 0
+        },
+        {
+          "ts": 1794505714140,
+          "active": 99,
+          "failed": 0
+        },
+        {
+          "ts": 1794505715141,
+          "active": 110,
+          "failed": 0
+        },
+        {
+          "ts": 1794505716142,
+          "active": 119,
+          "failed": 0
+        },
+        {
+          "ts": 1794505717144,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505721146,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505722147,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505723148,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505724149,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505725150,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505726151,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505727152,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505728153,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505729154,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505730155,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505731156,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505732157,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505733158,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505734160,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505735164,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505736165,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505737167,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505738168,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505739169,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505740170,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505741171,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505742172,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505743173,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505744174,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505745176,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505746177,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505747178,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505748179,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505749180,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505750181,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505751182,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505752183,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505753184,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505754185,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505755188,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505756189,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505757190,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505758192,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505759192,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505760193,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505761194,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505762195,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505763196,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505764197,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505765200,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505766201,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505767203,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505768204,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505769205,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505770206,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505771208,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505772209,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505773210,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505774211,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505775212,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505776213,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505777215,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505778215,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505779216,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505780217,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505781218,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505782220,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505783221,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505784223,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505785224,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505786225,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505787226,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505788227,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505789228,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505790229,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505791230,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505792231,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505793232,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505794233,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505795234,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505796235,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505797236,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505798238,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505799239,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505800240,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505801242,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505802242,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505803243,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505804244,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505805248,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505806249,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505807250,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505808251,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505809252,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505810253,
+          "active": 125,
+          "failed": 0
+        },
+        {
+          "ts": 1794505812056,
+          "active": 0,
+          "failed": 0
+        }
+      ],
+      "evaluation": {
+        "level": "PASS",
+        "checks": [
+          {
+            "name": "Panggilan berhasil",
+            "value": 100,
+            "unit": "%",
+            "level": "OK",
+            "warn": 99,
+            "fail": 95
+          },
+          {
+            "name": "Packet loss media",
+            "value": 0,
+            "unit": "%",
+            "level": "OK",
+            "warn": 1,
+            "fail": 3
+          },
+          {
+            "name": "Jitter p95",
+            "value": 0.95,
+            "unit": "ms",
+            "level": "OK",
+            "warn": 20,
+            "fail": 30
+          },
+          {
+            "name": "Latensi one-way p95",
+            "value": 12.88,
+            "unit": "ms",
+            "level": "OK",
+            "warn": 100,
+            "fail": 150
+          },
+          {
+            "name": "Waktu setup panggilan p95",
+            "value": 472.41,
+            "unit": "ms",
+            "level": "OK",
+            "warn": 1500,
+            "fail": 3000
+          },
+          {
+            "name": "CPU server tanpa generator (rata-rata)",
+            "value": 35.92,
+            "unit": "%",
+            "level": "OK",
+            "warn": 70,
+            "fail": 85
+          },
+          {
+            "name": "RAM server",
+            "value": 5.48,
+            "unit": "%",
+            "level": "OK",
+            "warn": 80,
+            "fail": 90
+          },
+          {
+            "name": "CPU gateway Node.js",
+            "value": 0.44,
+            "unit": "% 1 core",
+            "level": "OK",
+            "warn": 70,
+            "fail": 95
+          }
+        ],
+        "generatorSaturated": false
+      },
+      "callDuration": {
+        "talkSec": {
+          "n": 125,
+          "min": 96.33,
+          "avg": 101.56,
+          "p50": 101.61,
+          "p95": 106.11,
+          "p99": 106.5,
+          "max": 106.56
+        },
+        "sessionSec": {
+          "n": 125,
+          "min": 96.54,
+          "avg": 101.65,
+          "p50": 101.66,
+          "p95": 106.14,
+          "p99": 106.53,
+          "max": 106.6
+        }
+      },
+      "vu": {
+        "target": 250,
+        "pairs": 125,
+        "rampSec": 10,
+        "arrivalVuPerSec": 25,
+        "peakActiveVu": 250,
+        "holdSec": 90.1,
+        "stageSec": 106.9,
+        "workers": 2
+      }
+    },
+    {
+      "stage": 3,
+      "users": 500,
+      "pairs": 250,
+      "rampSec": 20,
+      "holdSec": 90.2,
+      "workers": 3,
+      "calls": {
+        "attempted": 250,
+        "established": 250,
+        "failed": 0,
+        "successPct": 100,
+        "droppedDuringHold": 0,
+        "mediaDeadStreams": 0
+      },
+      "latency": {
+        "wsOpen": {
+          "n": 500,
+          "min": 2.39,
+          "avg": 1691.85,
+          "p50": 82.13,
+          "p95": 8580.54,
+          "p99": 11982.24,
+          "max": 13541.85
+        },
+        "register": {
+          "n": 250,
+          "min": 2.64,
+          "avg": 278.03,
+          "p50": 51.86,
+          "p95": 950.81,
+          "p99": 1606.67,
+          "max": 2185.14
+        },
+        "callToAccept": {
+          "n": 250,
+          "min": 2.68,
+          "avg": 1009.08,
+          "p50": 107.39,
+          "p95": 5106.44,
+          "p99": 6864.23,
+          "max": 8075.33
+        },
+        "allocate": {
+          "n": 500,
+          "min": 1.84,
+          "avg": 182.91,
+          "p50": 43.5,
+          "p95": 573.68,
+          "p99": 750.39,
+          "max": 1160.11
+        },
+        "sdpExchange": {
+          "n": 250,
+          "min": 4.39,
+          "avg": 1250.34,
+          "p50": 149.13,
+          "p95": 6834.21,
+          "p99": 10696.67,
+          "max": 11648.59
+        },
+        "bind": {
+          "n": 250,
+          "min": 1.65,
+          "avg": 177.05,
+          "p50": 39.77,
+          "p95": 496.19,
+          "p99": 1023.51,
+          "max": 1065.31
+        },
+        "setup": {
+          "n": 250,
+          "min": 23.73,
+          "avg": 4729.55,
+          "p50": 540.69,
+          "p95": 17299.48,
+          "p99": 19849.85,
+          "max": 20824.08
+        },
+        "mediaOneWay": {
+          "n": 60000,
+          "min": 8.62,
+          "avg": 161.15,
+          "p50": 152.66,
+          "p95": 289.2,
+          "p99": 359.8,
+          "max": 675.31
+        }
+      },
+      "media": {
+        "sentPkts": 5517468,
+        "recvPkts": 5066365,
+        "lossPct": 8.176,
+        "jitter": {
+          "n": 500,
+          "min": 2.25,
+          "avg": 6.82,
+          "p50": 6.73,
+          "p95": 10.64,
+          "p99": 12.14,
+          "max": 13.23
+        },
+        "oneWay": {
+          "n": 60000,
+          "min": 8.62,
+          "avg": 161.15,
+          "p50": 152.66,
+          "p95": 289.2,
+          "p99": 359.8,
+          "max": 675.31
+        },
+        "generatorTxMbps": 232.01
+      },
+      "turn": {
+        "retransmits": 0
+      },
+      "signaling": {
+        "usersBroadcastMB": 4942.35,
+        "usersBroadcastMsgs": 253182,
+        "otherMsgs": 2250
+      },
+      "failures": [],
+      "generator": {
+        "eventLoopP99Ms": 218.23,
+        "cpuPctMax": 68.88,
+        "rssMBTotal": 477.06,
+        "saturated": true
+      },
+      "server": {
+        "hold": {
+          "n": 90,
+          "cpu": {
+            "avg": 99.8,
+            "max": 100
+          },
+          "cpuExclGen": {
+            "avg": 48.66,
+            "max": 51.96
+          },
+          "cpuMaxCore": {
+            "avg": 100,
+            "max": 100
+          },
+          "cpuSoftirq": {
+            "avg": 18.62,
+            "max": 21.59
+          },
+          "cpuSteal": {
+            "avg": 1.17,
+            "max": 31.09
+          },
+          "load1": {
+            "avg": 5.72,
+            "max": 6.64
+          },
+          "memUsedMB": {
+            "avg": 2054.22,
+            "max": 2234.02
+          },
+          "memPct": {
+            "avg": 12.84,
+            "max": 13.97
+          },
+          "rxMbps": {
+            "avg": 488.27,
+            "max": 516.52
+          },
+          "txMbps": {
+            "avg": 488.27,
+            "max": 516.55
+          },
+          "rxPps": {
+            "avg": 117364.12,
+            "max": 124179.98
+          },
+          "txPps": {
+            "avg": 117364.34,
+            "max": 124186.05
+          },
+          "nicDropPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "udpInPs": {
+            "avg": 168521.6,
+            "max": 179954.09
+          },
+          "udpOutPs": {
+            "avg": 173556.44,
+            "max": 182666.33
+          },
+          "udpErrPs": {
+            "avg": 4985.08,
+            "max": 14688.57
+          },
+          "udpRcvbufErrPs": {
+            "avg": 4985.08,
+            "max": 14688.57
+          },
+          "relayPorts": {
+            "avg": 500,
+            "max": 500
+          },
+          "tcpInuse": {
+            "avg": 515.69,
+            "max": 517
+          },
+          "udpInuse": {
+            "avg": 1008,
+            "max": 1008
+          },
+          "conntrack": {
+            "avg": 2642.11,
+            "max": 2896
+          },
+          "coturnCpu": {
+            "avg": 186.13,
+            "max": 198.19
+          },
+          "coturnRss": {
+            "avg": 42.74,
+            "max": 42.74
+          },
+          "coturnThreads": {
+            "avg": 9,
+            "max": 9
+          },
+          "coturnFds": {
+            "avg": 549,
+            "max": 549
+          },
+          "gatewayCpu": {
+            "avg": 0.6,
+            "max": 4
+          },
+          "gatewayRss": {
+            "avg": 952.72,
+            "max": 1124.47
+          },
+          "gatewayFds": {
+            "avg": 520,
+            "max": 520
+          },
+          "loadgenCpu": {
+            "avg": 204.56,
+            "max": 215
+          }
+        },
+        "wholeStage": {
+          "n": 133,
+          "cpu": {
+            "avg": 96.44,
+            "max": 100
+          },
+          "cpuExclGen": {
+            "avg": 48.37,
+            "max": 61.65
+          },
+          "cpuMaxCore": {
+            "avg": 96.92,
+            "max": 100
+          },
+          "cpuSoftirq": {
+            "avg": 18.9,
+            "max": 30.25
+          },
+          "cpuSteal": {
+            "avg": 0.9,
+            "max": 31.09
+          },
+          "load1": {
+            "avg": 4.8,
+            "max": 6.91
+          },
+          "memUsedMB": {
+            "avg": 1887.8,
+            "max": 2487.5
+          },
+          "memPct": {
+            "avg": 11.8,
+            "max": 15.55
+          },
+          "rxMbps": {
+            "avg": 738.52,
+            "max": 2372.98
+          },
+          "txMbps": {
+            "avg": 738.07,
+            "max": 2370.34
+          },
+          "rxPps": {
+            "avg": 108712.23,
+            "max": 124179.98
+          },
+          "txPps": {
+            "avg": 107830,
+            "max": 124186.05
+          },
+          "nicDropPs": {
+            "avg": 0,
+            "max": 0
+          },
+          "udpInPs": {
+            "avg": 147131.36,
+            "max": 179954.09
+          },
+          "udpOutPs": {
+            "avg": 150844.7,
+            "max": 182666.33
+          },
+          "udpErrPs": {
+            "avg": 3637.69,
+            "max": 14688.57
+          },
+          "udpRcvbufErrPs": {
+            "avg": 3637.69,
+            "max": 14688.57
+          },
+          "relayPorts": {
+            "avg": 449.89,
+            "max": 500
+          },
+          "tcpInuse": {
+            "avg": 477.64,
+            "max": 517
+          },
+          "udpInuse": {
+            "avg": 908.2,
+            "max": 1008
+          },
+          "conntrack": {
+            "avg": 2634.09,
+            "max": 3306
+          },
+          "coturnCpu": {
+            "avg": 165.77,
+            "max": 198.19
+          },
+          "coturnRss": {
+            "avg": 42.74,
+            "max": 42.74
+          },
+          "coturnThreads": {
+            "avg": 9,
+            "max": 9
+          },
+          "coturnFds": {
+            "avg": 498.87,
+            "max": 549
+          },
+          "gatewayCpu": {
+            "avg": 17.03,
+            "max": 89.91
+          },
+          "gatewayRss": {
+            "avg": 817.34,
+            "max": 1251.74
+          },
+          "gatewayFds": {
+            "avg": 475.79,
+            "max": 520
+          },
+          "loadgenCpu": {
+            "avg": 192.27,
+            "max": 215
+          }
+        }
+      },
+      "times": {
+        "tStage": 1794505842148,
+        "tRampEnd": 1794505880215,
+        "tHold0": 1794505883216,
+        "tHold1": 1794505973394,
+        "tEnd": 1794505975706
+      },
+      "series": [
+        {
+          "ts": 1794505843149,
+          "active": 0,
+          "failed": 0
+        },
+        {
+          "ts": 1794505844152,
+          "active": 13,
+          "failed": 0
+        },
+        {
+          "ts": 1794505845153,
+          "active": 25,
+          "failed": 0
+        },
+        {
+          "ts": 1794505846154,
+          "active": 37,
+          "failed": 0
+        },
+        {
+          "ts": 1794505847155,
+          "active": 50,
+          "failed": 0
+        },
+        {
+          "ts": 1794505848156,
+          "active": 62,
+          "failed": 0
+        },
+        {
+          "ts": 1794505849159,
+          "active": 75,
+          "failed": 0
+        },
+        {
+          "ts": 1794505850162,
+          "active": 87,
+          "failed": 0
+        },
+        {
+          "ts": 1794505851163,
+          "active": 99,
+          "failed": 0
+        },
+        {
+          "ts": 1794505852164,
+          "active": 110,
+          "failed": 0
+        },
+        {
+          "ts": 1794505853165,
+          "active": 121,
+          "failed": 0
+        },
+        {
+          "ts": 1794505854166,
+          "active": 128,
+          "failed": 0
+        },
+        {
+          "ts": 1794505855167,
+          "active": 137,
+          "failed": 0
+        },
+        {
+          "ts": 1794505856168,
+          "active": 143,
+          "failed": 0
+        },
+        {
+          "ts": 1794505857169,
+          "active": 149,
+          "failed": 0
+        },
+        {
+          "ts": 1794505858173,
+          "active": 153,
+          "failed": 0
+        },
+        {
+          "ts": 1794505859173,
+          "active": 162,
+          "failed": 0
+        },
+        {
+          "ts": 1794505860176,
+          "active": 169,
+          "failed": 0
+        },
+        {
+          "ts": 1794505861180,
+          "active": 172,
+          "failed": 0
+        },
+        {
+          "ts": 1794505862180,
+          "active": 175,
+          "failed": 0
+        },
+        {
+          "ts": 1794505863181,
+          "active": 178,
+          "failed": 0
+        },
+        {
+          "ts": 1794505864181,
+          "active": 178,
+          "failed": 0
+        },
+        {
+          "ts": 1794505865182,
+          "active": 178,
+          "failed": 0
+        },
+        {
+          "ts": 1794505866183,
+          "active": 179,
+          "failed": 0
+        },
+        {
+          "ts": 1794505867184,
+          "active": 180,
+          "failed": 0
+        },
+        {
+          "ts": 1794505868184,
+          "active": 188,
+          "failed": 0
+        },
+        {
+          "ts": 1794505869185,
+          "active": 196,
+          "failed": 0
+        },
+        {
+          "ts": 1794505870187,
+          "active": 201,
+          "failed": 0
+        },
+        {
+          "ts": 1794505871200,
+          "active": 203,
+          "failed": 0
+        },
+        {
+          "ts": 1794505872200,
+          "active": 206,
+          "failed": 0
+        },
+        {
+          "ts": 1794505873200,
+          "active": 207,
+          "failed": 0
+        },
+        {
+          "ts": 1794505874202,
+          "active": 208,
+          "failed": 0
+        },
+        {
+          "ts": 1794505875203,
+          "active": 208,
+          "failed": 0
+        },
+        {
+          "ts": 1794505876203,
+          "active": 214,
+          "failed": 0
+        },
+        {
+          "ts": 1794505877208,
+          "active": 215,
+          "failed": 0
+        },
+        {
+          "ts": 1794505878212,
+          "active": 231,
+          "failed": 0
+        },
+        {
+          "ts": 1794505879214,
+          "active": 245,
+          "failed": 0
+        },
+        {
+          "ts": 1794505880215,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505884216,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505885216,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505886217,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505887220,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505888220,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505889224,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505890226,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505891227,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505892227,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505893228,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505894229,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505895231,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505896232,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505897233,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505898242,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505899248,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505900252,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505901256,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505902260,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505903261,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505904261,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505905262,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505906264,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505907265,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505908266,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505909266,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505910267,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505911272,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505912272,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505913273,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505914276,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505915280,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505916284,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505917285,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505918285,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505919288,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505920289,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505921290,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505922291,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505923292,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505924293,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505925294,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505926295,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505927296,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505928300,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505929304,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505930304,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505931308,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505932309,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505933316,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505934317,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505935317,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505936318,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505937319,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505938320,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505939325,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505940325,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505941326,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505942328,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505943328,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505944332,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505945336,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505946337,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505947338,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505948339,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505949340,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505950344,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505951345,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505952346,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505953348,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505954348,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505955356,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505956360,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505957364,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505958368,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505959372,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505960376,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505961377,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505962377,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505963378,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505964380,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505965384,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505966385,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505967388,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505968389,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505969390,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505970391,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505971393,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505972393,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505973393,
+          "active": 250,
+          "failed": 0
+        },
+        {
+          "ts": 1794505975706,
+          "active": 0,
+          "failed": 0
+        }
+      ],
+      "evaluation": {
+        "level": "FAIL",
+        "checks": [
+          {
+            "name": "Panggilan berhasil",
+            "value": 100,
+            "unit": "%",
+            "level": "OK",
+            "warn": 99,
+            "fail": 95
+          },
+          {
+            "name": "Packet loss media",
+            "value": 8.176,
+            "unit": "%",
+            "level": "FAIL",
+            "warn": 1,
+            "fail": 3
+          },
+          {
+            "name": "Jitter p95",
+            "value": 10.64,
+            "unit": "ms",
+            "level": "OK",
+            "warn": 20,
+            "fail": 30
+          },
+          {
+            "name": "Latensi one-way p95",
+            "value": 289.2,
+            "unit": "ms",
+            "level": "FAIL",
+            "warn": 100,
+            "fail": 150
+          },
+          {
+            "name": "Waktu setup panggilan p95",
+            "value": 17299.48,
+            "unit": "ms",
+            "level": "FAIL",
+            "warn": 1500,
+            "fail": 3000
+          },
+          {
+            "name": "CPU server tanpa generator (rata-rata)",
+            "value": 48.66,
+            "unit": "%",
+            "level": "OK",
+            "warn": 70,
+            "fail": 85
+          },
+          {
+            "name": "RAM server",
+            "value": 13.97,
+            "unit": "%",
+            "level": "OK",
+            "warn": 80,
+            "fail": 90
+          },
+          {
+            "name": "CPU gateway Node.js",
+            "value": 0.6,
+            "unit": "% 1 core",
+            "level": "OK",
+            "warn": 70,
+            "fail": 95
+          }
+        ],
+        "generatorSaturated": true
+      },
+      "callDuration": {
+        "talkSec": {
+          "n": 250,
+          "min": 95.89,
+          "avg": 118.41,
+          "p50": 122.42,
+          "p95": 132.17,
+          "p99": 132.9,
+          "max": 133.12
+        },
+        "sessionSec": {
+          "n": 250,
+          "min": 99.06,
+          "avg": 121.14,
+          "p50": 122.99,
+          "p95": 132.2,
+          "p99": 132.93,
+          "max": 133.15
+        }
+      },
+      "vu": {
+        "target": 500,
+        "pairs": 250,
+        "rampSec": 20,
+        "arrivalVuPerSec": 25,
+        "peakActiveVu": 500,
+        "holdSec": 90.2,
+        "stageSec": 133.6,
+        "workers": 3
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "ts": 1794505570319,
+      "active": 0
+    },
+    {
+      "ts": 1794505571319,
+      "active": 10
+    },
+    {
+      "ts": 1794505572319,
+      "active": 20
+    },
+    {
+      "ts": 1794505573320,
+      "active": 30
+    },
+    {
+      "ts": 1794505574321,
+      "active": 40
+    },
+    {
+      "ts": 1794505575321,
+      "active": 50
+    },
+    {
+      "ts": 1794505576322,
+      "active": 60
+    },
+    {
+      "ts": 1794505577322,
+      "active": 70
+    },
+    {
+      "ts": 1794505578323,
+      "active": 80
+    },
+    {
+      "ts": 1794505579323,
+      "active": 90
+    },
+    {
+      "ts": 1794505580323,
+      "active": 100
+    },
+    {
+      "ts": 1794505584324,
+      "active": 100
+    },
+    {
+      "ts": 1794505585324,
+      "active": 100
+    },
+    {
+      "ts": 1794505586325,
+      "active": 100
+    },
+    {
+      "ts": 1794505587326,
+      "active": 100
+    },
+    {
+      "ts": 1794505588327,
+      "active": 100
+    },
+    {
+      "ts": 1794505589327,
+      "active": 100
+    },
+    {
+      "ts": 1794505590328,
+      "active": 100
+    },
+    {
+      "ts": 1794505591327,
+      "active": 100
+    },
+    {
+      "ts": 1794505592328,
+      "active": 100
+    },
+    {
+      "ts": 1794505593329,
+      "active": 100
+    },
+    {
+      "ts": 1794505594328,
+      "active": 100
+    },
+    {
+      "ts": 1794505595328,
+      "active": 100
+    },
+    {
+      "ts": 1794505596329,
+      "active": 100
+    },
+    {
+      "ts": 1794505597330,
+      "active": 100
+    },
+    {
+      "ts": 1794505598330,
+      "active": 100
+    },
+    {
+      "ts": 1794505599331,
+      "active": 100
+    },
+    {
+      "ts": 1794505600331,
+      "active": 100
+    },
+    {
+      "ts": 1794505601332,
+      "active": 100
+    },
+    {
+      "ts": 1794505602334,
+      "active": 100
+    },
+    {
+      "ts": 1794505603334,
+      "active": 100
+    },
+    {
+      "ts": 1794505604334,
+      "active": 100
+    },
+    {
+      "ts": 1794505605335,
+      "active": 100
+    },
+    {
+      "ts": 1794505606336,
+      "active": 100
+    },
+    {
+      "ts": 1794505607337,
+      "active": 100
+    },
+    {
+      "ts": 1794505608337,
+      "active": 100
+    },
+    {
+      "ts": 1794505609338,
+      "active": 100
+    },
+    {
+      "ts": 1794505610338,
+      "active": 100
+    },
+    {
+      "ts": 1794505611339,
+      "active": 100
+    },
+    {
+      "ts": 1794505612339,
+      "active": 100
+    },
+    {
+      "ts": 1794505613339,
+      "active": 100
+    },
+    {
+      "ts": 1794505614340,
+      "active": 100
+    },
+    {
+      "ts": 1794505615340,
+      "active": 100
+    },
+    {
+      "ts": 1794505616341,
+      "active": 100
+    },
+    {
+      "ts": 1794505617342,
+      "active": 100
+    },
+    {
+      "ts": 1794505618341,
+      "active": 100
+    },
+    {
+      "ts": 1794505619341,
+      "active": 100
+    },
+    {
+      "ts": 1794505620341,
+      "active": 100
+    },
+    {
+      "ts": 1794505621342,
+      "active": 100
+    },
+    {
+      "ts": 1794505622342,
+      "active": 100
+    },
+    {
+      "ts": 1794505623342,
+      "active": 100
+    },
+    {
+      "ts": 1794505624343,
+      "active": 100
+    },
+    {
+      "ts": 1794505625343,
+      "active": 100
+    },
+    {
+      "ts": 1794505626344,
+      "active": 100
+    },
+    {
+      "ts": 1794505627345,
+      "active": 100
+    },
+    {
+      "ts": 1794505628346,
+      "active": 100
+    },
+    {
+      "ts": 1794505629347,
+      "active": 100
+    },
+    {
+      "ts": 1794505630348,
+      "active": 100
+    },
+    {
+      "ts": 1794505631349,
+      "active": 100
+    },
+    {
+      "ts": 1794505632349,
+      "active": 100
+    },
+    {
+      "ts": 1794505633349,
+      "active": 100
+    },
+    {
+      "ts": 1794505634349,
+      "active": 100
+    },
+    {
+      "ts": 1794505635350,
+      "active": 100
+    },
+    {
+      "ts": 1794505636351,
+      "active": 100
+    },
+    {
+      "ts": 1794505637352,
+      "active": 100
+    },
+    {
+      "ts": 1794505638353,
+      "active": 100
+    },
+    {
+      "ts": 1794505639352,
+      "active": 100
+    },
+    {
+      "ts": 1794505640352,
+      "active": 100
+    },
+    {
+      "ts": 1794505641353,
+      "active": 100
+    },
+    {
+      "ts": 1794505642354,
+      "active": 100
+    },
+    {
+      "ts": 1794505643354,
+      "active": 100
+    },
+    {
+      "ts": 1794505644354,
+      "active": 100
+    },
+    {
+      "ts": 1794505645355,
+      "active": 100
+    },
+    {
+      "ts": 1794505646355,
+      "active": 100
+    },
+    {
+      "ts": 1794505647355,
+      "active": 100
+    },
+    {
+      "ts": 1794505648355,
+      "active": 100
+    },
+    {
+      "ts": 1794505649356,
+      "active": 100
+    },
+    {
+      "ts": 1794505650357,
+      "active": 100
+    },
+    {
+      "ts": 1794505651357,
+      "active": 100
+    },
+    {
+      "ts": 1794505652357,
+      "active": 100
+    },
+    {
+      "ts": 1794505653357,
+      "active": 100
+    },
+    {
+      "ts": 1794505654357,
+      "active": 100
+    },
+    {
+      "ts": 1794505655358,
+      "active": 100
+    },
+    {
+      "ts": 1794505656359,
+      "active": 100
+    },
+    {
+      "ts": 1794505657360,
+      "active": 100
+    },
+    {
+      "ts": 1794505658360,
+      "active": 100
+    },
+    {
+      "ts": 1794505659360,
+      "active": 100
+    },
+    {
+      "ts": 1794505660360,
+      "active": 100
+    },
+    {
+      "ts": 1794505661360,
+      "active": 100
+    },
+    {
+      "ts": 1794505662361,
+      "active": 100
+    },
+    {
+      "ts": 1794505663361,
+      "active": 100
+    },
+    {
+      "ts": 1794505664362,
+      "active": 100
+    },
+    {
+      "ts": 1794505665362,
+      "active": 100
+    },
+    {
+      "ts": 1794505666362,
+      "active": 100
+    },
+    {
+      "ts": 1794505667363,
+      "active": 100
+    },
+    {
+      "ts": 1794505668362,
+      "active": 100
+    },
+    {
+      "ts": 1794505669362,
+      "active": 100
+    },
+    {
+      "ts": 1794505670363,
+      "active": 100
+    },
+    {
+      "ts": 1794505671364,
+      "active": 100
+    },
+    {
+      "ts": 1794505672364,
+      "active": 100
+    },
+    {
+      "ts": 1794505673364,
+      "active": 100
+    },
+    {
+      "ts": 1794505675066,
+      "active": 0
+    },
+    {
+      "ts": 1794505675113,
+      "active": 0
+    },
+    {
+      "ts": 1794505706121,
+      "active": 0
+    },
+    {
+      "ts": 1794505707122,
+      "active": 26
+    },
+    {
+      "ts": 1794505708126,
+      "active": 50
+    },
+    {
+      "ts": 1794505709127,
+      "active": 74
+    },
+    {
+      "ts": 1794505710129,
+      "active": 100
+    },
+    {
+      "ts": 1794505711131,
+      "active": 124
+    },
+    {
+      "ts": 1794505712136,
+      "active": 150
+    },
+    {
+      "ts": 1794505713139,
+      "active": 174
+    },
+    {
+      "ts": 1794505714140,
+      "active": 198
+    },
+    {
+      "ts": 1794505715141,
+      "active": 220
+    },
+    {
+      "ts": 1794505716142,
+      "active": 238
+    },
+    {
+      "ts": 1794505717144,
+      "active": 250
+    },
+    {
+      "ts": 1794505721146,
+      "active": 250
+    },
+    {
+      "ts": 1794505722147,
+      "active": 250
+    },
+    {
+      "ts": 1794505723148,
+      "active": 250
+    },
+    {
+      "ts": 1794505724149,
+      "active": 250
+    },
+    {
+      "ts": 1794505725150,
+      "active": 250
+    },
+    {
+      "ts": 1794505726151,
+      "active": 250
+    },
+    {
+      "ts": 1794505727152,
+      "active": 250
+    },
+    {
+      "ts": 1794505728153,
+      "active": 250
+    },
+    {
+      "ts": 1794505729154,
+      "active": 250
+    },
+    {
+      "ts": 1794505730155,
+      "active": 250
+    },
+    {
+      "ts": 1794505731156,
+      "active": 250
+    },
+    {
+      "ts": 1794505732157,
+      "active": 250
+    },
+    {
+      "ts": 1794505733158,
+      "active": 250
+    },
+    {
+      "ts": 1794505734160,
+      "active": 250
+    },
+    {
+      "ts": 1794505735164,
+      "active": 250
+    },
+    {
+      "ts": 1794505736165,
+      "active": 250
+    },
+    {
+      "ts": 1794505737167,
+      "active": 250
+    },
+    {
+      "ts": 1794505738168,
+      "active": 250
+    },
+    {
+      "ts": 1794505739169,
+      "active": 250
+    },
+    {
+      "ts": 1794505740170,
+      "active": 250
+    },
+    {
+      "ts": 1794505741171,
+      "active": 250
+    },
+    {
+      "ts": 1794505742172,
+      "active": 250
+    },
+    {
+      "ts": 1794505743173,
+      "active": 250
+    },
+    {
+      "ts": 1794505744174,
+      "active": 250
+    },
+    {
+      "ts": 1794505745176,
+      "active": 250
+    },
+    {
+      "ts": 1794505746177,
+      "active": 250
+    },
+    {
+      "ts": 1794505747178,
+      "active": 250
+    },
+    {
+      "ts": 1794505748179,
+      "active": 250
+    },
+    {
+      "ts": 1794505749180,
+      "active": 250
+    },
+    {
+      "ts": 1794505750181,
+      "active": 250
+    },
+    {
+      "ts": 1794505751182,
+      "active": 250
+    },
+    {
+      "ts": 1794505752183,
+      "active": 250
+    },
+    {
+      "ts": 1794505753184,
+      "active": 250
+    },
+    {
+      "ts": 1794505754185,
+      "active": 250
+    },
+    {
+      "ts": 1794505755188,
+      "active": 250
+    },
+    {
+      "ts": 1794505756189,
+      "active": 250
+    },
+    {
+      "ts": 1794505757190,
+      "active": 250
+    },
+    {
+      "ts": 1794505758192,
+      "active": 250
+    },
+    {
+      "ts": 1794505759192,
+      "active": 250
+    },
+    {
+      "ts": 1794505760193,
+      "active": 250
+    },
+    {
+      "ts": 1794505761194,
+      "active": 250
+    },
+    {
+      "ts": 1794505762195,
+      "active": 250
+    },
+    {
+      "ts": 1794505763196,
+      "active": 250
+    },
+    {
+      "ts": 1794505764197,
+      "active": 250
+    },
+    {
+      "ts": 1794505765200,
+      "active": 250
+    },
+    {
+      "ts": 1794505766201,
+      "active": 250
+    },
+    {
+      "ts": 1794505767203,
+      "active": 250
+    },
+    {
+      "ts": 1794505768204,
+      "active": 250
+    },
+    {
+      "ts": 1794505769205,
+      "active": 250
+    },
+    {
+      "ts": 1794505770206,
+      "active": 250
+    },
+    {
+      "ts": 1794505771208,
+      "active": 250
+    },
+    {
+      "ts": 1794505772209,
+      "active": 250
+    },
+    {
+      "ts": 1794505773210,
+      "active": 250
+    },
+    {
+      "ts": 1794505774211,
+      "active": 250
+    },
+    {
+      "ts": 1794505775212,
+      "active": 250
+    },
+    {
+      "ts": 1794505776213,
+      "active": 250
+    },
+    {
+      "ts": 1794505777215,
+      "active": 250
+    },
+    {
+      "ts": 1794505778215,
+      "active": 250
+    },
+    {
+      "ts": 1794505779216,
+      "active": 250
+    },
+    {
+      "ts": 1794505780217,
+      "active": 250
+    },
+    {
+      "ts": 1794505781218,
+      "active": 250
+    },
+    {
+      "ts": 1794505782220,
+      "active": 250
+    },
+    {
+      "ts": 1794505783221,
+      "active": 250
+    },
+    {
+      "ts": 1794505784223,
+      "active": 250
+    },
+    {
+      "ts": 1794505785224,
+      "active": 250
+    },
+    {
+      "ts": 1794505786225,
+      "active": 250
+    },
+    {
+      "ts": 1794505787226,
+      "active": 250
+    },
+    {
+      "ts": 1794505788227,
+      "active": 250
+    },
+    {
+      "ts": 1794505789228,
+      "active": 250
+    },
+    {
+      "ts": 1794505790229,
+      "active": 250
+    },
+    {
+      "ts": 1794505791230,
+      "active": 250
+    },
+    {
+      "ts": 1794505792231,
+      "active": 250
+    },
+    {
+      "ts": 1794505793232,
+      "active": 250
+    },
+    {
+      "ts": 1794505794233,
+      "active": 250
+    },
+    {
+      "ts": 1794505795234,
+      "active": 250
+    },
+    {
+      "ts": 1794505796235,
+      "active": 250
+    },
+    {
+      "ts": 1794505797236,
+      "active": 250
+    },
+    {
+      "ts": 1794505798238,
+      "active": 250
+    },
+    {
+      "ts": 1794505799239,
+      "active": 250
+    },
+    {
+      "ts": 1794505800240,
+      "active": 250
+    },
+    {
+      "ts": 1794505801242,
+      "active": 250
+    },
+    {
+      "ts": 1794505802242,
+      "active": 250
+    },
+    {
+      "ts": 1794505803243,
+      "active": 250
+    },
+    {
+      "ts": 1794505804244,
+      "active": 250
+    },
+    {
+      "ts": 1794505805248,
+      "active": 250
+    },
+    {
+      "ts": 1794505806249,
+      "active": 250
+    },
+    {
+      "ts": 1794505807250,
+      "active": 250
+    },
+    {
+      "ts": 1794505808251,
+      "active": 250
+    },
+    {
+      "ts": 1794505809252,
+      "active": 250
+    },
+    {
+      "ts": 1794505810253,
+      "active": 250
+    },
+    {
+      "ts": 1794505812056,
+      "active": 0
+    },
+    {
+      "ts": 1794505812139,
+      "active": 0
+    },
+    {
+      "ts": 1794505843149,
+      "active": 0
+    },
+    {
+      "ts": 1794505844152,
+      "active": 26
+    },
+    {
+      "ts": 1794505845153,
+      "active": 50
+    },
+    {
+      "ts": 1794505846154,
+      "active": 74
+    },
+    {
+      "ts": 1794505847155,
+      "active": 100
+    },
+    {
+      "ts": 1794505848156,
+      "active": 124
+    },
+    {
+      "ts": 1794505849159,
+      "active": 150
+    },
+    {
+      "ts": 1794505850162,
+      "active": 174
+    },
+    {
+      "ts": 1794505851163,
+      "active": 198
+    },
+    {
+      "ts": 1794505852164,
+      "active": 220
+    },
+    {
+      "ts": 1794505853165,
+      "active": 242
+    },
+    {
+      "ts": 1794505854166,
+      "active": 256
+    },
+    {
+      "ts": 1794505855167,
+      "active": 274
+    },
+    {
+      "ts": 1794505856168,
+      "active": 286
+    },
+    {
+      "ts": 1794505857169,
+      "active": 298
+    },
+    {
+      "ts": 1794505858173,
+      "active": 306
+    },
+    {
+      "ts": 1794505859173,
+      "active": 324
+    },
+    {
+      "ts": 1794505860176,
+      "active": 338
+    },
+    {
+      "ts": 1794505861180,
+      "active": 344
+    },
+    {
+      "ts": 1794505862180,
+      "active": 350
+    },
+    {
+      "ts": 1794505863181,
+      "active": 356
+    },
+    {
+      "ts": 1794505864181,
+      "active": 356
+    },
+    {
+      "ts": 1794505865182,
+      "active": 356
+    },
+    {
+      "ts": 1794505866183,
+      "active": 358
+    },
+    {
+      "ts": 1794505867184,
+      "active": 360
+    },
+    {
+      "ts": 1794505868184,
+      "active": 376
+    },
+    {
+      "ts": 1794505869185,
+      "active": 392
+    },
+    {
+      "ts": 1794505870187,
+      "active": 402
+    },
+    {
+      "ts": 1794505871200,
+      "active": 406
+    },
+    {
+      "ts": 1794505872200,
+      "active": 412
+    },
+    {
+      "ts": 1794505873200,
+      "active": 414
+    },
+    {
+      "ts": 1794505874202,
+      "active": 416
+    },
+    {
+      "ts": 1794505875203,
+      "active": 416
+    },
+    {
+      "ts": 1794505876203,
+      "active": 428
+    },
+    {
+      "ts": 1794505877208,
+      "active": 430
+    },
+    {
+      "ts": 1794505878212,
+      "active": 462
+    },
+    {
+      "ts": 1794505879214,
+      "active": 490
+    },
+    {
+      "ts": 1794505880215,
+      "active": 500
+    },
+    {
+      "ts": 1794505884216,
+      "active": 500
+    },
+    {
+      "ts": 1794505885216,
+      "active": 500
+    },
+    {
+      "ts": 1794505886217,
+      "active": 500
+    },
+    {
+      "ts": 1794505887220,
+      "active": 500
+    },
+    {
+      "ts": 1794505888220,
+      "active": 500
+    },
+    {
+      "ts": 1794505889224,
+      "active": 500
+    },
+    {
+      "ts": 1794505890226,
+      "active": 500
+    },
+    {
+      "ts": 1794505891227,
+      "active": 500
+    },
+    {
+      "ts": 1794505892227,
+      "active": 500
+    },
+    {
+      "ts": 1794505893228,
+      "active": 500
+    },
+    {
+      "ts": 1794505894229,
+      "active": 500
+    },
+    {
+      "ts": 1794505895231,
+      "active": 500
+    },
+    {
+      "ts": 1794505896232,
+      "active": 500
+    },
+    {
+      "ts": 1794505897233,
+      "active": 500
+    },
+    {
+      "ts": 1794505898242,
+      "active": 500
+    },
+    {
+      "ts": 1794505899248,
+      "active": 500
+    },
+    {
+      "ts": 1794505900252,
+      "active": 500
+    },
+    {
+      "ts": 1794505901256,
+      "active": 500
+    },
+    {
+      "ts": 1794505902260,
+      "active": 500
+    },
+    {
+      "ts": 1794505903261,
+      "active": 500
+    },
+    {
+      "ts": 1794505904261,
+      "active": 500
+    },
+    {
+      "ts": 1794505905262,
+      "active": 500
+    },
+    {
+      "ts": 1794505906264,
+      "active": 500
+    },
+    {
+      "ts": 1794505907265,
+      "active": 500
+    },
+    {
+      "ts": 1794505908266,
+      "active": 500
+    },
+    {
+      "ts": 1794505909266,
+      "active": 500
+    },
+    {
+      "ts": 1794505910267,
+      "active": 500
+    },
+    {
+      "ts": 1794505911272,
+      "active": 500
+    },
+    {
+      "ts": 1794505912272,
+      "active": 500
+    },
+    {
+      "ts": 1794505913273,
+      "active": 500
+    },
+    {
+      "ts": 1794505914276,
+      "active": 500
+    },
+    {
+      "ts": 1794505915280,
+      "active": 500
+    },
+    {
+      "ts": 1794505916284,
+      "active": 500
+    },
+    {
+      "ts": 1794505917285,
+      "active": 500
+    },
+    {
+      "ts": 1794505918285,
+      "active": 500
+    },
+    {
+      "ts": 1794505919288,
+      "active": 500
+    },
+    {
+      "ts": 1794505920289,
+      "active": 500
+    },
+    {
+      "ts": 1794505921290,
+      "active": 500
+    },
+    {
+      "ts": 1794505922291,
+      "active": 500
+    },
+    {
+      "ts": 1794505923292,
+      "active": 500
+    },
+    {
+      "ts": 1794505924293,
+      "active": 500
+    },
+    {
+      "ts": 1794505925294,
+      "active": 500
+    },
+    {
+      "ts": 1794505926295,
+      "active": 500
+    },
+    {
+      "ts": 1794505927296,
+      "active": 500
+    },
+    {
+      "ts": 1794505928300,
+      "active": 500
+    },
+    {
+      "ts": 1794505929304,
+      "active": 500
+    },
+    {
+      "ts": 1794505930304,
+      "active": 500
+    },
+    {
+      "ts": 1794505931308,
+      "active": 500
+    },
+    {
+      "ts": 1794505932309,
+      "active": 500
+    },
+    {
+      "ts": 1794505933316,
+      "active": 500
+    },
+    {
+      "ts": 1794505934317,
+      "active": 500
+    },
+    {
+      "ts": 1794505935317,
+      "active": 500
+    },
+    {
+      "ts": 1794505936318,
+      "active": 500
+    },
+    {
+      "ts": 1794505937319,
+      "active": 500
+    },
+    {
+      "ts": 1794505938320,
+      "active": 500
+    },
+    {
+      "ts": 1794505939325,
+      "active": 500
+    },
+    {
+      "ts": 1794505940325,
+      "active": 500
+    },
+    {
+      "ts": 1794505941326,
+      "active": 500
+    },
+    {
+      "ts": 1794505942328,
+      "active": 500
+    },
+    {
+      "ts": 1794505943328,
+      "active": 500
+    },
+    {
+      "ts": 1794505944332,
+      "active": 500
+    },
+    {
+      "ts": 1794505945336,
+      "active": 500
+    },
+    {
+      "ts": 1794505946337,
+      "active": 500
+    },
+    {
+      "ts": 1794505947338,
+      "active": 500
+    },
+    {
+      "ts": 1794505948339,
+      "active": 500
+    },
+    {
+      "ts": 1794505949340,
+      "active": 500
+    },
+    {
+      "ts": 1794505950344,
+      "active": 500
+    },
+    {
+      "ts": 1794505951345,
+      "active": 500
+    },
+    {
+      "ts": 1794505952346,
+      "active": 500
+    },
+    {
+      "ts": 1794505953348,
+      "active": 500
+    },
+    {
+      "ts": 1794505954348,
+      "active": 500
+    },
+    {
+      "ts": 1794505955356,
+      "active": 500
+    },
+    {
+      "ts": 1794505956360,
+      "active": 500
+    },
+    {
+      "ts": 1794505957364,
+      "active": 500
+    },
+    {
+      "ts": 1794505958368,
+      "active": 500
+    },
+    {
+      "ts": 1794505959372,
+      "active": 500
+    },
+    {
+      "ts": 1794505960376,
+      "active": 500
+    },
+    {
+      "ts": 1794505961377,
+      "active": 500
+    },
+    {
+      "ts": 1794505962377,
+      "active": 500
+    },
+    {
+      "ts": 1794505963378,
+      "active": 500
+    },
+    {
+      "ts": 1794505964380,
+      "active": 500
+    },
+    {
+      "ts": 1794505965384,
+      "active": 500
+    },
+    {
+      "ts": 1794505966385,
+      "active": 500
+    },
+    {
+      "ts": 1794505967388,
+      "active": 500
+    },
+    {
+      "ts": 1794505968389,
+      "active": 500
+    },
+    {
+      "ts": 1794505969390,
+      "active": 500
+    },
+    {
+      "ts": 1794505970391,
+      "active": 500
+    },
+    {
+      "ts": 1794505971393,
+      "active": 500
+    },
+    {
+      "ts": 1794505972393,
+      "active": 500
+    },
+    {
+      "ts": 1794505973393,
+      "active": 500
+    },
+    {
+      "ts": 1794505975706,
+      "active": 0
+    }
+  ],
+  "finishedAt": "2026-11-12T17:52:55.857Z"
+}

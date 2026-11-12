@@ -1,0 +1,15 @@
+{
+  "name": "coturn-capacity-loadtest",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Uji kapasitas CoTURN + signaling gateway dengan alur panggilan A -> B nyata (TURN RFC 5766)",
+  "scripts": {
+    "test:smoke": "node run-capacity-test.js --tiers 4 --hold 10 --monitor http --pdf false",
+    "report": "node build-report.js"
+  },
+  "engines": { "node": ">=16" },
+  "dependencies": {
+    "ssh2": "1.16.0",
+    "ws": "8.18.0"
+  }
+}

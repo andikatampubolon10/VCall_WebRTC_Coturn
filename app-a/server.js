@@ -24,8 +24,14 @@ if (DATABASE_URL) {
 // REST API
 app.get('/api/config', (req, res) => {
   const reqHost = req.hostname;
+  // Di belakang reverse proxy HTTPS (Caddy/ngrok): halaman https wajib memakai wss:// (mixed content),
+  // dan gateway diakses lewat path /gateway-ws pada host yang sama.
+  const proto = String(req.headers['x-forwarded-proto'] || req.protocol || 'http').split(',')[0].trim();
+  const isHttps = proto === 'https';
   let gwUrl = GATEWAY_URL;
-  if (gwUrl.includes('localhost') && reqHost !== 'localhost' && reqHost !== '127.0.0.1') {
+  if (isHttps) {
+    gwUrl = `wss://${req.get('host')}/gateway-ws`;
+  } else if (gwUrl.includes('localhost') && reqHost !== 'localhost' && reqHost !== '127.0.0.1') {
     gwUrl = gwUrl.replace('localhost', reqHost);
   }
 

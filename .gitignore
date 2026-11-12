@@ -10,3 +10,6 @@ node_modules/
 Thumbs.db
 *.log
 **/*.log
+
+# hasil uji beban lokal (dev)
+loadtest/results-dev/
