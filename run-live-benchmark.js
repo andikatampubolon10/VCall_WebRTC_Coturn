@@ -122,6 +122,8 @@ function runSingleCallPair(i, durationMs, stats) {
     let mediaInterval = null;
     let mediaSocket = null;
 
+    // Timeout dinamis agar sesi pada beban raksasa (ribuan pasang) tidak timeout prematur
+    const dynamicTimeoutMs = durationMs + Math.max(12000, totalPairs * 12);
     const timeout = setTimeout(async () => {
       if (finished) return;
       finished = true;
@@ -132,8 +134,8 @@ function runSingleCallPair(i, durationMs, stats) {
         await httpGetJson(`http://${SERVER_HOST}:${SERVER_PORT}/api/benchmark/deallocate?id=${turnAlloc.allocId}`);
       }
       try { wsA.close(); wsB.close(); } catch(e){}
-      resolve({ pairId: i, success: false, reason: 'Timeout 10s' });
-    }, durationMs + 8000);
+      resolve({ pairId: i, success: false, reason: 'Timeout Concurrency' });
+    }, dynamicTimeoutMs);
 
     const tryInitiateCall = () => {
       if (docReg && patReg && !callTriggered) {
@@ -537,33 +539,94 @@ function generateFinalPdf(reports) {
 }
 
 async function main() {
+  const arg = (process.argv[2] || '').toLowerCase();
+
   console.log('======================================================================');
-  console.log('🌟 MEMULAI PENGUJIAN KAPASITAS 100% ASLI DARI SERVER (ON-HOST)');
+  console.log('🌟 SUITE PENGUJIAN KAPASITAS & PENCARIAN BATAS MAKSIMAL SERVER (BREAKING POINT)');
   console.log(`🌐 Target: ws://${SERVER_HOST}:${SERVER_PORT} & udp://${COTURN_HOST}:${COTURN_PORT}`);
   console.log('======================================================================');
 
-  const tiers = [
-    { stage: 1, vus: 100, durationMs: 3000 },
-    { stage: 2, vus: 200, durationMs: 3000 },
-    { stage: 3, vus: 400, durationMs: 3000 },
-    { stage: 4, vus: 800, durationMs: 3000 },
-    { stage: 5, vus: 1200, durationMs: 3500 },
-    { stage: 6, vus: 2000, durationMs: 3500 }
-  ];
+  // Baca hasil benchmark sebelumnya jika ada agar data tidak hilang
+  const jsonPath = path.join(__dirname, 'hasil-benchmark-asli.json');
+  let existingReports = [];
+  if (fs.existsSync(jsonPath)) {
+    try {
+      existingReports = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    } catch (e) {}
+  }
 
-  const reports = [];
+  let tiers = [];
+  if (arg === 'max' || arg === 'extreme' || arg === 'breaking') {
+    // Mode pencarian batas maksimal lanjutan (mulai dari 3.000 s/d 10.000 VUs)
+    tiers = [
+      { stage: 7, vus: 3000, durationMs: 4000 },
+      { stage: 8, vus: 4000, durationMs: 4000 },
+      { stage: 9, vus: 5000, durationMs: 4500 },
+      { stage: 10, vus: 6000, durationMs: 5000 },
+      { stage: 11, vus: 8000, durationMs: 5000 },
+      { stage: 12, vus: 10000, durationMs: 5000 }
+    ];
+  } else if (arg.includes(',')) {
+    const list = arg.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+    let nextStage = existingReports.length + 1;
+    tiers = list.map(v => ({ stage: nextStage++, vus: v, durationMs: 4000 }));
+  } else if (!isNaN(parseInt(arg)) && parseInt(arg) > 0) {
+    let nextStage = existingReports.length + 1;
+    tiers = [{ stage: nextStage, vus: parseInt(arg), durationMs: 4000 }];
+  } else {
+    // Pengujian skala penuh dari 100 VUs hingga batas maksimal (6.000 VUs)
+    tiers = [
+      { stage: 1, vus: 100, durationMs: 3000 },
+      { stage: 2, vus: 200, durationMs: 3000 },
+      { stage: 3, vus: 400, durationMs: 3000 },
+      { stage: 4, vus: 800, durationMs: 3000 },
+      { stage: 5, vus: 1200, durationMs: 3500 },
+      { stage: 6, vus: 2000, durationMs: 3500 },
+      { stage: 7, vus: 3000, durationMs: 4000 },
+      { stage: 8, vus: 4000, durationMs: 4000 },
+      { stage: 9, vus: 5000, durationMs: 4500 },
+      { stage: 10, vus: 6000, durationMs: 5000 }
+    ];
+  }
+
+  // Jika user menjalankan tier lanjutan (misal 'max'), gabungkan dengan data tahap 1-6 sebelumnya
+  let mergedReports = [...existingReports];
+
   for (let i = 0; i < tiers.length; i++) {
     const t = tiers[i];
     const report = await runStage(t.stage, t.vus, t.durationMs);
-    reports.push(report);
+
+    // Perbarui atau tambahkan ke list laporan
+    const existingIdx = mergedReports.findIndex(r => r.vus === report.vus);
+    if (existingIdx >= 0) {
+      mergedReports[existingIdx] = report;
+    } else {
+      mergedReports.push(report);
+    }
+
+    // Urutkan berdasarkan nomor tahap
+    mergedReports.sort((a, b) => a.tahap - b.tahap);
+
+    // Deteksi Titik Jenuh / Breaking Point
+    const slaNum = parseFloat(report.sla);
+    const cpuNum = parseFloat(report.cpu);
+    if (slaNum < 70 || cpuNum >= 95) {
+      console.log('\n🛑 ======================================================================');
+      console.log(`🚨 TITIK JENUH MAKSIMAL TERCAPAI (BREAKING POINT):`);
+      console.log(`Server mencapai batas kapasitas tertinggi pada ${report.vus} (${report.pairs}).`);
+      console.log(`SLA turun ke ${report.sla} dan CPU mencapai ${report.cpu}. Pengujian dihentikan secara aman.`);
+      console.log('======================================================================\n');
+      break;
+    }
 
     if (i < tiers.length - 1) {
-      console.log('\n⏳ Cooldown 3 detik untuk deallokasi port CoTURN & socket cleanup...');
-      await wait(3000);
+      console.log('\n⏳ Cooldown 4 detik untuk pelepasan alokasi soket CoTURN & Garbage Collection...');
+      await wait(4000);
     }
   }
 
-  generateFinalPdf(reports);
+  generateFinalPdf(mergedReports);
 }
 
 main().catch(err => console.error('Benchmark Error:', err));
+
