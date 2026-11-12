@@ -103,7 +103,7 @@ function httpGetJson(url) {
 }
 
 // Simulasi 1 Pasang Panggilan Riil
-function runSingleCallPair(i, durationMs, stats) {
+function runSingleCallPair(i, durationMs, stats, totalPairs = 1000) {
   return new Promise((resolve) => {
     const docId = `Doctor_Live_${i}_${Date.now()}`;
     const patId = `Patient_Live_${i}_${Date.now()}`;
@@ -289,7 +289,7 @@ async function runStage(stageNo, totalVUs, durationMs = 3500) {
   const promises = [];
 
   for (let i = 1; i <= totalPairs; i++) {
-    promises.push(runSingleCallPair(i, durationMs, stats));
+    promises.push(runSingleCallPair(i, durationMs, stats, totalPairs));
     if (rampDelay > 0) await wait(rampDelay);
     if (i % (totalPairs > 300 ? 50 : 10) === 0 || i === totalPairs) {
       process.stdout.write(`\r[RAMP-UP] Inisiasi Pasang #${i} / ${totalPairs} (${i * 2} VUs Aktif)...`);
