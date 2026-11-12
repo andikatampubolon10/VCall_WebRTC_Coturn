@@ -33,11 +33,11 @@ echo ======================================================================
 echo 🌐 MEMBUKA BROWSER...
 echo    Aplikasi A : http://localhost:3001 (Neon US-East)
 echo    Aplikasi B : http://localhost:3002 (Neon Singapore)
-echo    Benchmark  : http://localhost:3000/benchmark.html (Dashboard Uji Beban 100 VUs)
+echo    Benchmark  : http://localhost:3000 (Dashboard Uji Beban 100 VUs)
 echo ======================================================================
 start http://localhost:3001
 start http://localhost:3002
-echo [TIPS] Buka http://localhost:3000/benchmark.html untuk Uji Beban 100 Users
+echo [TIPS] Buka http://localhost:3000 untuk Uji Beban 100 Users
 
 echo.
 echo ======================================================================

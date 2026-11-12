@@ -15,7 +15,7 @@ Dokumen ini berisi panduan teknis dan akademis mengenai instrumen pengujian beba
    - [Metode C: Melalui Grafana K6 Resmi](#metode-c-melalui-grafana-k6-resmi)
 5. [Cara Memantau Log CoTURN Secara Real-Time (Live)](#5-cara-memantau-log-coturn-secara-real-time-live)
 6. [Tiga Bukti Ilmiah Keaslian Pengujian](#6-tiga-bukti-ilmiah-keaslian-pengujian)
-7. [Panduan Penyusunan Data untuk Bab 4 Skripsi](#7-panduan-penyusunan-data-untuk-bab-4-skripsi)
+7. [Laporan Evaluasi & Benchmark Kinerja Proyek](#7-laporan-evaluasi--benchmark-kinerja-proyek)
 
 ---
 
@@ -23,7 +23,7 @@ Dokumen ini berisi panduan teknis dan akademis mengenai instrumen pengujian beba
 
 Pada sistem panggilan WebRTC dunia nyata, sekitar 15%–20% panggilan gagal tersambung secara *Peer-to-Peer* (P2P) langsung karena terhalang oleh *Symmetric NAT* (jaringan seluler 4G/5G) atau firewall rumah sakit/korporat. Oleh karena itu, server **CoTURN (TURN Relay)** diwajibkan bertindak sebagai jembatan pemantul aliran media audio/video.
 
-### Pertanyaan Kunci Penelitian Skripsi:
+### Pertanyaan Kunci Kinerja Proyek:
 > *"Apakah arsitektur server CoTURN yang dibangun sanggup menampung lonjakan 100 pengguna aktif bersamaan (50 pasang panggilan simultan) tanpa terjadi benturan port (port collision), kegagalan alokasi, atau kehabisan memori?"*
 
 ### Parameter Uji yang Diterapkan:
@@ -85,7 +85,7 @@ Sebelum menjalankan pengujian, pastikan:
    npm start
    ```
 2. Buka browser (Chrome / Edge), lalu akses URL:
-   👉 **`http://localhost:3000/benchmark.html`**  
+   👉 **`http://localhost:3000`**  
    *(Atau klik 2x file shortcut `open-benchmark.bat` di root proyek).*
 3. **Langkah Pengujian di Layar:**
    * Pilih preset beban: **`100 VUs (50 Pasang)`**.
@@ -164,9 +164,9 @@ Tunjukkan 3 pembuktian tak terbantahkan ini:
 
 ---
 
-## 7. Panduan Penyusunan Data untuk Bab 4 Skripsi
+## 7. Laporan Evaluasi & Benchmark Kinerja Proyek
 
-Gunakan format tabel berikut untuk menyajikan hasil pengujian di Bab 4 (Hasil dan Pembahasan):
+Gunakan format tabel berikut untuk dokumentasi laporan hasil pengujian proyek:
 
 ### Tabel Evaluasi Kinerja Beban Konkuren CoTURN
 | Parameter Pengujian | Nilai Pengujian | Keterangan / Standar Keberhasilan |

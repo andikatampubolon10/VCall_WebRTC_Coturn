@@ -190,7 +190,8 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  if (req.url === '/benchmark' || req.url === '/benchmark.html') {
+  // Halaman Utama: Langsung Tampilkan Dashboard Pengujian Beban di http://localhost:3000
+  if (req.url === '/' || req.url === '/benchmark' || req.url === '/benchmark.html') {
     const benchPath = path.join(__dirname, '..', 'client', 'benchmark.html');
     if (fs.existsSync(benchPath)) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -198,7 +199,8 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  if (req.url === '/api/status' || req.url === '/') {
+  // API Status Gateway (JSON)
+  if (req.url === '/api/status') {
     const onlineList = Array.from(clients.entries()).map(([userId, d]) => ({
       userId,
       appName: d.appName,
@@ -210,7 +212,7 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify({
       gateway: 'Shared WebRTC Gateway & Room Broker',
       status: 'active',
-      benchmarkDashboard: '/benchmark.html',
+      benchmarkDashboard: '/',
       onlineCount: clients.size,
       users: onlineList
     }));
