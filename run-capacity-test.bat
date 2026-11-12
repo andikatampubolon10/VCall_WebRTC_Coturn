@@ -25,3 +25,4 @@ echo.
 echo Menjalankan uji kapasitas bertingkat ke ws://%VPS_IP%:3000 ...
 node benchmark-capacity.js %TIERS% ws://%VPS_IP%:3000 %VPS_IP%
 pause
+
